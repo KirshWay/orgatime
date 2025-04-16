@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { startOfWeek } from "date-fns";
-import { Printer, User } from "lucide-react";
+import { Info, Printer, User } from "lucide-react";
 
 import { useAuth } from "@/app/providers/AuthProvider";
 import { SearchBar } from "@/features/search";
@@ -101,6 +101,13 @@ export const Header: React.FC = () => {
               onClick={() => setIsSettingsOpen(true)}
             >
               Settings
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="cursor-pointer flex justify-between"
+              onClick={() => navigate("/about")}
+            >
+              About
+              <Info />
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>

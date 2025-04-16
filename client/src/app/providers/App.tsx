@@ -35,6 +35,10 @@ const NotFound = lazy(() =>
   import("@/pages/not-found").then((module) => ({ default: module.NotFound })),
 );
 
+const Landing = lazy(() =>
+  import("@/pages/landing").then((module) => ({ default: module.Landing })),
+);
+
 const PageTransition = ({ children }: { children: React.ReactNode }) => (
   <m.div
     initial={{ opacity: 0, x: -50 }}
@@ -53,6 +57,16 @@ export const App = () => {
     <ThemeProvider defaultTheme="system">
       <AnimatePresence mode="sync">
         <Routes location={location} key={location.pathname}>
+          <Route
+            path="/about"
+            element={
+              <LazyPage>
+                <PageTransition>
+                  <Landing />
+                </PageTransition>
+              </LazyPage>
+            }
+          />
           <Route
             path="auth/login"
             element={

@@ -8,6 +8,7 @@ import { useUserStore } from "@/shared/stores/userStore";
 type AuthContextType = {
   accessToken: string | null;
   isAuthLoading: boolean;
+  isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (data: {
     email: string;
@@ -109,6 +110,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const value: AuthContextType = {
     accessToken,
     isAuthLoading: !isInitialized,
+    isAuthenticated: !!accessToken,
     login,
     register,
     logout,
