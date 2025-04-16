@@ -1,0 +1,6 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Disallow: /auth/forgot-password
+Disallow: /auth/reset-password
+
+Allow: / 
