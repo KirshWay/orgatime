@@ -33,17 +33,17 @@ FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html
 
 # Копирование конфигурации nginx как шаблон
-COPY ./nginx.conf /etc/nginx/conf.d/default.conf.template
+COPY ./nginx.conf /etc/nginx/conf.d/default.conf
 
 # Копирование entrypoint скрипта
-COPY ./docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
+# COPY ./docker-entrypoint.sh /docker-entrypoint.sh
+# RUN chmod +x /docker-entrypoint.sh
 
 # Открываем порт
 EXPOSE 80
 
 # Используем entrypoint скрипт
-ENTRYPOINT ["/docker-entrypoint.sh"]
+# ENTRYPOINT ["/docker-entrypoint.sh"]
 
 # Запускаем nginx в фоновом режиме
 CMD ["nginx", "-g", "daemon off;"] 
