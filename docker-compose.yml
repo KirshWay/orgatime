@@ -10,7 +10,6 @@ services:
       NODE_ENV: production # Режим окружения - продакшн
     networks: # Сети, к которым подключен сервер
       - local # Локальная сеть для связи с базой данных
-      - bridge # Внешняя сеть для доступа извне
     deploy: # Настройки деплоя в Docker Swarm
       replicas: 1 # Количество экземпляров
       update_config: # Конфигурация обновления
@@ -18,13 +17,12 @@ services:
         order: start-first # Сначала запускать новую версию, потом останавливать старую
       restart_policy: # Политика перезапуска
         condition: on-failure # Перезапуск при сбое
-    ports: # Открываемые порты
-      - "8000:8000" # Проброс порта для сервера
 
   client: # Клиентская часть приложения
     image: ghcr.io/kirshway/orgatime/client:latest # Образ клиента из GitHub Container Registry
     networks: # Сети, к которым подключен клиент
-      - bridge # Внешняя сеть для доступа извне
+      - local # Локальная сеть для связи с сервером
+      - server # Внешняя сеть для доступа извне
     deploy: # Настройки деплоя в Docker Swarm
       replicas: 1 # Количество экземпляров
       update_config: # Конфигурация обновления
@@ -32,8 +30,6 @@ services:
         order: start-first # Сначала запускать новую версию, потом останавливать старую
       restart_policy: # Политика перезапуска
         condition: on-failure # Перезапуск при сбое
-    ports: # Открываемые порты
-      - "80:80" # Проброс порта для клиента (HTTP)
 
   postgres: # База данных PostgreSQL
     image: postgres:17-alpine # Образ PostgreSQL из Docker Hub
@@ -45,6 +41,7 @@ services:
       POSTGRES_DB: postgres # Имя базы данных
     networks: # Сети, к которым подключена база данных
       - local # Локальная сеть для связи с сервером
+      - bridge
     user: postgres # Пользователь, от имени которого запускается контейнер
     deploy: # Настройки деплоя в Docker Swarm
       replicas: 1 # Количество экземпляров
@@ -58,3 +55,5 @@ networks: # Определение сетей для связи контейне
   local: # Локальная сеть для внутренней связи контейнеров
   bridge: # Внешняя сеть для доступа извне
     external: true # Сеть создана извне, не управляется этим файлом
+  server:
+    external: true
