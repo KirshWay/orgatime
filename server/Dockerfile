@@ -49,6 +49,7 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
 COPY --from=build --chown=node:node /app/dist ./dist
 COPY --from=dependencies --chown=node:node /app/node_modules ./node_modules
+COPY --chown=node:node prisma ./prisma
 # COPY --chown=node:node .env* ./
 
 # Копирование entrypoint скрипта
