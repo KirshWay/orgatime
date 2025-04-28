@@ -59,7 +59,7 @@ RUN chmod +x /docker-entrypoint.sh
 USER node
 
 # Используем entrypoint скрипт
-ENTRYPOINT ["/docker-entrypoint.sh"]
+ENTRYPOINT ["sh", "/docker-entrypoint.sh"]
 
 # Команда запуска приложения
 CMD ["pnpm", "start:prod"]
