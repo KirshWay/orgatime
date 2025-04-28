@@ -14,7 +14,7 @@ env:
   DOCKER_SWARM_PROJECT: ${{ github.ref == 'refs/heads/main' && 'orgatime' || 'orgatime-develop' }} # Изменено: имя проекта на orgatime
   PROJECT_ENVIRONMENT: ${{ github.ref == 'refs/heads/main' && 'production' || 'demonstration' }}
   GITHUB_REGISTRY: ghcr.io
-  GITHUB_REPOSITORY: ${{ github.repository }}
+  GITHUB_REPOSITORY: kirshway/orgatime
 
 jobs:
   build-client: # Переименован: у нас только один клиент, без админки и т.д.
