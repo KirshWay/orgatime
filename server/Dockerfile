@@ -52,6 +52,8 @@ COPY --from=dependencies --chown=node:node /app/node_modules ./node_modules
 COPY --chown=node:node prisma ./prisma
 # COPY --chown=node:node .env* ./
 
+RUN mkdir -p /app/uploads && chown -R node:node /app/uploads
+
 # Копирование entrypoint скрипта
 COPY --chown=node:node docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
