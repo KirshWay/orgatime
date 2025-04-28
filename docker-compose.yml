@@ -1,6 +1,19 @@
 version: "3.8" # Версия Docker Compose
 
 services:
+  client: # Клиентская часть приложения
+    image: ghcr.io/kirshway/orgatime/client:latest # Образ клиента из GitHub Container Registry
+    networks: # Сети, к которым подключен клиент
+      - local # Локальная сеть для связи с сервером
+      - server # Внешняя сеть для доступа извне
+    deploy: # Настройки деплоя в Docker Swarm
+      replicas: 1 # Количество экземпляров
+      update_config: # Конфигурация обновления
+        failure_action: rollback # При ошибке обновления - откат
+        order: start-first # Сначала запускать новую версию, потом останавливать старую
+      restart_policy: # Политика перезапуска
+        condition: on-failure # Перезапуск при сбое
+
   server: # Серверная часть приложения
     image: ghcr.io/kirshway/orgatime/server:latest # Образ сервера из GitHub Container Registry
     environment: # Переменные окружения для сервера
@@ -10,19 +23,6 @@ services:
       NODE_ENV: production # Режим окружения - продакшн
     networks: # Сети, к которым подключен сервер
       - local # Локальная сеть для связи с базой данных
-    deploy: # Настройки деплоя в Docker Swarm
-      replicas: 1 # Количество экземпляров
-      update_config: # Конфигурация обновления
-        failure_action: rollback # При ошибке обновления - откат
-        order: start-first # Сначала запускать новую версию, потом останавливать старую
-      restart_policy: # Политика перезапуска
-        condition: on-failure # Перезапуск при сбое
-
-  client: # Клиентская часть приложения
-    image: ghcr.io/kirshway/orgatime/client:latest # Образ клиента из GitHub Container Registry
-    networks: # Сети, к которым подключен клиент
-      - local # Локальная сеть для связи с сервером
-      - server # Внешняя сеть для доступа извне
     deploy: # Настройки деплоя в Docker Swarm
       replicas: 1 # Количество экземпляров
       update_config: # Конфигурация обновления
