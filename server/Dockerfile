@@ -17,6 +17,7 @@ RUN pnpm install
 
 # Копирование исходного кода
 COPY --chown=node:node . .
+RUN pnpm prisma:generate
 # Сборка приложения
 RUN pnpm build
 
