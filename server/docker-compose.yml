@@ -1,0 +1,60 @@
+version: "3.8" # Версия Docker Compose
+
+services:
+  server: # Серверная часть приложения
+    image: ghcr.io/kirshway/orgatime/server:latest # Образ сервера из GitHub Container Registry
+    environment: # Переменные окружения для сервера
+      DATABASE_URL: ${DATABASE_URL} # URL для подключения к базе данных
+      JWT_SECRET: ${JWT_SECRET} # Секретный ключ для JWT токенов
+      FRONTEND_URL: ${FRONTEND_URL} # URL фронтенда для CORS настроек
+      NODE_ENV: production # Режим окружения - продакшн
+    networks: # Сети, к которым подключен сервер
+      - local # Локальная сеть для связи с базой данных
+      - bridge # Внешняя сеть для доступа извне
+    deploy: # Настройки деплоя в Docker Swarm
+      replicas: 1 # Количество экземпляров
+      update_config: # Конфигурация обновления
+        failure_action: rollback # При ошибке обновления - откат
+        order: start-first # Сначала запускать новую версию, потом останавливать старую
+      restart_policy: # Политика перезапуска
+        condition: on-failure # Перезапуск при сбое
+    ports: # Открываемые порты
+      - "8000:8000" # Проброс порта для сервера
+
+  client: # Клиентская часть приложения
+    image: ghcr.io/kirshway/orgatime/client:latest # Образ клиента из GitHub Container Registry
+    networks: # Сети, к которым подключен клиент
+      - bridge # Внешняя сеть для доступа извне
+    deploy: # Настройки деплоя в Docker Swarm
+      replicas: 1 # Количество экземпляров
+      update_config: # Конфигурация обновления
+        failure_action: rollback # При ошибке обновления - откат
+        order: start-first # Сначала запускать новую версию, потом останавливать старую
+      restart_policy: # Политика перезапуска
+        condition: on-failure # Перезапуск при сбое
+    ports: # Открываемые порты
+      - "80:80" # Проброс порта для клиента (HTTP)
+
+  postgres: # База данных PostgreSQL
+    image: postgres:17-alpine # Образ PostgreSQL из Docker Hub
+    volumes: # Тома для хранения данных
+      - postgres-data:/var/lib/postgresql/data # Том для сохранения данных между перезапусками
+    environment: # Переменные окружения для PostgreSQL
+      POSTGRES_USER: postgres # Пользователь базы данных
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD} # Пароль базы данных из переменных окружения
+      POSTGRES_DB: postgres # Имя базы данных
+    networks: # Сети, к которым подключена база данных
+      - local # Локальная сеть для связи с сервером
+    user: postgres # Пользователь, от имени которого запускается контейнер
+    deploy: # Настройки деплоя в Docker Swarm
+      replicas: 1 # Количество экземпляров
+      restart_policy: # Политика перезапуска
+        condition: on-failure # Перезапуск при сбое
+
+volumes: # Определение томов для хранения данных
+  postgres-data: # Том для данных PostgreSQL
+
+networks: # Определение сетей для связи контейнеров
+  local: # Локальная сеть для внутренней связи контейнеров
+  bridge: # Внешняя сеть для доступа извне
+    external: true # Сеть создана извне, не управляется этим файлом

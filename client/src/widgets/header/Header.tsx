@@ -87,7 +87,7 @@ export const Header: React.FC = () => {
             </Button>
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent className="w-56">
+          <DropdownMenuContent className="w-56 no-print">
             <DropdownMenuLabel>{user?.username}</DropdownMenuLabel>
             <DropdownMenuItem
               className="cursor-pointer flex justify-between"
