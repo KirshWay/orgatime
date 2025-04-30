@@ -1,4 +1,3 @@
-# TODO: to check about there are strings
 name: Build and Deploy
 
 on:
@@ -11,13 +10,13 @@ on:
 
 env:
   DOCKER_IMAGE_VERSION: ${{ github.ref == 'refs/heads/main' && 'latest' || 'develop' }}
-  DOCKER_SWARM_PROJECT: ${{ github.ref == 'refs/heads/main' && 'orgatime' || 'orgatime-develop' }} # Изменено: имя проекта на orgatime
+  DOCKER_SWARM_PROJECT: ${{ github.ref == 'refs/heads/main' && 'orgatime' || 'orgatime-develop' }}
   PROJECT_ENVIRONMENT: ${{ github.ref == 'refs/heads/main' && 'production' || 'demonstration' }}
   GITHUB_REGISTRY: ghcr.io
   GITHUB_REPOSITORY: kirshway/orgatime
 
 jobs:
-  build-client: # Переименован: у нас только один клиент, без админки и т.д.
+  build-client:
     runs-on: ubuntu-24.04
 
     steps:
@@ -40,8 +39,8 @@ jobs:
           context: client
           build-args: |
             PROJECT_ENVIRONMENT=${{ env.PROJECT_ENVIRONMENT }}
-            VITE_BACKEND_URL=${{ secrets.BACKEND_URL }} # Добавлено: URL для бэкенда
-            VITE_SITE_DOMAIN=${{ secrets.SITE_DOMAIN }} # Добавлено: домен сайта
+            VITE_BACKEND_URL=${{ secrets.BACKEND_URL }}
+            VITE_SITE_DOMAIN=${{ secrets.SITE_DOMAIN }}
           push: true
           tags: ${{ env.GITHUB_REGISTRY }}/${{ env.GITHUB_REPOSITORY }}/client:${{ env.DOCKER_IMAGE_VERSION }}
 
@@ -71,7 +70,7 @@ jobs:
   deploy:
     runs-on: ubuntu-24.04
 
-    needs: [build-client, build-server] # Изменено: оставлены только нужные зависимости
+    needs: [build-client, build-server]
 
     steps:
       - name: Checkout 🛎

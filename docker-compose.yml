@@ -1,61 +1,61 @@
-version: "3.8" # Версия Docker Compose
+version: "3.8"
 
 services:
-  client: # Клиентская часть приложения
-    image: ghcr.io/kirshway/orgatime/client:latest # Образ клиента из GitHub Container Registry
-    networks: # Сети, к которым подключен клиент
-      - local # Локальная сеть для связи с сервером
-      - server # Внешняя сеть для доступа извне
-    deploy: # Настройки деплоя в Docker Swarm
-      replicas: 1 # Количество экземпляров
-      update_config: # Конфигурация обновления
-        failure_action: rollback # При ошибке обновления - откат
-        order: start-first # Сначала запускать новую версию, потом останавливать старую
-      restart_policy: # Политика перезапуска
-        condition: on-failure # Перезапуск при сбое
+  client:
+    image: ghcr.io/kirshway/orgatime/client:latest
+    networks:
+      - local
+      - server
+    deploy:
+      replicas: 1
+      update_config:
+        failure_action: rollback
+        order: start-first
+      restart_policy:
+        condition: on-failure
 
-  server: # Серверная часть приложения
-    image: ghcr.io/kirshway/orgatime/server:latest # Образ сервера из GitHub Container Registry
-    environment: # Переменные окружения для сервера
-      DATABASE_URL: ${DATABASE_URL} # URL для подключения к базе данных
-      JWT_SECRET: ${JWT_SECRET} # Секретный ключ для JWT токенов
-      FRONTEND_URL: ${FRONTEND_URL} # URL фронтенда для CORS настроек
-      NODE_ENV: production # Режим окружения - продакшн
-    networks: # Сети, к которым подключен сервер
-      - local # Локальная сеть для связи с базой данных
-    volumes: # Тома для хранения данных
+  server:
+    image: ghcr.io/kirshway/orgatime/server:latest
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      FRONTEND_URL: ${FRONTEND_URL}
+      NODE_ENV: production
+    networks:
+      - local
+    volumes:
       - uploads-data:/app/uploads
-    deploy: # Настройки деплоя в Docker Swarm
-      replicas: 1 # Количество экземпляров
-      update_config: # Конфигурация обновления
-        failure_action: rollback # При ошибке обновления - откат
-        order: start-first # Сначала запускать новую версию, потом останавливать старую
-      restart_policy: # Политика перезапуска
-        condition: on-failure # Перезапуск при сбое
+    deploy:
+      replicas: 1
+      update_config:
+        failure_action: rollback
+        order: start-first
+      restart_policy:
+        condition: on-failure
 
-  postgres: # База данных PostgreSQL
-    image: postgres:17-alpine # Образ PostgreSQL из Docker Hub
-    volumes: # Тома для хранения данных
-      - postgres-data:/var/lib/postgresql/data # Том для сохранения данных между перезапусками
-    environment: # Переменные окружения для PostgreSQL
-      POSTGRES_USER: postgres # Пользователь базы данных
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD} # Пароль базы данных из переменных окружения
-      POSTGRES_DB: postgres # Имя базы данных
-    networks: # Сети, к которым подключена база данных
-      - local # Локальная сеть для связи с сервером
+  postgres:
+    image: postgres:17-alpine
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: postgres
+    networks:
+      - local
       - bridge
-    user: postgres # Пользователь, от имени которого запускается контейнер
-    deploy: # Настройки деплоя в Docker Swarm
-      replicas: 1 # Количество экземпляров
-      restart_policy: # Политика перезапуска
-        condition: on-failure # Перезапуск при сбое
+    user: postgres
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
 
-volumes: # Определение томов для хранения данных
-  postgres-data: # Том для данных PostgreSQL
-  uploads-data: # Том для хранения файлов
-networks: # Определение сетей для связи контейнеров
-  local: # Локальная сеть для внутренней связи контейнеров
-  bridge: # Внешняя сеть для доступа извне
-    external: true # Сеть создана извне, не управляется этим файлом
+volumes:
+  postgres-data:
+  uploads-data:
+networks:
+  local:
+  bridge:
+    external: true
   server:
     external: true
