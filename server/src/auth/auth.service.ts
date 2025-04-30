@@ -283,7 +283,7 @@ export class AuthService {
 
   private generateResetPasswordUrl(email: string, token: string): string {
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    const resetUrl = `${frontendUrl}/auth/reset-password?token=${token}`;
+    const resetUrl = `${frontendUrl}auth/reset-password?token=${token}`;
     return resetUrl;
   }
 }
