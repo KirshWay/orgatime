@@ -1,3 +1,4 @@
+import { Request } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { existsSync, mkdirSync, writeFile } from 'fs';
 import { promisify } from 'util';
@@ -7,6 +8,8 @@ import * as sharp from 'sharp';
 const writeFileAsync = promisify(writeFile);
 
 export const editFileName = (
+  req: Request,
+  file: Express.Multer.File,
   callback: (error: Error | null, filename: string) => void,
 ): void => {
   const name = uuidv4();
@@ -15,6 +18,7 @@ export const editFileName = (
 };
 
 export const imageFileFilter = (
+  req: Request,
   file: Express.Multer.File,
   callback: (error: Error | null, acceptFile: boolean) => void,
 ): void => {
