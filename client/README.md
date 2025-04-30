@@ -1,7 +1,7 @@
 # Orgatime - Frontend
 
 <p align="center">
-  <img src="./public/images/icon.png" alt="Orgatime Logo" width="120" height="120" />
+  <img src="./public/icon.png" alt="Orgatime Logo" width="120" height="120" />
 </p>
 
 The frontend of Orgatime is built with modern React and follows the Feature-Sliced Design architecture for maintainable and scalable code organization.

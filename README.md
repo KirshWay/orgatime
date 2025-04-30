@@ -1,7 +1,7 @@
 # Orgatime - Task and Time Management System
 
 <p align="center">
-  <img src="./client/public/images/icon.png" alt="Orgatime Logo" width="150" height="150" />
+  <img src="./client/public/icon.png" alt="Orgatime Logo" width="150" height="150" />
 </p>
 
 Orgatime is a modern, full-featured task and time management application built with React and NestJS. It provides an intuitive interface for managing tasks, tracking time, and enhancing productivity through visual organization.

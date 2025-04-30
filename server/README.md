@@ -1,7 +1,7 @@
 # Orgatime - Backend
 
 <p align="center">
-  <img src="../client/public/images/icon.png" alt="Orgatime Logo" width="120" height="120" />
+  <img src="../client/public/icon.png" alt="Orgatime Logo" width="120" height="120" />
 </p>
 
 The backend of Orgatime is built with NestJS, providing a robust foundation for the API with modular architecture, TypeScript support, and enterprise-grade features.
