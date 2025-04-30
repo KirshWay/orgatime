@@ -1,68 +1,213 @@
-# Orgatime - Server Side
+# Orgatime - Backend
 
-The server side of the Orgatime application is built with NestJS, TypeScript, and Prisma ORM for working with PostgreSQL database.
+<p align="center">
+  <img src="../client/public/images/icon.png" alt="Orgatime Logo" width="120" height="120" />
+</p>
 
-## Technology Stack
+The backend of Orgatime is built with NestJS, providing a robust foundation for the API with modular architecture, TypeScript support, and enterprise-grade features.
 
-- **NestJS** - progressive Node.js framework for building efficient and scalable server-side applications
-- **TypeScript** - statically typed programming language
-- **Prisma ORM** - modern ORM for database operations
-- **PostgreSQL** - relational database
-- **JWT** - for authentication and authorization
-- **Passport** - for authentication strategies
-- **Node-mailer** - for sending emails
-- **Multer** - for file uploads
+## 🧪 Technology Stack
 
-## Project Architecture
+- **Core Framework**: NestJS 11, TypeScript 5
+- **Database**:
+  - PostgreSQL 17
+  - Prisma ORM 6.x for type-safe database operations
+- **Authentication**:
+  - JWT for token-based authentication
+  - bcrypt for password hashing
+  - Passport strategies
+- **File Management**:
+  - Multer for file uploads
+  - Sharp for image processing
+- **API Documentation**: Swagger/OpenAPI
+- **Validation**: class-validator and class-transformer
+- **Monitoring**: Built-in NestJS logging and exception handling
 
-The project follows the modular architecture of NestJS:
+## 🏗️ Architecture
 
-- `/src/main.ts` - application entry point
-- `/src/app.module.ts` - root application module
-- `/src/auth` - authentication and authorization module
-- `/src/users` - user management module
-- `/src/tasks` - task management module
-- `/src/projects` - project management module
-- `/src/common` - common components, decorators, guards, etc.
-- `/prisma` - Prisma schema and migrations
+The backend follows NestJS modular architecture, with clear separation of concerns:
 
-## Running the Project
-
-```bash
-# Installing dependencies
-npm install
-
-# Running in development mode
-npm run start:dev
-
-# Building the project
-npm run build
-
-# Running in production mode
-npm run start:prod
+```
+/src
+  /auth          # Authentication, authorization, JWT strategies
+  /users         # User management
+  /tasks         # Task-related functionality
+  /common        # Shared decorators, filters, and utilities
+  /prisma        # Prisma service and schema
+  /utils         # Utility functions and helpers
+  main.ts        # Application entry point
+  app.module.ts  # Root application module
 ```
 
-## Database and Prisma
+### Module Structure
 
-The project uses Prisma ORM for working with PostgreSQL. The Prisma schema is located in the `prisma/schema.prisma` file.
+Each feature module (auth, users, tasks) follows a consistent pattern:
 
-```bash
-# Applying migrations
-npx prisma migrate dev
+- **Controller**: Handles HTTP requests and defines routes
+- **Service**: Contains business logic
+- **DTO**: Data Transfer Objects for validation
+- **Entities**: TypeScript interfaces matching Prisma models
+- **Repository Pattern**: Service uses Prisma for database operations
 
-# Generating Prisma client
-npx prisma generate
+## 📊 Database Schema
 
-# Viewing database data
-npx prisma studio
+The database schema is defined using Prisma and includes these main entities:
+
+- **User**: User accounts and authentication
+- **Task**: Core task entity with properties like title, description, date
+- **Subtask**: Child tasks belonging to a parent task
+- **TaskImage**: Images attached to tasks
+
+## 🔐 Security Features
+
+- JWT-based authentication with refresh tokens
+- Password hashing with bcrypt
+- Password reset with secure tokens
+- Role-based access control for endpoints
+- Request throttling for auth endpoints
+- JWT token expiration and refresh mechanism
+- Secure cookie handling
+- CORS configuration
+- Input validation using DTOs and class-validator
+
+## 🚀 API Endpoints
+
+### Authentication
+
+- `POST /api/auth/register` - Register a new user
+- `POST /api/auth/login` - Log in and get access token
+- `POST /api/auth/refresh` - Refresh access token
+- `POST /api/auth/logout` - Log out and invalidate tokens
+- `POST /api/auth/forgot-password` - Request password reset
+- `POST /api/auth/reset-password` - Reset password with token
+
+### Users
+
+- `GET /api/users/profile` - Get current user profile
+- `PATCH /api/users/profile` - Update user profile
+- `POST /api/users/avatar` - Upload user avatar
+- `POST /api/users/change-password` - Change user password
+
+### Tasks
+
+- `GET /api/tasks` - Get tasks list (with filtering)
+- `GET /api/tasks/:id` - Get specific task
+- `POST /api/tasks` - Create new task
+- `PATCH /api/tasks/:id` - Update task
+- `DELETE /api/tasks/:id` - Delete task
+- `POST /api/tasks/:id/images` - Upload images to task
+- `DELETE /api/tasks/images/:id` - Remove image from task
+- `POST /api/tasks/:id/subtasks` - Add subtask
+- `PATCH /api/tasks/subtasks/:id` - Update subtask
+- `DELETE /api/tasks/subtasks/:id` - Delete subtask
+
+## 🛠️ Development
+
+### Environment Variables
+
+Create a `.env` file with the following variables:
+
+```
+# Database
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/orgatime?schema=public"
+
+# Authentication
+JWT_SECRET="your-secret-key"
+FRONTEND_URL="http://localhost:3000"
+
+# App Settings
+PORT=8000
+NODE_ENV=development
 ```
 
-## API Endpoints
+### Commands
 
-Main API endpoints:
+```bash
+# Install dependencies
+pnpm install
 
-- **Auth**: `/api/auth` - registration, authorization, token refresh
-- **Users**: `/api/users` - user management
-- **Tasks**: `/api/tasks` - CRUD operations with tasks
-- **Projects**: `/api/projects` - CRUD operations with projects
-- **Images**: `/api/images` - uploading and managing images
+# Generate Prisma client
+pnpm prisma:generate
+
+# Run database migrations
+pnpm prisma:migrate
+
+# Start development server
+pnpm start:dev
+
+# Build for production
+pnpm build
+
+# Run in production mode
+pnpm start:prod
+
+# Run database migrations in production
+pnpm prisma:migrate:deploy
+```
+
+## 🐳 Docker Support
+
+The backend includes Docker configuration for easy deployment:
+
+- `Dockerfile` - Multi-stage build for production
+- `docker-entrypoint.sh` - Entry script for container initialization
+- `compose.dev.yaml` - Development setup with PostgreSQL
+
+## 🧩 Code Structure Example
+
+Controller example:
+
+```typescript
+@Controller('tasks')
+export class TasksController {
+  constructor(private readonly tasksService: TasksService) {}
+
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  async findAll(@User() user: UserEntity, @Query() query: GetTasksDto) {
+    return this.tasksService.findAll(user.id, query);
+  }
+
+  @Post()
+  @UseGuards(JwtAuthGuard)
+  async create(@User() user: UserEntity, @Body() createTaskDto: CreateTaskDto) {
+    return this.tasksService.create(user.id, createTaskDto);
+  }
+
+  // Additional endpoints...
+}
+```
+
+Service example:
+
+```typescript
+@Injectable()
+export class TasksService {
+  constructor(private prisma: PrismaService) {}
+
+  async findAll(userId: string, query: GetTasksDto) {
+    const { completed, date, someday } = query;
+
+    return this.prisma.task.findMany({
+      where: {
+        userId,
+        completed: completed !== undefined ? completed : undefined,
+        dueDate: someday ? null : date ? date : undefined,
+      },
+      include: {
+        subtasks: true,
+        images: true,
+      },
+      orderBy: {
+        order: 'asc',
+      },
+    });
+  }
+
+  // Additional methods...
+}
+```
+
+## 📝 API Documentation
+
+The API is documented using Swagger, available at `/api/docs` when running the server.
