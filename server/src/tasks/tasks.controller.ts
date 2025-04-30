@@ -145,7 +145,7 @@ export class TasksController {
   @UseInterceptors(
     FileInterceptor('image', {
       fileFilter: imageFileFilter,
-      limits: { fileSize: 10 * 1024 * 1024 }, // 10MB лимит
+      limits: { fileSize: 10 * 1024 * 1024 },
     }),
   )
   @ApiBody({
