@@ -335,7 +335,7 @@ export const TaskModal: React.FC<Props> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        className="max-w-xl max-h-[85svh] overflow-y-auto sm:max-h-[90svh] p-4 sm:p-6"
+        className="max-w-xl max-h-[75svh] overflow-y-auto sm:max-h-[90svh] p-4 sm:p-6"
         style={
           selectedColor
             ? { backgroundColor: TASK_COLOR_HEX[selectedColor] }
