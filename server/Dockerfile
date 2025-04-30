@@ -1,5 +1,5 @@
 # Базовый образ Node.js с Alpine Linux
-FROM node:23-alpine AS base
+FROM node:22-alpine AS base
 
 # Установка pnpm - менеджера пакетов
 RUN npm i --global --no-update-notifier --no-fund pnpm
