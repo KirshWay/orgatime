@@ -24,6 +24,10 @@ export const TaskImages: React.FC<Props> = ({
   const uploadImageMutation = useUploadTaskImage();
   const deleteImageMutation = useDeleteTaskImage();
 
+  const isUploading = uploadImageMutation.isPending;
+  const isDeleting = deleteImageMutation.isPending;
+  const { uploadProgress } = uploadImageMutation;
+
   const handleUploadImage = (file: File | null) => {
     if (file) {
       uploadImageMutation.mutate(
@@ -68,6 +72,7 @@ export const TaskImages: React.FC<Props> = ({
             size="sm"
             variant="outline"
             onClick={() => setIsAddingImage(true)}
+            disabled={isUploading || isDeleting}
           >
             <ImageIcon className="mr-1 h-4 w-4" /> Add
           </Button>
@@ -77,11 +82,17 @@ export const TaskImages: React.FC<Props> = ({
       {isAddingImage ? (
         <ImageUploader
           onFileChange={handleUploadImage}
-          onCancel={() => setIsAddingImage(false)}
+          onCancel={() => !isUploading && setIsAddingImage(false)}
+          isUploading={isUploading}
+          uploadProgress={uploadProgress}
         />
       ) : (
         <div className="min-h-[40px]">
-          <ImageGallery images={taskImages} onDelete={handleDeleteImage} />
+          <ImageGallery
+            images={taskImages}
+            onDelete={handleDeleteImage}
+            isDisabled={isDeleting || isUploading}
+          />
         </div>
       )}
 

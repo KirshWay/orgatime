@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -13,16 +14,48 @@ import {
 
 export const useUploadTaskImage = () => {
   const queryClient = useQueryClient();
-  return useMutation<TaskImage, Error, { taskId: string; imageFile: File }>({
-    mutationFn: ({ taskId, imageFile }) => uploadTaskImage(taskId, imageFile),
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+
+  const mutation = useMutation<
+    TaskImage,
+    Error,
+    { taskId: string; imageFile: File }
+  >({
+    mutationFn: ({ taskId, imageFile }) =>
+      uploadTaskImage(taskId, imageFile, (progress) => {
+        setUploadProgress(progress);
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       toast.success("Image uploaded successfully");
+      setUploadProgress(0);
     },
     onError: (error) => {
-      toast.error(parseApiError(error));
+      const errorMessage = parseApiError(error);
+      setUploadProgress(0);
+
+      if (
+        errorMessage.includes("Payload too large") ||
+        errorMessage.includes("413")
+      ) {
+        toast.error("File is too large. Maximum size: 10MB");
+      } else if (
+        errorMessage.includes("timeout") ||
+        errorMessage.includes("network")
+      ) {
+        toast.error(
+          "Network problem. Please check your connection and try again",
+        );
+      } else {
+        toast.error(errorMessage || "Image upload error");
+      }
     },
   });
+
+  return {
+    ...mutation,
+    uploadProgress,
+  };
 };
 
 export const useReplaceTaskImage = () => {

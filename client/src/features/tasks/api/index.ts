@@ -89,6 +89,7 @@ export const updateTasksOrder = async (
 export const uploadTaskImage = async (
   taskId: string,
   imageFile: File,
+  onProgress?: (progress: number) => void,
 ): Promise<TaskImage> => {
   const formData = new FormData();
   formData.append("image", imageFile);
@@ -98,6 +99,15 @@ export const uploadTaskImage = async (
     formData,
     {
       headers: { "Content-Type": "multipart/form-data" },
+      onUploadProgress: (progressEvent) => {
+        if (onProgress && progressEvent.total) {
+          const percentCompleted = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total,
+          );
+          onProgress(percentCompleted);
+        }
+      },
+      timeout: 60000,
     },
   );
 

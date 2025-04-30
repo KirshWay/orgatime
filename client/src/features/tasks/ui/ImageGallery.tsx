@@ -18,9 +18,14 @@ import { OptimizedImage } from "@/shared/ui/optimized-image";
 type Props = {
   images: TaskImage[];
   onDelete: (imageId: string) => void;
+  isDisabled?: boolean;
 };
 
-export const ImageGallery: React.FC<Props> = ({ images, onDelete }) => {
+export const ImageGallery: React.FC<Props> = ({
+  images,
+  onDelete,
+  isDisabled = false,
+}) => {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(
     null,
   );
@@ -58,17 +63,19 @@ export const ImageGallery: React.FC<Props> = ({ images, onDelete }) => {
           >
             <AspectRatio ratio={1}>
               <button
-                className="absolute top-1 right-1 z-10 rounded-full bg-black bg-opacity-50 p-1 text-white hover:bg-opacity-70"
+                className="absolute top-1 right-1 z-10 rounded-full bg-black bg-opacity-50 p-1 text-white hover:bg-opacity-70 disabled:cursor-not-allowed disabled:opacity-50"
                 onClick={(e) => {
                   e.stopPropagation();
                   onDelete(image.id);
                 }}
+                disabled={isDisabled}
               >
                 <X size={14} />
               </button>
               <button
                 className="h-full w-full"
                 onClick={() => handleImageClick(index)}
+                disabled={isDisabled}
               >
                 <OptimizedImage
                   src={image.path}

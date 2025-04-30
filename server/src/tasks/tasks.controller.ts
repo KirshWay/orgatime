@@ -10,6 +10,8 @@ import {
   UploadedFile,
   UseGuards,
   UseInterceptors,
+  RequestTimeoutException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -31,7 +33,7 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { SearchTasksDto } from './dto/search-tasks.dto';
 import { TasksService } from './tasks.service';
 import { join } from 'path';
-import { convertToWebp } from 'src/utils/file-upload.utils';
+import { convertToWebp, imageFileFilter } from 'src/utils/file-upload.utils';
 
 @ApiTags('Tasks')
 @ApiBearerAuth()
@@ -140,7 +142,12 @@ export class TasksController {
   @ApiOperation({ summary: 'Upload an image for a task' })
   @ApiConsumes('multipart/form-data')
   @Post(':taskId/images')
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(
+    FileInterceptor('image', {
+      fileFilter: imageFileFilter,
+      limits: { fileSize: 10 * 1024 * 1024 }, // 10MB лимит
+    }),
+  )
   @ApiBody({
     schema: {
       type: 'object',
@@ -159,15 +166,38 @@ export class TasksController {
   ) {
     const user = req.user as { id: string };
 
-    const destination = join(process.cwd(), 'uploads', 'tasks');
-    const { filename, path } = await convertToWebp(file, destination);
+    try {
+      const destination = join(process.cwd(), 'uploads', 'tasks');
 
-    const imageDto: TaskImageDto = {
-      filename,
-      path,
-    };
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Image processing timeout')), 30000);
+      });
 
-    return this.tasksService.addTaskImage(user.id, taskId, imageDto);
+      const processingPromise = convertToWebp(file, destination);
+
+      const { filename, path } = (await Promise.race([
+        processingPromise,
+        timeoutPromise,
+      ])) as { filename: string; path: string };
+
+      const imageDto: TaskImageDto = {
+        filename,
+        path,
+      };
+
+      return this.tasksService.addTaskImage(user.id, taskId, imageDto);
+    } catch (error) {
+      console.error('Error processing image:', error);
+      if (
+        error instanceof Error &&
+        error.message === 'Image processing timeout'
+      ) {
+        throw new RequestTimeoutException(
+          'Image processing timeout. Please try reducing the file size or uploading another image.',
+        );
+      }
+      throw new InternalServerErrorException('Error processing image.');
+    }
   }
 
   @ApiOperation({ summary: 'Get all images for a task' })
