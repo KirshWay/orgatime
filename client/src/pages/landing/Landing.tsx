@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 
 import { useAuth } from "@/app/providers/AuthProvider";
 import { useUserStore } from "@/shared/stores/userStore";
+import { BackgroundPaths } from "@/shared/ui/background-paths";
 import { Button } from "@/shared/ui/button";
 import {
   DropdownMenu,
@@ -74,6 +75,8 @@ export const Landing = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 overflow-x-hidden">
+      <BackgroundPaths opacity={0.4} zIndex={1} />
+
       <SEO
         title="OrgaTime - Manager of your time"
         description="OrgaTime helps you effectively organize your week using an intuitive task management system."
@@ -148,7 +151,7 @@ export const Landing = () => {
         </nav>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-16">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-16 relative z-10">
         <section className="flex flex-col-reverse md:flex-row items-center mb-12 sm:mb-20">
           <motion.div
             className="flex-1 mt-12 md:mt-0 md:pr-8"
