@@ -9,7 +9,12 @@ import { searchTasks } from "@/features/tasks/api";
 import { useDebounce } from "@/shared/hooks/useDebounce";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
-import { Dialog, DialogContent } from "@/shared/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/shared/ui/dialog";
 
 export const SearchBar = () => {
   const [open, setOpen] = useState(false);
@@ -77,7 +82,7 @@ export const SearchBar = () => {
       <Button
         variant="outline"
         size="sm"
-        className="lg:w-48 h-9 w-9 rounded-full justify-center lg:justify-start text-muted-foreground"
+        className="hidden md:flex lg:w-48 h-9 w-9 rounded-full justify-center lg:justify-start text-muted-foreground"
         onClick={() => setOpen(true)}
       >
         <Search className="lg:mr-2 h-4 w-4" />
@@ -87,6 +92,12 @@ export const SearchBar = () => {
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-md p-0">
+          <DialogTitle className="sr-only">Search tasks modal</DialogTitle>
+
+          <DialogDescription className="sr-only">
+            Search tasks
+          </DialogDescription>
+
           <div className="flex flex-col">
             <div className="flex items-center border-b px-3 py-2">
               <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
@@ -147,7 +158,7 @@ export const SearchBar = () => {
         </DialogContent>
       </Dialog>
 
-      <div className="lg:hidden fixed bottom-4 right-4 z-50">
+      <div className="md:hidden fixed bottom-4 right-4 z-50">
         <Button
           size="icon"
           className="h-10 w-10 p-0 rounded-full shadow-lg"
