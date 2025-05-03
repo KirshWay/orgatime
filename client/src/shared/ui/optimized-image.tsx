@@ -10,6 +10,7 @@ type OptimizedImageProps = {
   height?: number;
   placeholderSrc?: string;
   objectFit?: "contain" | "cover" | "fill" | "none" | "scale-down";
+  isAvatar?: boolean;
   onLoad?: () => void;
   onError?: () => void;
 };
@@ -22,6 +23,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   height,
   placeholderSrc,
   objectFit = "cover",
+  isAvatar = false,
   onLoad,
   onError,
 }) => {
@@ -43,27 +45,56 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
     onError?.();
   };
 
+  if (isAvatar) {
+    return (
+      <img
+        src={isError && placeholderSrc ? placeholderSrc : src}
+        alt={alt}
+        className={cn(
+          "transition-opacity",
+          {
+            "opacity-0": !isLoaded && !isError,
+            "opacity-100": isLoaded || isError,
+          },
+          className,
+        )}
+        width={width}
+        height={height}
+        loading="lazy"
+        style={{
+          objectFit,
+        }}
+        aria-label={alt}
+        onLoad={handleLoad}
+        onError={handleError}
+      />
+    );
+  }
+
   return (
-    <img
-      src={isError && placeholderSrc ? placeholderSrc : src}
-      alt={alt}
+    <div
       className={cn(
-        "transition-opacity",
-        {
-          "opacity-0": !isLoaded && !isError,
-          "opacity-100": isLoaded || isError,
-        },
+        "relative flex items-center justify-center overflow-hidden",
         className,
       )}
-      width={width}
-      height={height}
-      loading="lazy"
-      style={{
-        objectFit,
-      }}
-      aria-label={alt}
-      onLoad={handleLoad}
-      onError={handleError}
-    />
+    >
+      <img
+        src={isError && placeholderSrc ? placeholderSrc : src}
+        alt={alt}
+        className={cn("max-h-full max-w-full transition-opacity", {
+          "opacity-0": !isLoaded && !isError,
+          "opacity-100": isLoaded || isError,
+        })}
+        width={width}
+        height={height}
+        loading="lazy"
+        style={{
+          objectFit,
+        }}
+        aria-label={alt}
+        onLoad={handleLoad}
+        onError={handleError}
+      />
+    </div>
   );
 };

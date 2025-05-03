@@ -111,6 +111,7 @@ export const Landing = () => {
                         alt="User avatar"
                         className="h-full w-full"
                         objectFit="cover"
+                        isAvatar
                       />
                     </div>
                   ) : (

@@ -61,26 +61,28 @@ export const ImageUploader: React.FC<Props> = ({
   return (
     <div className="flex flex-col items-center space-y-4">
       {previewUrl ? (
-        <div className="relative w-full">
-          <OptimizedImage
-            src={previewUrl}
-            alt="Preview"
-            className="max-h-40 max-w-full rounded object-contain"
-            objectFit="contain"
-          />
-          {isUploading && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/20 rounded">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-white border-t-transparent mb-2"></div>
-              {uploadProgress > 0 && (
-                <div className="w-full max-w-64 px-4">
-                  <Progress value={uploadProgress} className="h-2" />
-                  <p className="text-xs text-white text-center mt-1">
-                    {uploadProgress}%
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
+        <div className="relative w-full h-40 flex items-center justify-center">
+          <div className="relative max-h-40 max-w-full overflow-hidden rounded">
+            <OptimizedImage
+              src={previewUrl}
+              alt="Preview"
+              className="h-auto max-h-40 max-w-full"
+              objectFit="contain"
+            />
+            {isUploading && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/20 rounded">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-white border-t-transparent mb-2"></div>
+                {uploadProgress > 0 && (
+                  <div className="w-full max-w-64 px-4">
+                    <Progress value={uploadProgress} className="h-2" />
+                    <p className="text-xs text-white text-center mt-1">
+                      {uploadProgress}%
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
           <button
             onClick={handleCancel}
             className="absolute -top-2 -right-2 rounded-full bg-white text-red-500 shadow-md"

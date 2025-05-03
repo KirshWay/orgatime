@@ -8,6 +8,7 @@ import { Calendar } from "@/shared/ui/calendar";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -53,6 +54,9 @@ export const CalendarModal: React.FC<Props> = ({
             <CalendarIcon className="h-5 w-5" />
             <span>Choose date</span>
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Choose a date to move the task
+          </DialogDescription>
         </DialogHeader>
 
         <div>

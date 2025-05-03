@@ -11,6 +11,7 @@ import { Button } from "@/shared/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -181,6 +182,9 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose }) => {
       <DialogContent className="p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle>Settings</DialogTitle>
+          <DialogDescription className="sr-only">
+            User profile settings
+          </DialogDescription>
         </DialogHeader>
 
         <FormProvider {...methods}>

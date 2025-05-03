@@ -43,6 +43,7 @@ export const AvatarUploader: React.FC<Props> = ({ img, onFileChange }) => {
               alt="Preview avatar"
               className="w-full h-full"
               objectFit="cover"
+              isAvatar
             />
           ) : (
             <UserRoundX className="w-1/2 h-1/2" />

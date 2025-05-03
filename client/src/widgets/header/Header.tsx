@@ -79,6 +79,7 @@ export const Header: React.FC = () => {
                     alt="User avatar"
                     className="h-full w-full"
                     objectFit="cover"
+                    isAvatar
                   />
                 </div>
               ) : (

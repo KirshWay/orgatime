@@ -21,6 +21,7 @@ import { Checkbox } from "@/shared/ui/checkbox";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -420,6 +421,9 @@ export const TaskModal: React.FC<Props> = ({
               </DropdownMenu>
             </div>
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Header of the task modal
+          </DialogDescription>
         </DialogHeader>
 
         <FormProvider {...methods}>

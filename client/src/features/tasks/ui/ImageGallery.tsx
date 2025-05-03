@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { UseEmblaCarouselType } from "embla-carousel-react";
 import { X } from "lucide-react";
 
@@ -12,7 +12,13 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/shared/ui/carousel";
-import { Dialog, DialogContent, DialogHeader } from "@/shared/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/ui/dialog";
 import { OptimizedImage } from "@/shared/ui/optimized-image";
 
 type Props = {
@@ -33,6 +39,12 @@ export const ImageGallery: React.FC<Props> = ({
     UseEmblaCarouselType[1] | null
   >(null);
 
+  useEffect(() => {
+    if (carouselApi && selectedImageIndex !== null) {
+      carouselApi.scrollTo(selectedImageIndex);
+    }
+  }, [carouselApi, selectedImageIndex]);
+
   if (images.length === 0) {
     return null;
   }
@@ -49,19 +61,15 @@ export const ImageGallery: React.FC<Props> = ({
     setCarouselApi(api);
   };
 
-  if (carouselApi && selectedImageIndex !== null) {
-    carouselApi.scrollTo(selectedImageIndex);
-  }
-
   return (
     <>
-      <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
         {images.map((image, index) => (
           <div
             key={image.id}
             className="relative overflow-hidden rounded border hover:opacity-95"
           >
-            <AspectRatio ratio={1}>
+            <AspectRatio ratio={1} className="bg-gray-100">
               <button
                 className="absolute top-1 right-1 z-10 rounded-full bg-black bg-opacity-50 p-1 text-white hover:bg-opacity-70 disabled:cursor-not-allowed disabled:opacity-50"
                 onClick={(e) => {
@@ -80,7 +88,8 @@ export const ImageGallery: React.FC<Props> = ({
                 <OptimizedImage
                   src={image.path}
                   alt={`Task image ${index + 1}`}
-                  className="h-full w-full cursor-pointer object-cover"
+                  className="h-full w-full cursor-pointer"
+                  objectFit="cover"
                 />
               </button>
             </AspectRatio>
@@ -94,8 +103,13 @@ export const ImageGallery: React.FC<Props> = ({
           if (!open) setSelectedImageIndex(null);
         }}
       >
-        <DialogContent className="max-w-4xl overflow-hidden p-0 sm:rounded-xl">
+        <DialogContent className="max-w-screen-lg max-h-[90vh] overflow-hidden p-0 sm:rounded-xl">
           <DialogHeader className="absolute right-2 top-2 z-10">
+            <DialogTitle className="sr-only">Image preview</DialogTitle>
+            <DialogDescription className="sr-only">
+              Choose added images
+            </DialogDescription>
+
             <Button
               variant="outline"
               size="icon"
@@ -110,11 +124,11 @@ export const ImageGallery: React.FC<Props> = ({
             <CarouselContent>
               {images.map((image, index) => (
                 <CarouselItem key={image.id}>
-                  <div className="flex h-full items-center justify-center p-6">
+                  <div className="flex h-full items-center justify-center p-4 sm:p-6">
                     <OptimizedImage
                       src={image.path}
                       alt={`Task image ${index + 1}`}
-                      className="max-h-[70vh] max-w-full"
+                      className="max-h-[70vh] w-auto max-w-full"
                       objectFit="contain"
                     />
                   </div>
