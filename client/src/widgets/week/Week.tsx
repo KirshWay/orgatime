@@ -23,7 +23,7 @@ export const Week: React.FC<Props> = memo(({ weekStart, onNavigateToWeek }) => {
   if (isLoading) return <div>Loading tasks...</div>;
 
   return (
-    <AnimatePresence mode="wait">
+    <AnimatePresence mode="sync" key={weekStart.getTime()}>
       {weekDays.map((day, dayIndex) => (
         <m.div
           key={`${dayIndex}_${weekStart.getTime()}`}

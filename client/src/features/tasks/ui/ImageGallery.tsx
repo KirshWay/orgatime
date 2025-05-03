@@ -202,7 +202,7 @@ export const ImageGallery: React.FC<Props> = ({
                 ))}
               </CarouselContent>
 
-              <AnimatePresence>
+              <AnimatePresence mode="sync">
                 {canScrollPrev && (
                   <motion.div
                     initial={{ opacity: 0, x: -10 }}
@@ -223,7 +223,7 @@ export const ImageGallery: React.FC<Props> = ({
                 )}
               </AnimatePresence>
 
-              <AnimatePresence>
+              <AnimatePresence mode="sync">
                 {canScrollNext && (
                   <motion.div
                     initial={{ opacity: 0, x: 10 }}
