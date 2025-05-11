@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { startOfWeek } from "date-fns";
 import { Info, Printer, User } from "lucide-react";
 
-import { useAuth } from "@/app/providers/AuthProvider";
+import { useAuth } from "@/app/providers";
 import { SearchBar } from "@/features/search";
 import { SettingsModal } from "@/features/settings/SettingsModal";
 import { useWeekNavigation } from "@/shared/hooks";

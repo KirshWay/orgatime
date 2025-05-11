@@ -51,6 +51,67 @@ The project follows Feature-Sliced Design methodology for clear separation of co
 - **entities**: Reusable business entities (Task, User)
 - **shared**: UI components, utility functions, API client setup
 
+## 📊 State Management with Zustand
+
+The application uses Zustand for state management with Redux DevTools integration for easier debugging.
+
+### Store Structure
+
+Stores are organized following the FSD principles:
+- Entity-specific state (user profile, etc.) is in `entities/**/model`
+- Feature-specific state is in `features/**/model`
+- Shared global state is in `shared/stores`
+
+### Zustand DevTools Integration
+
+All stores are configured with Redux DevTools middleware for better debugging:
+
+```tsx
+import { create } from "zustand";
+import { devtools } from "zustand/middleware";
+import { STORE_NAMES } from "@/shared/lib/store";
+
+type MyStore = {
+  // your types here
+};
+
+export const useMyStore = create<MyStore>()(
+  devtools(
+    (set) => ({
+      // state and actions
+      myAction: () => 
+        set({ /* new state */ }, false, 'storeName/actionName'),
+    }), 
+    { name: STORE_NAMES.MY_STORE }
+  )
+);
+```
+
+### Action Naming Convention
+
+To improve debugging, each action has a unique name passed as the third parameter to the `set` function:
+
+```tsx
+// bad practice
+set({ count: state.count + 1 });
+
+// good practice
+set({ count: state.count + 1 }, false, 'counter/increment');
+```
+
+Recommended format: `[feature]/[action]`
+
+### Store Names
+
+For consistency, store names are defined as constants in `STORE_NAMES`:
+
+```tsx
+export const STORE_NAMES = {
+  USER_STORE: "UserStore",
+  WEEK_STORE: "WeekStore",
+};
+```
+
 ## 📱 Key Features
 
 ### Task Management
@@ -111,6 +172,16 @@ pnpm lint
 # Format code
 pnpm format
 ```
+
+### Debugging with Redux DevTools
+
+1. Install the Redux DevTools extension for your browser:
+   - [Chrome](https://chrome.google.com/webstore/detail/redux-devtools/lmhkpmbekcpmknklioeibfkpmmfibljd)
+   - [Firefox](https://addons.mozilla.org/en-US/firefox/addon/reduxdevtools/)
+
+2. Open the developer tools in your browser and navigate to the Redux tab
+3. Select the store you want to inspect from the dropdown menu
+4. Track state changes and action history in real-time
 
 ## 🧩 Component Architecture
 

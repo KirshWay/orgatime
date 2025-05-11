@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { User } from "lucide-react";
 import { motion } from "motion/react";
 
-import { useAuth } from "@/app/providers/AuthProvider";
+import { useAuth } from "@/app/providers";
 import { useUserStore } from "@/shared/stores/userStore";
 import { BackgroundPaths } from "@/shared/ui/background-paths";
 import { Button } from "@/shared/ui/button";

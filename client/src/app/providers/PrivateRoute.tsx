@@ -4,7 +4,7 @@ import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useUserStore } from "@/shared/stores/userStore";
 import { LoadingFallback } from "@/shared/ui/loading";
 
-import { useAuth } from "./AuthProvider";
+import { useAuth } from "./auth";
 
 export const PrivateRoute: React.FC = () => {
   const { user } = useUserStore();

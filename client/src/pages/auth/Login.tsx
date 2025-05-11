@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
-import { useAuth } from "@/app/providers/AuthProvider";
+import { useAuth } from "@/app/providers";
 import { parseApiError } from "@/shared/lib/parseApiError";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";

@@ -8,7 +8,7 @@ import { App } from "@/app/providers/App";
 import { initReactScan } from "@/shared/lib/react-scan";
 import { QueryProvider } from "@/shared/query/query-provider";
 
-import { AuthProvider } from "./providers/AuthProvider";
+import { AuthProvider } from "./providers";
 import { ErrorBoundary } from "./providers/ErrorBoundary";
 
 import "@/shared/styles/index.scss";
