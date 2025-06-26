@@ -4,6 +4,7 @@ import { AnimatePresence, motion as m } from "motion/react";
 
 import { ThemeProvider } from "@/shared/theme/theme-provider";
 import { LazyPage } from "@/shared/ui/lazy";
+import { TooltipProvider } from "@/shared/ui/tooltip";
 
 import { PrivateRoute } from "./PrivateRoute";
 
@@ -55,74 +56,76 @@ export const App = () => {
 
   return (
     <ThemeProvider defaultTheme="system">
-      <AnimatePresence mode="sync">
-        <Routes location={location} key={location.pathname}>
-          <Route
-            path="/about"
-            element={
-              <LazyPage>
-                <PageTransition>
-                  <Landing />
-                </PageTransition>
-              </LazyPage>
-            }
-          />
-          <Route
-            path="auth/login"
-            element={
-              <LazyPage>
-                <Login />
-              </LazyPage>
-            }
-          />
-          <Route
-            path="auth/signup"
-            element={
-              <LazyPage>
-                <SignUp />
-              </LazyPage>
-            }
-          />
-          <Route
-            path="auth/forgot-password"
-            element={
-              <LazyPage>
-                <ForgotPassword />
-              </LazyPage>
-            }
-          />
-          <Route
-            path="auth/reset-password"
-            element={
-              <LazyPage>
-                <ResetPassword />
-              </LazyPage>
-            }
-          />
-
-          <Route element={<PrivateRoute />}>
+      <TooltipProvider>
+        <AnimatePresence mode="sync">
+          <Routes location={location} key={location.pathname}>
             <Route
-              path="/"
+              path="/about"
               element={
                 <LazyPage>
                   <PageTransition>
-                    <Home />
+                    <Landing />
                   </PageTransition>
                 </LazyPage>
               }
             />
-          </Route>
+            <Route
+              path="auth/login"
+              element={
+                <LazyPage>
+                  <Login />
+                </LazyPage>
+              }
+            />
+            <Route
+              path="auth/signup"
+              element={
+                <LazyPage>
+                  <SignUp />
+                </LazyPage>
+              }
+            />
+            <Route
+              path="auth/forgot-password"
+              element={
+                <LazyPage>
+                  <ForgotPassword />
+                </LazyPage>
+              }
+            />
+            <Route
+              path="auth/reset-password"
+              element={
+                <LazyPage>
+                  <ResetPassword />
+                </LazyPage>
+              }
+            />
 
-          <Route
-            path="*"
-            element={
-              <LazyPage>
-                <NotFound />
-              </LazyPage>
-            }
-          />
-        </Routes>
-      </AnimatePresence>
+            <Route element={<PrivateRoute />}>
+              <Route
+                path="/"
+                element={
+                  <LazyPage>
+                    <PageTransition>
+                      <Home />
+                    </PageTransition>
+                  </LazyPage>
+                }
+              />
+            </Route>
+
+            <Route
+              path="*"
+              element={
+                <LazyPage>
+                  <NotFound />
+                </LazyPage>
+              }
+            />
+          </Routes>
+        </AnimatePresence>
+      </TooltipProvider>
     </ThemeProvider>
   );
 };
