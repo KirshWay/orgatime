@@ -11,7 +11,7 @@ import { QueryProvider } from "@/shared/query/query-provider";
 import { AuthProvider } from "./providers";
 import { ErrorBoundary } from "./providers/ErrorBoundary";
 
-import "@/shared/styles/index.scss";
+import "@/shared/styles/index.css";
 
 initReactScan();
 

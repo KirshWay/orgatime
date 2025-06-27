@@ -49,7 +49,7 @@ export const Login = () => {
         canonicalUrl={`${import.meta.env.VITE_SITE_DOMAIN}/auth/login`}
       />
 
-      <div className="w-full max-w-md p-8 bg-white dark:bg-gray-800 rounded-lg shadow">
+      <div className="w-full max-w-md p-8 bg-white dark:bg-gray-800 rounded-lg shadow-xs">
         <OptimizedImage
           src="/icon.png"
           alt="Orgatime logo"
@@ -73,7 +73,7 @@ export const Login = () => {
               type="email"
               id="email"
               autoComplete="email"
-              className="w-full mt-1 px-3 py-2 border rounded-md shadow-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+              className="w-full mt-1 px-3 py-2 border rounded-md shadow-xs dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
               placeholder="Enter your email"
             />
             {errors.email && (
@@ -95,7 +95,7 @@ export const Login = () => {
               type="password"
               id="password"
               autoComplete="current-password"
-              className="w-full mt-1 px-3 py-2 border rounded-md shadow-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+              className="w-full mt-1 px-3 py-2 border rounded-md shadow-xs dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
               placeholder="Enter your password"
             />
             {errors.password && (

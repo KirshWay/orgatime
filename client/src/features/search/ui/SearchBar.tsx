@@ -69,7 +69,7 @@ export const SearchBar = () => {
 
     return (
       <div
-        className="h-2 w-2 rounded-full mr-2 flex-shrink-0"
+        className="h-2 w-2 rounded-full mr-2 shrink-0"
         style={{
           backgroundColor: TASK_COLOR_HEX[color as keyof typeof TASK_COLOR_HEX],
         }}
@@ -102,7 +102,7 @@ export const SearchBar = () => {
             <div className="flex items-center border-b px-3 py-2">
               <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
               <input
-                className="flex h-10 w-full rounded-md bg-transparent py-2 text-sm outline-none placeholder:text-gray-500 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-10 w-full rounded-md bg-transparent py-2 text-sm outline-hidden placeholder:text-gray-500 disabled:cursor-not-allowed disabled:opacity-50"
                 placeholder="Search tasks..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
@@ -130,7 +130,7 @@ export const SearchBar = () => {
                       <div
                         key={task.id}
                         onClick={() => handleSelectTask(task)}
-                        className="flex items-center gap-2 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-sm cursor-pointer"
+                        className="flex items-center gap-2 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xs cursor-pointer"
                       >
                         <div className="flex items-center flex-1 truncate">
                           {getTaskColorDot(task.color)}

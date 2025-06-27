@@ -141,7 +141,7 @@ export const TiltCard = ({
           {children}
 
           <motion.div
-            className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/0 to-white/40 dark:from-white/0 dark:via-white/0 dark:to-white/20 pointer-events-none rounded-xl"
+            className="absolute inset-0 bg-linear-to-tr from-white/0 via-white/0 to-white/40 dark:from-white/0 dark:via-white/0 dark:to-white/20 pointer-events-none rounded-xl"
             style={{
               opacity: useTransform(x, [-0.5, 0.5], [0, 0.5]),
             }}

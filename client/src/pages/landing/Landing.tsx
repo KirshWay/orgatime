@@ -74,7 +74,7 @@ export const Landing = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 overflow-x-hidden">
+    <div className="min-h-screen bg-linear-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 overflow-x-hidden">
       <BackgroundPaths opacity={0.4} zIndex={1} />
 
       <SEO
@@ -175,7 +175,7 @@ export const Landing = () => {
                 <Link to="/">
                   <Button
                     size="lg"
-                    className="px-6 sm:px-8 shadow-lg bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 transition-all duration-300"
+                    className="px-6 sm:px-8 shadow-lg bg-linear-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 transition-all duration-300"
                   >
                     Go to Dashboard
                   </Button>
@@ -184,7 +184,7 @@ export const Landing = () => {
                 <Link to="/auth/signup">
                   <Button
                     size="lg"
-                    className="px-6 sm:px-8 shadow-lg bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 transition-all duration-300"
+                    className="px-6 sm:px-8 shadow-lg bg-linear-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 transition-all duration-300"
                   >
                     Start using
                   </Button>

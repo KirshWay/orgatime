@@ -58,7 +58,7 @@ export const Header: React.FC = () => {
         ) : (
           <button
             onClick={handleResetWeek}
-            className="text-lg font-semibold text-[#9BA7F8] hover:text-blue-800 focus:outline-none"
+            className="text-lg font-semibold text-[#9BA7F8] hover:text-blue-800 focus:outline-hidden"
           >
             {monthYear}
           </button>
