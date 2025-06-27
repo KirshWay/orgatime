@@ -30,6 +30,7 @@ export const ImageGallery: React.FC<Props> = ({
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(
     null,
   );
+
   const [carouselApi, setCarouselApi] = useState<
     UseEmblaCarouselType[1] | null
   >(null);
@@ -61,12 +62,6 @@ export const ImageGallery: React.FC<Props> = ({
       carouselApi.off("select", onSelect);
     };
   }, [carouselApi, updateCurrentIndex]);
-
-  useEffect(() => {
-    if (carouselApi && selectedImageIndex !== null) {
-      carouselApi.scrollTo(selectedImageIndex);
-    }
-  }, [carouselApi, selectedImageIndex]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLDivElement>) => {
@@ -180,7 +175,13 @@ export const ImageGallery: React.FC<Props> = ({
           </DialogHeader>
 
           <div className="relative w-full h-full">
-            <Carousel className="w-full" setApi={handleCarouselApi}>
+            <Carousel
+              className="w-full"
+              setApi={handleCarouselApi}
+              opts={{
+                startIndex: selectedImageIndex ?? 0,
+              }}
+            >
               <CarouselContent>
                 {images.map((image, index) => (
                   <CarouselItem
