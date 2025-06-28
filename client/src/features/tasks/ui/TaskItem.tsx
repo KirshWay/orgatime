@@ -9,7 +9,7 @@ import { useDeleteTask, useUpdateTask } from "../hooks";
 const TaskModal = lazy(() =>
   import("./TaskModal").then((module) => ({
     default: module.TaskModal,
-  }))
+  })),
 );
 
 export type Props = {

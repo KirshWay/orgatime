@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -48,12 +48,12 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     setUser(response.data.user);
   };
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     await apiClient.post("/auth/logout");
     setAccessToken(null);
     clearUser();
     queryClient.clear();
-  };
+  }, [clearUser, queryClient]);
 
   const refreshToken = async () => {
     const refreshResponse = await apiClient.post("/auth/refresh");
@@ -92,7 +92,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
       );
       return () => clearInterval(interval);
     }
-  }, [accessToken, location.pathname]);
+  }, [accessToken, location.pathname, logout]);
 
   const value: AuthContextType = {
     accessToken,

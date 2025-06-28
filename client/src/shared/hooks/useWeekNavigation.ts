@@ -20,7 +20,7 @@ export const useWeekNavigation = () => {
     const dateParam = searchParams.get("date");
     const initialWeekStart = getWeekDateFromUrl(dateParam);
     setWeekStart(initialWeekStart);
-  }, []);
+  }, [getWeekDateFromUrl, searchParams, setWeekStart]);
 
   const handleNextWeek = () => {
     nextWeek();

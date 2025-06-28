@@ -1,4 +1,4 @@
-import { lazy, useEffect, useState } from "react";
+import { lazy, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { closestCenter, DndContext, DragOverlay } from "@dnd-kit/core";
 
@@ -28,7 +28,7 @@ export const Home = () => {
   const { weekStart, handleNavigateToWeek } = useWeekNavigation();
 
   const { data } = useTasks();
-  const tasks = data || [];
+  const tasks = useMemo(() => data || [], [data]);
 
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
