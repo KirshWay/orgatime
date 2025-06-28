@@ -1,11 +1,16 @@
-import React, { useState } from "react";
+import React, { lazy, Suspense, useState } from "react";
 
 import { Subtask, TASK_COLOR_HEX, TaskColor, TaskImage } from "@/entities/task";
 import { Checkbox } from "@/shared/ui/checkbox";
 import { Separator } from "@/shared/ui/separator";
 
 import { useDeleteTask, useUpdateTask } from "../hooks";
-import { TaskModal } from "./TaskModal";
+
+const TaskModal = lazy(() =>
+  import("./TaskModal").then((module) => ({
+    default: module.TaskModal,
+  }))
+);
 
 export type Props = {
   id: string;
@@ -94,22 +99,24 @@ export const TaskItem: React.FC<Props> = ({
       <Separator />
 
       {!isDragging && (
-        <TaskModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          taskId={id}
-          initialTitle={title}
-          initialDescription={description}
-          initialCompleted={completed}
-          initialColor={color}
-          initialDueDate={parsedDueDate}
-          initialSubtasks={subtasks}
-          initialImages={images}
-          isSomeday={isSomeday}
-          onSave={handleSave}
-          onDelete={handleDelete}
-          onNavigateToWeek={onNavigateToWeek}
-        />
+        <Suspense fallback={null}>
+          <TaskModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            taskId={id}
+            initialTitle={title}
+            initialDescription={description}
+            initialCompleted={completed}
+            initialColor={color}
+            initialDueDate={parsedDueDate}
+            initialSubtasks={subtasks}
+            initialImages={images}
+            isSomeday={isSomeday}
+            onSave={handleSave}
+            onDelete={handleDelete}
+            onNavigateToWeek={onNavigateToWeek}
+          />
+        </Suspense>
       )}
     </>
   );

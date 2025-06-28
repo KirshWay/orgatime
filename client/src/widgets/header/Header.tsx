@@ -1,11 +1,16 @@
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { startOfWeek } from "date-fns";
 import { FolderRoot, Info, Printer, Settings, User } from "lucide-react";
 
+const SettingsModal = lazy(() =>
+  import("@/features/settings/SettingsModal").then((module) => ({
+    default: module.SettingsModal,
+  })),
+);
+
 import { useAuth } from "@/app/providers";
 import { SearchBar } from "@/features/search";
-import { SettingsModal } from "@/features/settings/SettingsModal";
 import { useWeekNavigation } from "@/shared/hooks";
 import { useUserStore } from "@/shared/stores/userStore";
 import { Button } from "@/shared/ui/button";
@@ -164,10 +169,12 @@ export const Header: React.FC = () => {
         </div>
       </div>
 
-      <SettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-      />
+      <Suspense fallback={null}>
+        <SettingsModal
+          isOpen={isSettingsOpen}
+          onClose={() => setIsSettingsOpen(false)}
+        />
+      </Suspense>
     </header>
   );
 };

@@ -110,6 +110,69 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ["react", "react-dom", "react-router-dom"],
+          "radix-ui": [
+            "@radix-ui/react-aspect-ratio",
+            "@radix-ui/react-checkbox",
+            "@radix-ui/react-dialog",
+            "@radix-ui/react-dropdown-menu",
+            "@radix-ui/react-separator",
+            "@radix-ui/react-slot",
+            "@radix-ui/react-tooltip",
+          ],
+          "ui-utils": [
+            "lucide-react",
+            "class-variance-authority",
+            "clsx",
+            "tailwind-merge",
+            "tailwindcss-animate",
+          ],
+          "dnd-kit": [
+            "@dnd-kit/core",
+            "@dnd-kit/sortable",
+            "@dnd-kit/utilities",
+          ],
+          forms: ["react-hook-form", "@hookform/resolvers", "zod"],
+          "date-utils": ["date-fns", "react-day-picker"],
+          "state-management": ["@tanstack/react-query", "zustand"],
+          utils: [
+            "axios",
+            "react-helmet-async",
+            "react-hot-toast",
+            "cmdk",
+            "embla-carousel-react",
+            "motion",
+          ],
+        },
+      },
+    },
+    minify: "terser",
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+      },
+    },
+    cssCodeSplit: true,
+    target: "esnext",
+    sourcemap: false,
+  },
+  optimizeDeps: {
+    include: [
+      "react",
+      "react-dom",
+      "react-router-dom",
+      "@tanstack/react-query",
+      "zustand",
+      "axios",
+    ],
+    exclude: ["react-scan"],
+  },
   server: {
     proxy: {
       "/api": {
