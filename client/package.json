@@ -74,6 +74,11 @@
       "@parcel/watcher",
       "@tailwindcss/oxide",
       "esbuild"
-    ]
+    ],
+    "overrides": {
+      "vite-plugin-pwa>vite": "^7.0.0",
+      "react-helmet-async>react": "^19.0.0",
+      "react-helmet-async>react-dom": "^19.0.0"
+    }
   }
 }
