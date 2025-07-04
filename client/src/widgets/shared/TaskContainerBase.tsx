@@ -1,11 +1,11 @@
 import React, { memo } from "react";
 import { useDroppable } from "@dnd-kit/core";
-import clsx from "clsx";
 import { Plus } from "lucide-react";
 
 import { Task } from "@/entities/task";
 import { SortableTaskList } from "@/features/tasks/ui/SortableTaskList";
 import { TaskCreator } from "@/features/tasks/ui/TaskCreator";
+import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
 
 export type TaskContainerProps = {
@@ -53,13 +53,14 @@ export const TaskContainerBase: React.FC<TaskContainerProps> = memo(
     return (
       <div
         ref={setNodeRef}
-        className={clsx(
+        className={cn(
           "transition-all duration-200 ease-in-out",
           containerClassName,
           isOver
             ? highlightClassName ||
                 "bg-indigo-100 dark:bg-indigo-900/30 rounded-md shadow-md border-2 border-indigo-300 dark:border-indigo-700"
             : "border-2 border-transparent",
+          isSomeday && "mb-4 md:mb-0",
         )}
       >
         {headerContent ||

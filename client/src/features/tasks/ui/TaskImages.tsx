@@ -64,13 +64,12 @@ export const TaskImages: React.FC<Props> = ({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <p className="text-xl font-bold text-gray-700 dark:text-gray-300">
+        <p className="text-xl font-bold text-gray-700 dark:text-white">
           Images
         </p>
         {!isAddingImage && (
           <Button
             size="sm"
-            variant="outline"
             onClick={() => setIsAddingImage(true)}
             disabled={isUploading || isDeleting}
           >

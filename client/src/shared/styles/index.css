@@ -130,6 +130,27 @@
   }
 }
 
+@layer components {
+  .task-color-standart {
+    --task-color: #7D82A6;
+    border-left-color: var(--task-color);
+  }
+
+  .task-color-red {
+    --task-color: #CD2C54;
+    border-left-color: var(--task-color);
+  }
+
+  .task-color-blue {
+    --task-color: #5566D4;
+    border-left-color: var(--task-color);
+  }
+
+  .bg-task-color {
+    background-color: var(--task-color);
+  }
+}
+
 @media print {
   .no-print {
     display: none;

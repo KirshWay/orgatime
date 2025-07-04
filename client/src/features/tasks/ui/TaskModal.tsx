@@ -16,6 +16,7 @@ import {
 import { AnimatePresence, motion as m } from "motion/react";
 
 import { Subtask, TASK_COLOR_HEX, TaskColor, TaskImage } from "@/entities/task";
+import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
 import { Checkbox } from "@/shared/ui/checkbox";
 import {
@@ -132,6 +133,21 @@ export const TaskModal: React.FC<Props> = ({
     const taskWeekStart = startOfWeek(taskDate, { weekStartsOn: 1 });
     return taskWeekStart.getTime() === currentWeekStart.getTime();
   }, [initialDueDate, currentWeekStart]);
+
+    const getTaskColorClass = (color: TaskColor | null) => {
+    if (!color) return "";
+    
+    switch (color) {
+      case "STANDART":
+        return "task-color-standart";
+      case "RED":
+        return "task-color-red";
+      case "BLUE":
+        return "task-color-blue";
+      default:
+        return "";
+    }
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -336,16 +352,15 @@ export const TaskModal: React.FC<Props> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        className="max-w-xl max-h-[75svh] overflow-y-auto sm:max-h-[90svh] p-4 sm:p-6"
-        style={
-          selectedColor
-            ? { backgroundColor: TASK_COLOR_HEX[selectedColor] }
-            : {}
-        }
+        className={cn(
+          "max-w-xl max-h-[75svh] overflow-y-auto sm:max-h-[90svh] p-4 sm:p-6",
+          selectedColor && "border-l-[6px] pl-6",
+          selectedColor && getTaskColorClass(selectedColor),
+        )}
       >
         <DialogHeader>
           <DialogTitle className="flex flex-row items-center justify-between py-2">
-            <span className="flex items-center gap-2 text-lg">
+            <span className="flex items-center gap-2 text-lg text-gray-700 dark:text-white">
               {initialDueDate && (
                 <>
                   <Calendar className="hidden sm:inline" />{" "}
@@ -357,7 +372,6 @@ export const TaskModal: React.FC<Props> = ({
             <div className="flex items-center gap-2">
               <Button
                 onClick={handleDelete}
-                variant="outline"
                 className="rounded-full h-8 w-8 p-0 sm:h-10 sm:w-10"
                 title="Delete task"
               >
@@ -367,13 +381,12 @@ export const TaskModal: React.FC<Props> = ({
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
-                    className="rounded-full h-8 w-8 p-0 sm:h-10 sm:w-10"
+                    className={cn(
+                      "rounded-full h-8 w-8 p-0 sm:h-10 sm:w-10",
+                      selectedColor && getTaskColorClass(selectedColor),
+                      selectedColor && "bg-task-color"
+                    )}
                     variant="outline"
-                    style={
-                      selectedColor
-                        ? { backgroundColor: TASK_COLOR_HEX[selectedColor] }
-                        : {}
-                    }
                     title="Change color"
                   >
                     <Pipette className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -431,7 +444,7 @@ export const TaskModal: React.FC<Props> = ({
             <div className="flex justify-between items-center gap-3">
               <Input {...methods.register("title")} placeholder="Task title" />
               <Checkbox
-                className="w-6 h-6 sm:w-8 sm:h-8"
+                className="h-9 w-9"
                 checked={completed}
                 onCheckedChange={(val) => {
                   if (typeof val === "boolean") {
@@ -479,9 +492,7 @@ export const TaskModal: React.FC<Props> = ({
               onImagesChange={setImages}
             />
 
-            <Separator />
-
-            <p className="text-lg sm:text-xl font-bold text-gray-700 dark:text-gray-300">
+            <p className="text-lg sm:text-xl font-bold text-gray-700 dark:text-white">
               Subtasks
             </p>
 
@@ -522,7 +533,6 @@ export const TaskModal: React.FC<Props> = ({
                 transition={{ duration: 0.3 }}
               >
                 <Button
-                  variant="outline"
                   onClick={methods.handleSubmit(handleUpdate)}
                   className="text-sm sm:text-base h-8 sm:h-10 w-full sm:w-auto"
                 >
