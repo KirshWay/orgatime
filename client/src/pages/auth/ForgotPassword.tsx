@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import * as z from "zod";
 
 import { useForgotPassword } from "@/features/auth/hooks/useForgotPassword";
 import { ResetPasswordLink } from "@/features/auth/ui/ResetPasswordLink";
@@ -13,7 +13,7 @@ import { Input } from "@/shared/ui/input";
 import { SEO } from "@/shared/ui/seo";
 
 const forgotPasswordSchema = z.object({
-  email: z.string().email("Invalid email format"),
+  email: z.email("Invalid email format"),
 });
 
 type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
@@ -25,7 +25,7 @@ export const ForgotPassword = () => {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<ForgotPasswordFormData>({
+  } = useForm({
     resolver: zodResolver(forgotPasswordSchema),
   });
 

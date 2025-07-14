@@ -37,7 +37,7 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const [isEditingEmail, setIsEditingEmail] = useState(false);
   const [isEditingPassword, setIsEditingPassword] = useState(false);
 
-  const methods = useForm<SettingsFormData>({
+  const methods = useForm({
     resolver: zodResolver(settingsSchema),
     defaultValues: {
       username: user?.username || "",
@@ -188,30 +188,32 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose }) => {
         </DialogHeader>
 
         <FormProvider {...methods}>
-          <div className="space-y-2 mt-4">
-            <AvatarUploader
-              img={user?.avatar || ""}
-              onFileChange={(file) => setAvatarFile(file)}
-            />
+          <form id="settings-form" onSubmit={handleSubmit(onSubmit)}>
+            <div className="space-y-2 mt-4">
+              <AvatarUploader
+                img={user?.avatar || ""}
+                onFileChange={(file) => setAvatarFile(file)}
+              />
 
-            <p className="text-xs text-center text-gray-400 dark:text-gray mt-2">
-              Click on the avatar to change it
-            </p>
+              <p className="text-xs text-center text-gray-400 dark:text-gray mt-2">
+                Click on the avatar to change it
+              </p>
 
-            <ProfileForm
-              isEditingUsername={isEditingUsername}
-              setIsEditingUsername={setIsEditingUsername}
-              isEditingEmail={isEditingEmail}
-              setIsEditingEmail={setIsEditingEmail}
-            />
+              <ProfileForm
+                isEditingUsername={isEditingUsername}
+                setIsEditingUsername={setIsEditingUsername}
+                isEditingEmail={isEditingEmail}
+                setIsEditingEmail={setIsEditingEmail}
+              />
 
-            <Separator className="h-[2px]" />
+              <Separator className="h-[2px]" />
 
-            <PasswordForm
-              isEditingPassword={isEditingPassword}
-              setIsEditingPassword={setIsEditingPassword}
-            />
-          </div>
+              <PasswordForm
+                isEditingPassword={isEditingPassword}
+                setIsEditingPassword={setIsEditingPassword}
+              />
+            </div>
+          </form>
         </FormProvider>
 
         <DialogFooter className="flex flex-col space-y-2 sm:flex-row sm:justify-between sm:space-y-0">
@@ -225,9 +227,10 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 transition={{ duration: 0.3 }}
               >
                 <Button
+                  type="submit"
+                  form="settings-form"
                   className="w-full sm:w-auto"
                   variant="outline"
-                  onClick={handleSubmit(onSubmit)}
                 >
                   Update
                 </Button>

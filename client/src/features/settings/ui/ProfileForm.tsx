@@ -39,6 +39,7 @@ export const ProfileForm: React.FC<Props> = ({
               type="text"
               id="username"
               placeholder="Enter your username"
+              autoComplete="username"
               {...register("username")}
             />
           ) : (
@@ -46,7 +47,10 @@ export const ProfileForm: React.FC<Props> = ({
               {getValues("username")}
             </p>
           )}
-          <Button onClick={() => setIsEditingUsername(!isEditingUsername)}>
+          <Button
+            type="button"
+            onClick={() => setIsEditingUsername(!isEditingUsername)}
+          >
             {isEditingUsername ? <X /> : <Pencil />}
           </Button>
         </div>
@@ -70,6 +74,7 @@ export const ProfileForm: React.FC<Props> = ({
               type="email"
               id="email"
               placeholder="Enter your email"
+              autoComplete="email"
               {...register("email")}
             />
           ) : (
@@ -77,7 +82,10 @@ export const ProfileForm: React.FC<Props> = ({
               {getValues("email")}
             </p>
           )}
-          <Button onClick={() => setIsEditingEmail(!isEditingEmail)}>
+          <Button
+            type="button"
+            onClick={() => setIsEditingEmail(!isEditingEmail)}
+          >
             {isEditingEmail ? <X /> : <Pencil />}
           </Button>
         </div>

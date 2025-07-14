@@ -1,8 +1,8 @@
-import { SubmitHandler, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import * as z from "zod";
 
 import { useAuth } from "@/app/providers";
 import { parseApiError } from "@/shared/lib/parseApiError";
@@ -12,7 +12,7 @@ import { OptimizedImage } from "@/shared/ui/optimized-image";
 import { SEO } from "@/shared/ui/seo";
 
 const signUpSchema = z.object({
-  email: z.string().email("Please enter a valid email"),
+  email: z.email("Please enter a valid email"),
   username: z
     .string()
     .min(3, "Username must be at least 3 characters")
@@ -43,11 +43,11 @@ export const SignUp = () => {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<SignUpFormData>({
+  } = useForm({
     resolver: zodResolver(signUpSchema),
   });
 
-  const onSubmit: SubmitHandler<SignUpFormData> = async (data) => {
+  const onSubmit = async (data: SignUpFormData) => {
     try {
       await registerUser(data);
       toast.success("Registration successful");

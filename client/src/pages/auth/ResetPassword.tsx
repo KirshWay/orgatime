@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import * as z from "zod";
 
 import { useResetPassword } from "@/features/auth/hooks/useResetPassword";
 import { parseApiError } from "@/shared/lib/parseApiError";
@@ -21,7 +21,7 @@ export const ResetPassword = () => {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<ResetPasswordFormData>({
+  } = useForm({
     resolver: zodResolver(resetPasswordSchema),
   });
 

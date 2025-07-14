@@ -94,14 +94,10 @@ export const TaskModal: React.FC<Props> = ({
   onDelete,
   onNavigateToWeek,
 }) => {
-  const [completed, setCompleted] = useState(initialCompleted);
-  const [selectedColor, setSelectedColor] = useState<TaskColor | null>(
-    initialColor,
-  );
-  const [subtasks, setSubtasks] = useState<Subtask[]>(initialSubtasks);
-  const [images, setImages] = useState<TaskImage[]>(initialImages);
   const [isAddingSubtask, setIsAddingSubtask] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [subtasks, setSubtasks] = useState<Subtask[]>(initialSubtasks);
+  const [images, setImages] = useState<TaskImage[]>(initialImages);
 
   const updateDateMutation = useUpdateTaskDate();
   const duplicateTaskMutation = useDuplicateTask();
@@ -115,16 +111,19 @@ export const TaskModal: React.FC<Props> = ({
     defaultValues: {
       title: initialTitle,
       description: initialDescription || "",
+      completed: initialCompleted,
+      color: initialColor,
     },
   });
 
-  const { watch, formState } = methods;
+  const { watch, formState, setValue } = methods;
 
   const titleValue = watch("title");
+  const completed = watch("completed");
+  const selectedColor = watch("color");
 
   const isTitleValid = titleValue.trim().length > 0;
-  const isColorChanged = selectedColor !== initialColor;
-  const isUpdateEnabled = (formState.isDirty && isTitleValid) || isColorChanged;
+  const isUpdateEnabled = formState.isDirty && isTitleValid;
 
   const isTaskOnCurrentWeek = useMemo(() => {
     if (!initialDueDate || !currentWeekStart) return false;
@@ -134,9 +133,9 @@ export const TaskModal: React.FC<Props> = ({
     return taskWeekStart.getTime() === currentWeekStart.getTime();
   }, [initialDueDate, currentWeekStart]);
 
-    const getTaskColorClass = (color: TaskColor | null) => {
+  const getTaskColorClass = (color: TaskColor | null) => {
     if (!color) return "";
-    
+
     switch (color) {
       case "STANDART":
         return "task-color-standart";
@@ -154,9 +153,9 @@ export const TaskModal: React.FC<Props> = ({
       methods.reset({
         title: initialTitle,
         description: initialDescription || "",
+        completed: initialCompleted,
+        color: initialColor,
       });
-      setCompleted(initialCompleted);
-      setSelectedColor(initialColor);
       setSubtasks(initialSubtasks);
       setImages(initialImages);
     }
@@ -175,8 +174,8 @@ export const TaskModal: React.FC<Props> = ({
     onSave({
       title: data.title,
       description: data.description || "",
-      completed,
-      color: selectedColor,
+      completed: data.completed || false,
+      color: data.color || null,
     });
     onClose();
   };
@@ -187,8 +186,7 @@ export const TaskModal: React.FC<Props> = ({
   };
 
   const handleCompletedChange = (val: boolean) => {
-    setCompleted(val);
-
+    setValue("completed", val, { shouldDirty: true });
     if (val !== initialCompleted) {
       updateTaskMutation.mutate({
         id: taskId,
@@ -384,7 +382,7 @@ export const TaskModal: React.FC<Props> = ({
                     className={cn(
                       "rounded-full h-8 w-8 p-0 sm:h-10 sm:w-10",
                       selectedColor && getTaskColorClass(selectedColor),
-                      selectedColor && "bg-task-color"
+                      selectedColor && "bg-task-color",
                     )}
                     variant="outline"
                     title="Change color"
@@ -395,7 +393,7 @@ export const TaskModal: React.FC<Props> = ({
                 <DropdownMenuContent className="p-3">
                   <DropdownMenuGroup className="flex justify-center gap-2">
                     <DropdownMenuItem
-                      onClick={() => setSelectedColor("STANDART")}
+                      onClick={() => setValue("color", "STANDART", { shouldDirty: true })}
                     >
                       <div
                         className="w-6 h-6 rounded-full cursor-pointer"
@@ -403,14 +401,18 @@ export const TaskModal: React.FC<Props> = ({
                       />
                     </DropdownMenuItem>
 
-                    <DropdownMenuItem onClick={() => setSelectedColor("BLUE")}>
+                    <DropdownMenuItem
+                      onClick={() => setValue("color", "BLUE", { shouldDirty: true })}
+                    >
                       <div
                         className="w-6 h-6 rounded-full cursor-pointer"
                         style={{ backgroundColor: TASK_COLOR_HEX.BLUE }}
                       />
                     </DropdownMenuItem>
 
-                    <DropdownMenuItem onClick={() => setSelectedColor("RED")}>
+                    <DropdownMenuItem
+                      onClick={() => setValue("color", "RED", { shouldDirty: true })}
+                    >
                       <div
                         className="w-6 h-6 rounded-full cursor-pointer"
                         style={{ backgroundColor: TASK_COLOR_HEX.RED }}
@@ -421,7 +423,7 @@ export const TaskModal: React.FC<Props> = ({
                       <>
                         <Separator orientation="vertical" className="h-6" />
                         <DropdownMenuItem
-                          onClick={() => setSelectedColor(null)}
+                          onClick={() => setValue("color", null, { shouldDirty: true })}
                         >
                           <div className="w-6 h-6 rounded-full cursor-pointer border border-gray-300 flex items-center justify-center">
                             <Trash className="h-3 w-3 text-gray-500" />

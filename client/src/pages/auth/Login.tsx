@@ -1,8 +1,8 @@
-import { SubmitHandler, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import * as z from "zod";
 
 import { useAuth } from "@/app/providers";
 import { parseApiError } from "@/shared/lib/parseApiError";
@@ -12,7 +12,7 @@ import { OptimizedImage } from "@/shared/ui/optimized-image";
 import { SEO } from "@/shared/ui/seo";
 
 const loginSchema = z.object({
-  email: z.string().email("Please enter a valid email"),
+  email: z.email("Please enter a valid email"),
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
@@ -26,11 +26,11 @@ export const Login = () => {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<LoginFormData>({
+  } = useForm({
     resolver: zodResolver(loginSchema),
   });
 
-  const onSubmit: SubmitHandler<LoginFormData> = async (data) => {
+  const onSubmit = async (data: LoginFormData) => {
     try {
       await login(data.email, data.password);
       toast.success("Logged in successfully");

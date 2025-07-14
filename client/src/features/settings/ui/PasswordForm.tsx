@@ -26,7 +26,10 @@ export const PasswordForm: React.FC<Props> = ({
           Change password?
         </p>
 
-        <Button onClick={() => setIsEditingPassword(!isEditingPassword)}>
+        <Button
+          type="button"
+          onClick={() => setIsEditingPassword(!isEditingPassword)}
+        >
           {isEditingPassword ? <X /> : <Pencil />}
         </Button>
       </div>
@@ -42,6 +45,7 @@ export const PasswordForm: React.FC<Props> = ({
             type="password"
             id="oldPassword"
             placeholder="Enter current password"
+            autoComplete="current-password"
             {...register("oldPassword")}
           />
           {errors.oldPassword && (
@@ -60,6 +64,7 @@ export const PasswordForm: React.FC<Props> = ({
             type="password"
             id="newPassword"
             placeholder="Enter new password"
+            autoComplete="new-password"
             {...register("newPassword")}
           />
           {errors.newPassword && (
@@ -78,6 +83,7 @@ export const PasswordForm: React.FC<Props> = ({
             type="password"
             id="confirmPassword"
             placeholder="Repeat new password"
+            autoComplete="new-password"
             {...register("confirmPassword")}
           />
           {errors.confirmPassword && (
