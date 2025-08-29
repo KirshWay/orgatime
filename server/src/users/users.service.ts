@@ -83,10 +83,12 @@ export class UsersService {
   }
 
   async updateAvatar(userId: string, avatarUrl: string) {
-    return this.prisma.user.update({
+    await this.prisma.user.update({
       where: { id: userId },
       data: { avatar: avatarUrl },
     });
+
+    return { success: true };
   }
 
   async changePassword(userId: string, dto: ChangePasswordDto) {
@@ -104,20 +106,24 @@ export class UsersService {
 
     const hashedNewPassword = await bcrypt.hash(dto.newPassword, 10);
 
-    return this.prisma.user.update({
+    await this.prisma.user.update({
       where: { id: userId },
       data: { password: hashedNewPassword },
     });
+
+    return { message: 'Password updated successfully' };
   }
 
   async setPasswordResetToken(userId: string, token: string, expires: Date) {
-    return this.prisma.user.update({
+    await this.prisma.user.update({
       where: { id: userId },
       data: {
         passwordResetToken: token,
         passwordResetExpires: expires,
       },
     });
+
+    return { success: true };
   }
 
   async findByPasswordResetToken(hashedToken: string) {
@@ -127,19 +133,23 @@ export class UsersService {
   }
 
   async updatePassword(userId: string, newHashedPassword: string) {
-    return this.prisma.user.update({
+    await this.prisma.user.update({
       where: { id: userId },
       data: { password: newHashedPassword },
     });
+
+    return { success: true };
   }
 
   async clearPasswordResetToken(userId: string) {
-    return this.prisma.user.update({
+    await this.prisma.user.update({
       where: { id: userId },
       data: {
         passwordResetToken: null,
         passwordResetExpires: null,
       },
     });
+
+    return { success: true };
   }
 }
