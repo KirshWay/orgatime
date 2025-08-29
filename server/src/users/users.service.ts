@@ -42,7 +42,15 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    const { id, createdAt, password, refreshToken, ...profile } = user;
+    const {
+      id,
+      createdAt,
+      password,
+      refreshToken,
+      passwordResetToken,
+      passwordResetExpires,
+      ...profile
+    } = user;
 
     return profile;
   }
@@ -61,7 +69,15 @@ export class UsersService {
       data: { ...dto },
     });
 
-    const { id, createdAt, password, refreshToken, ...profile } = updated;
+    const {
+      id,
+      createdAt,
+      password,
+      refreshToken,
+      passwordResetToken,
+      passwordResetExpires,
+      ...profile
+    } = updated;
 
     return profile;
   }

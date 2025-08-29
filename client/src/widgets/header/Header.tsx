@@ -1,7 +1,7 @@
 import { lazy, Suspense, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { startOfWeek } from "date-fns";
-import { FolderRoot, Info, Printer, Settings, User } from "lucide-react";
+import { Info, Printer, Settings, User } from "lucide-react";
 
 const SettingsModal = lazy(() =>
   import("@/features/settings/SettingsModal").then((module) => ({
@@ -24,7 +24,6 @@ import {
 } from "@/shared/ui/dropdown-menu";
 import { ModeToggle } from "@/shared/ui/mode-toggle";
 import { OptimizedImage } from "@/shared/ui/optimized-image";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 
 export const Header: React.FC = () => {
   const { weekStart, handleNextWeek, handlePrevWeek, handleResetWeek } =
@@ -102,29 +101,6 @@ export const Header: React.FC = () => {
             >
               Print
               <Printer />
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="flex justify-between items-center text-gray-400 opacity-70 select-none cursor-not-allowed"
-              aria-disabled="true"
-              tabIndex={-1}
-            >
-              <span className="flex items-center gap-2">
-                Projects
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div
-                      className="ml-2 px-2 py-0.5 rounded bg-yellow-200 text-yellow-800 text-xs font-semibold select-none"
-                      aria-label="Development"
-                    >
-                      Development
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent side="right">
-                    Soon will be available
-                  </TooltipContent>
-                </Tooltip>
-              </span>
-              <FolderRoot />
             </DropdownMenuItem>
             <DropdownMenuItem
               className="cursor-pointer flex justify-between"
