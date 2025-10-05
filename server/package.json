@@ -73,7 +73,6 @@
       "@prisma/client",
       "@prisma/engines",
       "@scarf/scarf",
-      "@swc/core",
       "esbuild",
       "prisma",
       "sharp"

@@ -2,7 +2,7 @@ FROM node:22-alpine AS base
 
 RUN npm i --global --no-update-notifier --no-fund pnpm
 
-FROM base as build
+FROM base AS build
 
 WORKDIR /app
 
@@ -13,7 +13,7 @@ COPY --chown=node:node . .
 RUN pnpm prisma:generate
 RUN pnpm build
 
-FROM base as dependencies
+FROM base AS dependencies
 
 WORKDIR /app
 
@@ -25,7 +25,7 @@ FROM base
 RUN apk add --no-cache tzdata
 ENV TZ=Europe/Moscow
 
-ENV NODE_ENV production
+ENV NODE_ENV=production
 
 WORKDIR /app
 
