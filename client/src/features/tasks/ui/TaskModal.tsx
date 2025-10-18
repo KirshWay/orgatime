@@ -393,7 +393,9 @@ export const TaskModal: React.FC<Props> = ({
                 <DropdownMenuContent className="p-3">
                   <DropdownMenuGroup className="flex justify-center gap-2">
                     <DropdownMenuItem
-                      onClick={() => setValue("color", "STANDART", { shouldDirty: true })}
+                      onClick={() =>
+                        setValue("color", "STANDART", { shouldDirty: true })
+                      }
                     >
                       <div
                         className="w-6 h-6 rounded-full cursor-pointer"
@@ -402,7 +404,9 @@ export const TaskModal: React.FC<Props> = ({
                     </DropdownMenuItem>
 
                     <DropdownMenuItem
-                      onClick={() => setValue("color", "BLUE", { shouldDirty: true })}
+                      onClick={() =>
+                        setValue("color", "BLUE", { shouldDirty: true })
+                      }
                     >
                       <div
                         className="w-6 h-6 rounded-full cursor-pointer"
@@ -411,7 +415,9 @@ export const TaskModal: React.FC<Props> = ({
                     </DropdownMenuItem>
 
                     <DropdownMenuItem
-                      onClick={() => setValue("color", "RED", { shouldDirty: true })}
+                      onClick={() =>
+                        setValue("color", "RED", { shouldDirty: true })
+                      }
                     >
                       <div
                         className="w-6 h-6 rounded-full cursor-pointer"
@@ -423,7 +429,9 @@ export const TaskModal: React.FC<Props> = ({
                       <>
                         <Separator orientation="vertical" className="h-6" />
                         <DropdownMenuItem
-                          onClick={() => setValue("color", null, { shouldDirty: true })}
+                          onClick={() =>
+                            setValue("color", null, { shouldDirty: true })
+                          }
                         >
                           <div className="w-6 h-6 rounded-full cursor-pointer border border-gray-300 flex items-center justify-center">
                             <Trash className="h-3 w-3 text-gray-500" />

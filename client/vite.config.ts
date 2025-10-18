@@ -9,7 +9,11 @@ const domain = process.env.VITE_SITE_DOMAIN || "http://localhost:5173";
 
 export default defineConfig({
   plugins: [
-    react(),
+    react({
+      babel: {
+        plugins: [["babel-plugin-react-compiler", {}]],
+      },
+    }),
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
