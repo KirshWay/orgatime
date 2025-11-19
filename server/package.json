@@ -18,14 +18,14 @@
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix"
   },
   "dependencies": {
-    "@nestjs/common": "11.1.8",
+    "@nestjs/common": "11.1.9",
     "@nestjs/config": "4.0.2",
-    "@nestjs/core": "11.1.8",
+    "@nestjs/core": "11.1.9",
     "@nestjs/jwt": "11.0.1",
     "@nestjs/mapped-types": "2.1.0",
     "@nestjs/passport": "11.0.5",
-    "@nestjs/platform-express": "11.1.8",
-    "@nestjs/swagger": "11.2.1",
+    "@nestjs/platform-express": "11.1.9",
+    "@nestjs/swagger": "11.2.3",
     "@prisma/client": "6.19.0",
     "bcryptjs": "3.0.3",
     "class-transformer": "0.5.1",
@@ -37,21 +37,21 @@
     "prisma": "6.19.0",
     "reflect-metadata": "0.2.2",
     "rxjs": "7.8.2",
-    "sharp": "0.34.4",
+    "sharp": "0.34.5",
     "swagger-ui-express": "5.0.1",
     "uuid": "11.1.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "3.3.1",
     "@eslint/js": "9.39.1",
-    "@nestjs/cli": "11.0.10",
+    "@nestjs/cli": "11.0.12",
     "@nestjs/schematics": "11.0.9",
     "@swc/cli": "0.7.9",
-    "@swc/core": "1.15.0",
+    "@swc/core": "1.15.2",
     "@types/cookie-parser": "1.4.10",
     "@types/express": "5.0.5",
     "@types/multer": "1.4.13",
-    "@types/node": "24.10.0",
+    "@types/node": "24.10.1",
     "@types/passport-jwt": "4.0.1",
     "@types/uuid": "10.0.0",
     "eslint": "9.39.1",
@@ -64,9 +64,9 @@
     "ts-node": "10.9.2",
     "tsconfig-paths": "4.2.0",
     "typescript": "5.9.3",
-    "typescript-eslint": "8.46.3"
+    "typescript-eslint": "8.47.0"
   },
-  "packageManager": "pnpm@10.20.0",
+  "packageManager": "pnpm@10.22.0",
   "pnpm": {
     "onlyBuiltDependencies": [
       "@nestjs/core",
