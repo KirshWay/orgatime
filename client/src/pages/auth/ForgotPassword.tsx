@@ -1,4 +1,3 @@
-import { useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
@@ -6,21 +5,19 @@ import { Button } from "@/shared/ui/button";
 import { SEO } from "@/shared/ui/seo";
 
 export const ForgotPassword = () => {
-  const [isCopied, setIsCopied] = useState(false);
   const navigate = useNavigate();
   const supportEmail =
-    import.meta.env.VITE_SUPPORT_EMAIL || "support@example.com";
+    (import.meta.env.VITE_SUPPORT_EMAIL || "support@example.com").trim();
   const mailSubject = encodeURIComponent("Password recovery request");
   const mailBody = encodeURIComponent(
     "Hi, I need help recovering access to my account.\n\nAccount email: \nApproximate registration date: \n",
   );
+  const mailtoUrl = `mailto:${supportEmail}?subject=${mailSubject}&body=${mailBody}`;
 
   const handleCopyEmail = async () => {
     try {
       await navigator.clipboard.writeText(supportEmail);
-      setIsCopied(true);
       toast.success("Support email copied");
-      setTimeout(() => setIsCopied(false), 2000);
     } catch (error: unknown) {
       toast.error("Could not copy email");
     }
@@ -55,14 +52,17 @@ export const ForgotPassword = () => {
 
         <div className="w-full space-y-4 flex flex-col">
           <Button asChild>
-            <a href={`mailto:${supportEmail}?subject=${mailSubject}&body=${mailBody}`}>
-              Write to support
-            </a>
+            <a href={mailtoUrl}>Write to support</a>
           </Button>
 
           <Button type="button" variant="outline" onClick={handleCopyEmail}>
-            {isCopied ? "Copied" : "Copy support email"}
+            Copy support email
           </Button>
+
+          <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+            If your mail app does not open, use Copy support email and check your
+            browser or OS mail handler settings.
+          </p>
 
           <Button type="button" variant="ghost" onClick={handleBackToLogin}>
             Back to login
