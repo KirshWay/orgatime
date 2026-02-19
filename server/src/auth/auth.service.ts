@@ -167,12 +167,14 @@ export class AuthService {
   }
 
   async refreshToken(providedRefreshToken: string) {
+    if (!providedRefreshToken) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
     let payload: { sub: string };
 
     try {
-      payload = this.jwtService.verify(providedRefreshToken, {
-        ignoreExpiration: true,
-      });
+      payload = this.jwtService.verify(providedRefreshToken);
     } catch {
       throw new UnauthorizedException('Invalid refresh token');
     }
@@ -211,9 +213,7 @@ export class AuthService {
     };
   }
 
-  async forgotPassword(
-    dto: ForgotPasswordDto,
-  ): Promise<{ resetUrl: string } | void> {
+  async forgotPassword(dto: ForgotPasswordDto): Promise<void> {
     const user = await this.usersService.findByEmail(dto.email);
     if (!user) {
       return;
@@ -239,24 +239,7 @@ export class AuthService {
       );
     }
 
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    const hashedToken = crypto
-      .createHash('sha256')
-      .update(resetToken)
-      .digest('hex');
-    const expires = new Date(Date.now() + 60 * 60 * 1000);
-
-    await this.usersService.setPasswordResetToken(
-      user.id,
-      hashedToken,
-      expires,
-    );
-
     this.passwordResetRequests.set(dto.email, now);
-
-    const resetUrl = this.generateResetPasswordUrl(user.email, resetToken);
-
-    return { resetUrl };
   }
 
   async resetPassword(dto: ResetPasswordDto): Promise<void> {
@@ -279,11 +262,5 @@ export class AuthService {
 
     await this.usersService.updatePassword(user.id, newHashedPassword);
     await this.usersService.clearPasswordResetToken(user.id);
-  }
-
-  private generateResetPasswordUrl(email: string, token: string): string {
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173/';
-    const resetUrl = `${frontendUrl}auth/reset-password?token=${token}`;
-    return resetUrl;
   }
 }

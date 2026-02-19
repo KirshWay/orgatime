@@ -1,51 +1,28 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 
-import { useForgotPassword } from "@/features/auth/hooks/useForgotPassword";
-import { ResetPasswordLink } from "@/features/auth/ui/ResetPasswordLink";
-import { parseApiError } from "@/shared/lib/parseApiError";
 import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
 import { SEO } from "@/shared/ui/seo";
 
-const forgotPasswordSchema = z.object({
-  email: z.email("Invalid email format"),
-});
-
-type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
-
 export const ForgotPassword = () => {
-  const [resetUrl, setResetUrl] = useState<string | null>(null);
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm({
-    resolver: zodResolver(forgotPasswordSchema),
-  });
-
+  const [isCopied, setIsCopied] = useState(false);
   const navigate = useNavigate();
-  const forgotPasswordMutation = useForgotPassword();
+  const supportEmail =
+    import.meta.env.VITE_SUPPORT_EMAIL || "support@example.com";
+  const mailSubject = encodeURIComponent("Password recovery request");
+  const mailBody = encodeURIComponent(
+    "Hi, I need help recovering access to my account.\n\nAccount email: \nApproximate registration date: \n",
+  );
 
-  const onSubmit = async (data: ForgotPasswordFormData) => {
+  const handleCopyEmail = async () => {
     try {
-      const response = await forgotPasswordMutation.mutateAsync({
-        email: data.email,
-      });
-
-      if (response.resetUrl) {
-        setResetUrl(response.resetUrl);
-      } else {
-        toast.success(response.message);
-        navigate("/auth/login");
-      }
+      await navigator.clipboard.writeText(supportEmail);
+      setIsCopied(true);
+      toast.success("Support email copied");
+      setTimeout(() => setIsCopied(false), 2000);
     } catch (error: unknown) {
-      toast.error(parseApiError(error));
+      toast.error("Could not copy email");
     }
   };
 
@@ -53,70 +30,44 @@ export const ForgotPassword = () => {
     navigate("/auth/login");
   };
 
-  if (resetUrl) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900">
-        <SEO
-          title="Password Reset Link"
-          description="Use this link to reset your password for OrgaTime account."
-          noindex={true}
-          nofollow={true}
-        />
-
-        <div className="w-full max-w-md p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
-          <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">
-            Password reset
-          </h1>
-          <ResetPasswordLink resetUrl={resetUrl} onBack={handleBackToLogin} />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900">
       <SEO
-        title="Forgot Password"
-        description="Reset your OrgaTime account password by entering your email to receive a password reset link."
+        title="Account Recovery"
+        description="Contact support to recover access to your OrgaTime account."
         noindex={true}
         nofollow={true}
       />
 
       <div className="w-full max-w-md p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
         <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">
-          Password reset
+          Account recovery
         </h1>
-        <p className="text-gray-600 dark:text-gray-400 mb-4">
-          Enter your email associated with your account to get a link to reset
-          your password
+        <p className="text-gray-600 dark:text-gray-400 mb-2">
+          Password recovery is handled by support. Write to{" "}
+          <span className="font-medium">{supportEmail}</span> from your account
+          email.
         </p>
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="w-full space-y-4 flex flex-col"
-        >
-          <Input
-            {...register("email")}
-            placeholder="Enter your email"
-            type="email"
-          />
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          Include your account email and approximate registration date to speed up
+          verification.
+        </p>
 
-          {errors.email && (
-            <p className="text-red-600 text-sm">{errors.email.message}</p>
-          )}
+        <div className="w-full space-y-4 flex flex-col">
+          <Button asChild>
+            <a href={`mailto:${supportEmail}?subject=${mailSubject}&body=${mailBody}`}>
+              Write to support
+            </a>
+          </Button>
 
-          <Button
-            type="submit"
-            disabled={isSubmitting || forgotPasswordMutation.isPending}
-          >
-            {isSubmitting || forgotPasswordMutation.isPending
-              ? "Sending..."
-              : "Send"}
+          <Button type="button" variant="outline" onClick={handleCopyEmail}>
+            {isCopied ? "Copied" : "Copy support email"}
           </Button>
 
           <Button type="button" variant="ghost" onClick={handleBackToLogin}>
             Back to login
           </Button>
-        </form>
+        </div>
       </div>
     </div>
   );

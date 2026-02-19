@@ -50,10 +50,21 @@ export class AllExceptionsFilter implements ExceptionFilter {
       }
     }
 
-    this.logger.error(
-      `HTTP ${status} Error: ${message}`,
-      exception instanceof Error ? exception.stack : '',
-    );
+    const logMessage = `HTTP ${status} Error: ${message}`;
+
+    if (
+      status === HttpStatus.UNAUTHORIZED &&
+      request.url.includes('/api/auth/refresh')
+    ) {
+      this.logger.debug(logMessage);
+    } else if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
+      this.logger.error(
+        logMessage,
+        exception instanceof Error ? exception.stack : '',
+      );
+    } else {
+      this.logger.warn(logMessage);
+    }
 
     response.status(status).json({
       statusCode: status,

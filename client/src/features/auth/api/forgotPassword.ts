@@ -6,7 +6,6 @@ type ForgotPasswordParams = {
 
 type ForgotPasswordResponse = {
   message: string;
-  resetUrl?: string;
 };
 
 export const forgotPassword = async ({

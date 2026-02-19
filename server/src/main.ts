@@ -13,6 +13,10 @@ import { ConfigService } from '@nestjs/config';
 import { HttpException, HttpStatus } from '@nestjs/common';
 
 async function bootstrap() {
+  if (!process.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET is not set');
+  }
+
   const avatarsDir = join(__dirname, '..', 'uploads', 'avatars');
   const tasksImagesDir = join(__dirname, '..', 'uploads', 'tasks');
 
@@ -29,6 +33,12 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api');
   app.use(cookieParser());
+  app.use('/api', (_, res, next) => {
+    res.setHeader('Cache-Control', 'no-store');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    next();
+  });
   app.enableCors({
     origin: configService.get('FRONTEND_URL'),
     credentials: true,

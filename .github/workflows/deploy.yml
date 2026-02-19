@@ -41,6 +41,7 @@ jobs:
             PROJECT_ENVIRONMENT=${{ env.PROJECT_ENVIRONMENT }}
             VITE_BACKEND_URL=${{ secrets.BACKEND_URL }}
             VITE_SITE_DOMAIN=${{ secrets.SITE_DOMAIN }}
+            VITE_SUPPORT_EMAIL=${{ secrets.SUPPORT_EMAIL }}
           push: true
           tags: ${{ env.GITHUB_REGISTRY }}/${{ env.GITHUB_REPOSITORY }}/client:${{ env.DOCKER_IMAGE_VERSION }}
 
@@ -97,6 +98,7 @@ jobs:
           env DATABASE_URL="${{ secrets.DATABASE_URL }}" \
           env JWT_SECRET="${{ secrets.JWT_SECRET }}" \
           env FRONTEND_URL="${{ secrets.FRONTEND_URL }}" \
+          env SUPPORT_EMAIL="${{ secrets.SUPPORT_EMAIL }}" \
           env VERSION="${{ env.DOCKER_IMAGE_VERSION }}" \
             docker stack deploy --prune --with-registry-auth -c docker-compose.yml ${{ env.DOCKER_SWARM_PROJECT }}
         env:

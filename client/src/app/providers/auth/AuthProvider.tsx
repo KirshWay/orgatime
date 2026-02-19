@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -14,6 +14,7 @@ type Props = {
 export const AuthProvider: React.FC<Props> = ({ children }) => {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
+  const initialRefreshAttempted = useRef(false);
   const queryClient = useQueryClient();
   const location = useLocation();
   const { setUser, clearUser } = useUserStore();
@@ -62,6 +63,12 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
 
   useEffect(() => {
     if (!location.pathname.startsWith("/auth")) {
+      if (initialRefreshAttempted.current) {
+        return;
+      }
+
+      initialRefreshAttempted.current = true;
+
       apiClient
         .post("/auth/refresh")
         .then((res) => {

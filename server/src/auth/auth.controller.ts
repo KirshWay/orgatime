@@ -25,6 +25,9 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
+  private readonly supportEmail =
+    process.env.SUPPORT_EMAIL || 'support@example.com';
+
   constructor(private authService: AuthService) {}
 
   @ApiOperation({ summary: 'Register a new user' })
@@ -115,27 +118,17 @@ export class AuthController {
   @ApiOperation({ summary: 'Request password reset' })
   @ApiResponse({
     status: 200,
-    description: 'Reset password link generated',
+    description: 'Password recovery instructions returned',
   })
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
   async forgotPassword(
     @Body() forgotPasswordDto: ForgotPasswordDto,
-    @Res({ passthrough: true }) res: Response,
   ) {
-    const result = await this.authService.forgotPassword(forgotPasswordDto);
-
-    if (!result) {
-      return {
-        message:
-          'If the specified email is registered in the system, you will receive a link to reset your password',
-      };
-    }
+    await this.authService.forgotPassword(forgotPasswordDto);
 
     return {
-      message:
-        'If the specified email is registered in the system, you will receive a link to reset your password',
-      resetUrl: result.resetUrl,
+      message: `If the specified email is registered in the system, write to ${this.supportEmail} for password recovery instructions`,
     };
   }
 
@@ -145,7 +138,6 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async resetPassword(
     @Body() resetPasswordDto: ResetPasswordDto,
-    @Res({ passthrough: true }) res: Response,
   ) {
     await this.authService.resetPassword(resetPasswordDto);
     return { message: 'The password has been successfully reset' };

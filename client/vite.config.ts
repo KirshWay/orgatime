@@ -60,18 +60,6 @@ export default defineConfig({
             },
           },
           {
-            urlPattern: /\/api\/(?!auth)/,
-            handler: "NetworkFirst",
-            options: {
-              cacheName: "api-cache",
-              networkTimeoutSeconds: 10,
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24,
-              },
-            },
-          },
-          {
             urlPattern: /^https:\/\/[^/]+\/((?!api).)*$/,
             handler: "StaleWhileRevalidate",
             options: {

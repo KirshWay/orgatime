@@ -118,12 +118,12 @@ export const Login = () => {
         </p>
 
         <p className="text-sm text-center mt-4">
-          Forgot your password?{" "}
+          Need help accessing account?{" "}
           <Link
             to="/auth/forgot-password"
             className="text-blue-600 hover:underline"
           >
-            Restore password
+            Contact support
           </Link>
         </p>
       </div>

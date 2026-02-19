@@ -114,6 +114,7 @@ DATABASE_URL="postgresql://postgres:postgres@localhost:5432/orgatime?schema=publ
 # Authentication
 JWT_SECRET="your-secret-key"
 FRONTEND_URL="http://localhost:3000"
+SUPPORT_EMAIL="support@example.com"
 
 # App Settings
 PORT=8000
@@ -141,9 +142,45 @@ pnpm build
 # Run in production mode
 pnpm start:prod
 
+# Generate manual password reset link (after build)
+pnpm admin:reset-link --email user@example.com --ttl-minutes 60
+
 # Run database migrations in production
 pnpm prisma:migrate:deploy
 ```
+
+## 🔧 Manual Password Recovery (Runbook)
+
+When automatic email delivery is unavailable, use manual recovery via support.
+
+### 1. User flow
+
+1. User opens `Forgot password`
+2. User is asked to contact support (`SUPPORT_EMAIL`)
+3. Support operator generates a one-time reset link manually
+4. Operator sends link to user via support email
+5. User resets password on `/auth/reset-password`
+
+### 2. Generate reset link in production container
+
+```bash
+# connect to host
+ssh <your-user>@<your-host>
+
+# find backend container
+docker ps --filter "name=server"
+
+# open shell in backend container
+docker exec -it <server-container-id> sh
+
+# generate reset link (valid for 60 minutes by default)
+pnpm admin:reset-link --email user@example.com --ttl-minutes 60
+```
+
+The command prints:
+- masked audit line
+- expiry timestamp
+- one-time reset URL (send this URL to the user manually)
 
 ## 🐳 Docker Support
 
