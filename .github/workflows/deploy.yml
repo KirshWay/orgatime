@@ -16,6 +16,29 @@ env:
   GITHUB_REPOSITORY: kirshway/orgatime
 
 jobs:
+  code-quality:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: millionco/react-doctor@main
+        id: doctor
+        with:
+          directory: client
+          verbose: true
+          diff: main
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Fail if score below threshold
+        if: steps.doctor.outputs.score < 80
+        run: |
+          echo "React Doctor score ${{ steps.doctor.outputs.score }} is below threshold 80"
+          exit 1
+
   build-client:
     runs-on: ubuntu-24.04
 
@@ -71,7 +94,7 @@ jobs:
   deploy:
     runs-on: ubuntu-24.04
 
-    needs: [build-client, build-server]
+    needs: [code-quality, build-client, build-server]
 
     steps:
       - name: Checkout 🛎

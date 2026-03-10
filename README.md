@@ -92,6 +92,18 @@ The application is configured for deployment with Docker Swarm:
 docker stack deploy --with-registry-auth -c docker-compose.yml orgatime
 ```
 
+## 📦 Versioning
+
+The project uses a single version across both `client` and `server`. To bump the version:
+
+```bash
+bash scripts/bump-version.sh patch   # 1.0.0 → 1.0.1
+bash scripts/bump-version.sh minor   # 1.0.0 → 1.1.0
+bash scripts/bump-version.sh major   # 1.0.0 → 2.0.0
+```
+
+The script updates both `package.json` files, creates a commit with tag `vX.Y.Z`, and pushes to remote. Requires a clean working tree.
+
 ## 📚 Documentation
 
 For more detailed information about each part of the project:
