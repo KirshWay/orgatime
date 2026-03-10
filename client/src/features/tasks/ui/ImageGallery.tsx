@@ -1,7 +1,8 @@
 import { KeyboardEvent, useCallback, useEffect, useState } from "react";
 import type { UseEmblaCarouselType } from "embla-carousel-react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence } from "motion/react";
+import * as m from "motion/react-m";
 
 import { TaskImage } from "@/entities/task";
 import { AspectRatio } from "@/shared/ui/aspect-ratio";
@@ -111,7 +112,7 @@ export const ImageGallery: React.FC<Props> = ({
     <>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
         {images.map((image, index) => (
-          <motion.div
+          <m.div
             key={image.id}
             className="relative overflow-hidden rounded border hover:opacity-95"
             initial={{ opacity: 0, scale: 0.9 }}
@@ -143,7 +144,7 @@ export const ImageGallery: React.FC<Props> = ({
                 />
               </button>
             </AspectRatio>
-          </motion.div>
+          </m.div>
         ))}
       </div>
 
@@ -205,7 +206,7 @@ export const ImageGallery: React.FC<Props> = ({
 
               <AnimatePresence mode="sync">
                 {canScrollPrev && (
-                  <motion.div
+                  <m.div
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -10 }}
@@ -220,13 +221,13 @@ export const ImageGallery: React.FC<Props> = ({
                       <ChevronLeft size={16} />
                       <span className="sr-only">Previous slide</span>
                     </Button>
-                  </motion.div>
+                  </m.div>
                 )}
               </AnimatePresence>
 
               <AnimatePresence mode="sync">
                 {canScrollNext && (
-                  <motion.div
+                  <m.div
                     initial={{ opacity: 0, x: 10 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 10 }}
@@ -241,7 +242,7 @@ export const ImageGallery: React.FC<Props> = ({
                       <ChevronRight size={16} />
                       <span className="sr-only">Next slide</span>
                     </Button>
-                  </motion.div>
+                  </m.div>
                 )}
               </AnimatePresence>
 

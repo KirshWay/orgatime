@@ -4,7 +4,7 @@ import { Check, X } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 
-export type Props = {
+type Props = {
   onConfirm: (title: string) => void;
   onCancel: () => void;
 };

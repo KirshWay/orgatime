@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { motion, useMotionValue, useSpring, useTransform } from "motion/react";
+import { useMotionValue, useSpring, useTransform } from "motion/react";
+import * as m from "motion/react-m";
 
 const style = `
   .perspective-1000 {
@@ -118,7 +119,7 @@ export const TiltCard = ({
   return (
     <>
       <style>{style}</style>
-      <motion.div
+      <m.div
         ref={cardRef}
         className="relative mx-auto rounded-xl perspective-1000 cursor-pointer"
         style={{
@@ -140,14 +141,14 @@ export const TiltCard = ({
         <div className="w-full h-full relative rounded-xl overflow-hidden transform-style-3d">
           {children}
 
-          <motion.div
+          <m.div
             className="absolute inset-0 bg-linear-to-tr from-white/0 via-white/0 to-white/40 dark:from-white/0 dark:via-white/0 dark:to-white/20 pointer-events-none rounded-xl"
             style={{
               opacity: useTransform(x, [-0.5, 0.5], [0, 0.5]),
             }}
           />
         </div>
-      </motion.div>
+      </m.div>
     </>
   );
 };

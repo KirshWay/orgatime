@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { User } from "lucide-react";
-import { motion } from "motion/react";
+import * as m from "motion/react-m";
 
 import { useAuth } from "@/app/providers";
 import { useUserStore } from "@/shared/stores/userStore";
@@ -154,7 +154,7 @@ export const Landing = () => {
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-16 relative z-10">
         <section className="flex flex-col-reverse md:flex-row items-center mb-12 sm:mb-20">
-          <motion.div
+          <m.div
             className="flex-1 mt-12 md:mt-0 md:pr-8"
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
@@ -191,8 +191,8 @@ export const Landing = () => {
                 </Link>
               )}
             </div>
-          </motion.div>
-          <motion.div
+          </m.div>
+          <m.div
             className="w-full md:w-1/2 lg:w-5/12"
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
@@ -208,7 +208,7 @@ export const Landing = () => {
                 />
               </div>
             </TiltCard>
-          </motion.div>
+          </m.div>
         </section>
 
         <section id="features" className="py-12 sm:py-16">

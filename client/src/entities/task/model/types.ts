@@ -30,9 +30,3 @@ export type Subtask = {
   updatedAt?: string;
 };
 
-export type CreateTaskInput = {
-  title: string;
-  description?: string;
-  dueDate?: string;
-  color?: TaskColor;
-};

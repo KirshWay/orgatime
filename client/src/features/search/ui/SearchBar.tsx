@@ -129,7 +129,15 @@ export const SearchBar = () => {
                     {results.map((task) => (
                       <div
                         key={task.id}
+                        role="button"
+                        tabIndex={0}
                         onClick={() => handleSelectTask(task)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            handleSelectTask(task);
+                          }
+                        }}
                         className="flex items-center gap-2 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xs cursor-pointer"
                       >
                         <div className="flex items-center flex-1 truncate">

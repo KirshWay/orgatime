@@ -3,7 +3,8 @@ import { FormProvider, useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { AnimatePresence, motion as m } from "motion/react";
+import { AnimatePresence } from "motion/react";
+import * as m from "motion/react-m";
 
 import { parseApiError } from "@/shared/lib/parseApiError";
 import { UserProfile, useUserStore } from "@/shared/stores/userStore";

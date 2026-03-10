@@ -8,7 +8,7 @@ import { TaskCreator } from "@/features/tasks/ui/TaskCreator";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
 
-export type TaskContainerProps = {
+type TaskContainerProps = {
   tasks: Task[];
   containerId: string;
   isCreating: boolean;

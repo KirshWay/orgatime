@@ -1,5 +1,6 @@
 import { memo } from "react";
-import { AnimatePresence, motion as m } from "motion/react";
+import { AnimatePresence } from "motion/react";
+import * as m from "motion/react-m";
 
 import { useTasks } from "@/features/tasks/hooks";
 import { useTaskGrouping } from "@/features/tasks/hooks/useTaskGrouping";

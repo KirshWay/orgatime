@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { format, isSameDay } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { AnimatePresence, motion as m } from "motion/react";
+import { AnimatePresence } from "motion/react";
+import * as m from "motion/react-m";
 
 import { Button } from "@/shared/ui/button";
 import { Calendar } from "@/shared/ui/calendar";

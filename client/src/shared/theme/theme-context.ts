@@ -15,4 +15,4 @@ const initialState: ThemeProviderState = {
 export const ThemeProviderContext =
   createContext<ThemeProviderState>(initialState);
 
-export type { Theme, ThemeProviderState };
+export type { Theme };

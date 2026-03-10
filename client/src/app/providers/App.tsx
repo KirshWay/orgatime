@@ -1,6 +1,12 @@
 import React, { lazy } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
-import { AnimatePresence, motion as m } from "motion/react";
+import {
+  AnimatePresence,
+  domAnimation,
+  LazyMotion,
+  MotionConfig,
+} from "motion/react";
+import * as m from "motion/react-m";
 
 import { ThemeProvider } from "@/shared/theme/theme-provider";
 import { LazyPage } from "@/shared/ui/lazy";
@@ -55,9 +61,11 @@ export const App = () => {
   const location = useLocation();
 
   return (
-    <ThemeProvider defaultTheme="system">
-      <TooltipProvider>
-        <AnimatePresence mode="sync">
+    <LazyMotion features={domAnimation} strict>
+      <MotionConfig reducedMotion="user">
+        <ThemeProvider defaultTheme="system">
+        <TooltipProvider>
+          <AnimatePresence mode="sync">
           <Routes location={location} key={location.pathname}>
             <Route
               path="/about"
@@ -124,8 +132,10 @@ export const App = () => {
               }
             />
           </Routes>
-        </AnimatePresence>
-      </TooltipProvider>
-    </ThemeProvider>
+          </AnimatePresence>
+        </TooltipProvider>
+      </ThemeProvider>
+      </MotionConfig>
+    </LazyMotion>
   );
 };

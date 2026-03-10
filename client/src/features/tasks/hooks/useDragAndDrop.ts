@@ -15,7 +15,7 @@ import { getContainerInfo, getTaskContainer } from "../lib/container-utils";
 import { ContainerDragData, ContainerInfo, TaskDragData } from "../model";
 import { useDragAndDropActions } from "./useDragAndDropActions";
 
-export type Props = {
+type Props = {
   tasks: Task[];
   weekStart: Date;
 };

@@ -1,5 +1,3 @@
-import { Active, Over } from "@dnd-kit/core";
-
 import { Task } from "@/entities/task";
 
 export type DragContainerType = "day" | "someday";
@@ -22,10 +20,3 @@ export type ContainerDragData = {
   dayIndex?: number;
 };
 
-export type DragEndParams = {
-  active: Active;
-  over: Over;
-  activeTask: Task | null;
-  activeContainer: ContainerInfo | null;
-  overContainer: ContainerInfo | null;
-};

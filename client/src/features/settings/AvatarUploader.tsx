@@ -21,7 +21,6 @@ export const AvatarUploader: React.FC<Props> = ({ img, onFileChange }) => {
       return;
     }
     const objectUrl = URL.createObjectURL(selectedFile);
-
     setPreviewUrl(objectUrl);
 
     return () => URL.revokeObjectURL(objectUrl);

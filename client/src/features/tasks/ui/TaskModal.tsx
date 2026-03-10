@@ -13,7 +13,8 @@ import {
   Plus,
   Trash,
 } from "lucide-react";
-import { AnimatePresence, motion as m } from "motion/react";
+import { AnimatePresence } from "motion/react";
+import * as m from "motion/react-m";
 
 import { Subtask, TASK_COLOR_HEX, TaskColor, TaskImage } from "@/entities/task";
 import { cn } from "@/shared/lib/utils";
@@ -49,6 +50,9 @@ import {
 import { TaskFormData, taskSchema } from "../model/validation";
 import { CalendarModal } from "./CalendarModal";
 import { SubtaskCreator } from "./SubtaskCreator";
+
+const EMPTY_SUBTASKS: Subtask[] = [];
+const EMPTY_IMAGES: TaskImage[] = [];
 import { SubtaskItem } from "./SubtaskItem";
 import { TaskImages } from "./TaskImages";
 
@@ -85,8 +89,8 @@ export const TaskModal: React.FC<Props> = ({
   initialCompleted,
   initialDueDate,
   initialColor,
-  initialSubtasks = [],
-  initialImages = [],
+  initialSubtasks = EMPTY_SUBTASKS,
+  initialImages = EMPTY_IMAGES,
   isSomeday = false,
   isFromSearch = false,
   currentWeekStart,

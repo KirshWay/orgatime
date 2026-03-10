@@ -6,13 +6,15 @@ import { Separator } from "@/shared/ui/separator";
 
 import { useDeleteTask, useUpdateTask } from "../hooks";
 
+const EMPTY_IMAGES: TaskImage[] = [];
+
 const TaskModal = lazy(() =>
   import("./TaskModal").then((module) => ({
     default: module.TaskModal,
   })),
 );
 
-export type Props = {
+type Props = {
   id: string;
   title: string;
   description?: string | null;
@@ -34,7 +36,7 @@ export const TaskItem: React.FC<Props> = ({
   color = null,
   dueDate,
   subtasks,
-  images = [],
+  images = EMPTY_IMAGES,
   isSomeday,
   isDragging = false,
   onNavigateToWeek,
@@ -81,7 +83,15 @@ export const TaskItem: React.FC<Props> = ({
               : {}
           }
           className="h-8 text-sm content-center font-medium text-gray-700 dark:text-gray-300 w-full overflow-hidden text-ellipsis whitespace-nowrap cursor-pointer"
+          role="button"
+          tabIndex={0}
           onClick={handleItemClick}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              handleItemClick();
+            }
+          }}
         >
           {title}
         </p>

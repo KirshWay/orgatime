@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { cn } from "@/shared/lib/utils";
 
@@ -29,13 +29,15 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   onLoad,
   onError,
 }) => {
+  const [prevSrc, setPrevSrc] = useState(src);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isError, setIsError] = useState(false);
 
-  useEffect(() => {
+  if (prevSrc !== src) {
+    setPrevSrc(src);
     setIsLoaded(false);
     setIsError(false);
-  }, [src]);
+  }
 
   const handleLoad = () => {
     setIsLoaded(true);

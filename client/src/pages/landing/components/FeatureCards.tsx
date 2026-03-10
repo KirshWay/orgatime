@@ -1,4 +1,4 @@
-import { motion } from "motion/react";
+import * as m from "motion/react-m";
 
 type Feature = {
   title: string;
@@ -14,9 +14,9 @@ type Props = {
 export const FeatureCards = ({ features }: Props) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-      {features.map((feature, index) => (
-        <motion.div
-          key={index}
+      {features.map((feature) => (
+        <m.div
+          key={`feature-${feature.title}`}
           className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -40,7 +40,7 @@ export const FeatureCards = ({ features }: Props) => {
           <p className="text-gray-600 dark:text-gray-400">
             {feature.description}
           </p>
-        </motion.div>
+        </m.div>
       ))}
     </div>
   );
