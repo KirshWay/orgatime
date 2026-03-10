@@ -1,22 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format, startOfWeek } from "date-fns";
-import {
-  Calendar,
-  CalendarArrowUp,
-  CalendarDays,
-  CalendarRange,
-  ChevronRight,
-  Copy,
-  Pipette,
-  Plus,
-  Trash,
-} from "lucide-react";
+import { Calendar, CalendarDays, Plus, Trash } from "lucide-react";
 import { AnimatePresence } from "motion/react";
 import * as m from "motion/react-m";
 
-import { Subtask, TASK_COLOR_HEX, TaskColor, TaskImage } from "@/entities/task";
+import { Subtask, TaskColor, TaskImage } from "@/entities/task";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
 import { Checkbox } from "@/shared/ui/checkbox";
@@ -28,13 +18,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/shared/ui/dropdown-menu";
 import { Input } from "@/shared/ui/input";
 import { Separator } from "@/shared/ui/separator";
 import { Textarea } from "@/shared/ui/textarea";
@@ -49,12 +32,15 @@ import {
 } from "../hooks";
 import { TaskFormData, taskSchema } from "../model/validation";
 import { CalendarModal } from "./CalendarModal";
+import { ColorPicker } from "./ColorPicker";
 import { SubtaskCreator } from "./SubtaskCreator";
+import { SubtaskItem } from "./SubtaskItem";
+import { getTaskColorClass } from "./task-color-utils";
+import { TaskDateActions } from "./TaskDateActions";
+import { TaskImages } from "./TaskImages";
 
 const EMPTY_SUBTASKS: Subtask[] = [];
 const EMPTY_IMAGES: TaskImage[] = [];
-import { SubtaskItem } from "./SubtaskItem";
-import { TaskImages } from "./TaskImages";
 
 type Props = {
   isOpen: boolean;
@@ -136,43 +122,6 @@ export const TaskModal: React.FC<Props> = ({
     const taskWeekStart = startOfWeek(taskDate, { weekStartsOn: 1 });
     return taskWeekStart.getTime() === currentWeekStart.getTime();
   }, [initialDueDate, currentWeekStart]);
-
-  const getTaskColorClass = (color: TaskColor | null) => {
-    if (!color) return "";
-
-    switch (color) {
-      case "STANDART":
-        return "task-color-standart";
-      case "RED":
-        return "task-color-red";
-      case "BLUE":
-        return "task-color-blue";
-      default:
-        return "";
-    }
-  };
-
-  useEffect(() => {
-    if (isOpen) {
-      methods.reset({
-        title: initialTitle,
-        description: initialDescription || "",
-        completed: initialCompleted,
-        color: initialColor,
-      });
-      setSubtasks(initialSubtasks);
-      setImages(initialImages);
-    }
-  }, [
-    isOpen,
-    initialTitle,
-    initialDescription,
-    initialCompleted,
-    initialColor,
-    initialSubtasks,
-    initialImages,
-    methods,
-  ]);
 
   const handleUpdate = (data: TaskFormData) => {
     onSave({
@@ -324,31 +273,8 @@ export const TaskModal: React.FC<Props> = ({
     }
   };
 
-  const buttonsChangeDate = (isSomeday: boolean) => {
-    if (isSomeday) {
-      return (
-        <Button onClick={handleDuplicate}>
-          Duplicate <Copy />
-        </Button>
-      );
-    }
-
-    return (
-      <>
-        <Button className="w-full" onClick={handleSetTomorrow}>
-          Tomorrow <ChevronRight />
-        </Button>
-        <Button className="w-full" onClick={handleSetNextWeek}>
-          Next week <CalendarArrowUp />
-        </Button>
-        <Button className="w-full" onClick={handleSetSomeday}>
-          Someday <CalendarRange />
-        </Button>
-        <Button className="w-full" onClick={handleDuplicate}>
-          Duplicate <Copy />
-        </Button>
-      </>
-    );
+  const handleColorChange = (color: TaskColor | null) => {
+    setValue("color", color, { shouldDirty: true });
   };
 
   return (
@@ -380,72 +306,10 @@ export const TaskModal: React.FC<Props> = ({
                 <Trash className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
 
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    className={cn(
-                      "rounded-full h-8 w-8 p-0 sm:h-10 sm:w-10",
-                      selectedColor && getTaskColorClass(selectedColor),
-                      selectedColor && "bg-task-color",
-                    )}
-                    variant="outline"
-                    title="Change color"
-                  >
-                    <Pipette className="h-4 w-4 sm:h-5 sm:w-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="p-3">
-                  <DropdownMenuGroup className="flex justify-center gap-2">
-                    <DropdownMenuItem
-                      onClick={() =>
-                        setValue("color", "STANDART", { shouldDirty: true })
-                      }
-                    >
-                      <div
-                        className="w-6 h-6 rounded-full cursor-pointer"
-                        style={{ backgroundColor: TASK_COLOR_HEX.STANDART }}
-                      />
-                    </DropdownMenuItem>
-
-                    <DropdownMenuItem
-                      onClick={() =>
-                        setValue("color", "BLUE", { shouldDirty: true })
-                      }
-                    >
-                      <div
-                        className="w-6 h-6 rounded-full cursor-pointer"
-                        style={{ backgroundColor: TASK_COLOR_HEX.BLUE }}
-                      />
-                    </DropdownMenuItem>
-
-                    <DropdownMenuItem
-                      onClick={() =>
-                        setValue("color", "RED", { shouldDirty: true })
-                      }
-                    >
-                      <div
-                        className="w-6 h-6 rounded-full cursor-pointer"
-                        style={{ backgroundColor: TASK_COLOR_HEX.RED }}
-                      />
-                    </DropdownMenuItem>
-
-                    {selectedColor && (
-                      <>
-                        <Separator orientation="vertical" className="h-6" />
-                        <DropdownMenuItem
-                          onClick={() =>
-                            setValue("color", null, { shouldDirty: true })
-                          }
-                        >
-                          <div className="w-6 h-6 rounded-full cursor-pointer border border-gray-300 flex items-center justify-center">
-                            <Trash className="h-3 w-3 text-gray-500" />
-                          </div>
-                        </DropdownMenuItem>
-                      </>
-                    )}
-                  </DropdownMenuGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <ColorPicker
+                selectedColor={selectedColor ?? null}
+                onColorChange={handleColorChange}
+              />
             </div>
           </DialogTitle>
           <DialogDescription className="sr-only">
@@ -469,7 +333,13 @@ export const TaskModal: React.FC<Props> = ({
             </div>
 
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-between">
-              {buttonsChangeDate(isSomeday)}
+              <TaskDateActions
+                isSomeday={isSomeday}
+                onSetTomorrow={handleSetTomorrow}
+                onSetNextWeek={handleSetNextWeek}
+                onSetSomeday={handleSetSomeday}
+                onDuplicate={handleDuplicate}
+              />
             </div>
 
             {!isSomeday && (

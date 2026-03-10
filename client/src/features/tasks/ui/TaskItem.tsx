@@ -42,6 +42,7 @@ export const TaskItem: React.FC<Props> = ({
   onNavigateToWeek,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalGeneration, setModalGeneration] = useState(0);
   const updateTaskMutation = useUpdateTask();
   const deleteTaskMutation = useDeleteTask();
 
@@ -66,6 +67,7 @@ export const TaskItem: React.FC<Props> = ({
 
   const handleItemClick = () => {
     if (!isDragging) {
+      setModalGeneration((prev) => prev + 1);
       setIsModalOpen(true);
     }
   };
@@ -111,6 +113,7 @@ export const TaskItem: React.FC<Props> = ({
       {!isDragging && (
         <Suspense fallback={null}>
           <TaskModal
+            key={`${id}-${modalGeneration}`}
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
             taskId={id}

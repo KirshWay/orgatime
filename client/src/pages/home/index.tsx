@@ -122,6 +122,7 @@ export const Home = () => {
       {selectedTask && (
         <LazyWidget>
           <TaskModal
+            key={selectedTask.id}
             isOpen={isTaskModalOpen}
             onClose={handleCloseTaskModal}
             taskId={selectedTask.id}

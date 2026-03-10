@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { Loader2, Search } from "lucide-react";
@@ -16,11 +16,42 @@ import {
   DialogTitle,
 } from "@/shared/ui/dialog";
 
+type SearchState = {
+  results: Task[];
+  loading: boolean;
+};
+
+type SearchAction =
+  | { type: "SEARCH_START" }
+  | { type: "SEARCH_SUCCESS"; results: Task[] }
+  | { type: "SEARCH_ERROR" }
+  | { type: "CLEAR" };
+
+const INITIAL_SEARCH_STATE: SearchState = { results: [], loading: false };
+
+const searchReducer = (
+  state: SearchState,
+  action: SearchAction,
+): SearchState => {
+  switch (action.type) {
+    case "SEARCH_START":
+      return { ...state, loading: true };
+    case "SEARCH_SUCCESS":
+      return { results: action.results, loading: false };
+    case "SEARCH_ERROR":
+      return { ...state, loading: false };
+    case "CLEAR":
+      return INITIAL_SEARCH_STATE;
+  }
+};
+
 export const SearchBar = () => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [{ results, loading }, dispatch] = useReducer(
+    searchReducer,
+    INITIAL_SEARCH_STATE,
+  );
   const navigate = useNavigate();
 
   const debouncedSearch = useDebounce(query, 300);
@@ -38,24 +69,20 @@ export const SearchBar = () => {
   }, []);
 
   useEffect(() => {
-    const searchTasksQuery = async () => {
-      if (debouncedSearch.trim().length === 0) {
-        setResults([]);
-        return;
-      }
+    if (debouncedSearch.trim().length === 0) {
+      dispatch({ type: "CLEAR" });
+      return;
+    }
 
-      setLoading(true);
-      try {
-        const fetchedResults = await searchTasks(debouncedSearch);
-        setResults(fetchedResults);
-      } catch (error) {
+    dispatch({ type: "SEARCH_START" });
+    searchTasks(debouncedSearch)
+      .then((fetchedResults) => {
+        dispatch({ type: "SEARCH_SUCCESS", results: fetchedResults });
+      })
+      .catch((error) => {
         console.error("Error searching tasks:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    searchTasksQuery();
+        dispatch({ type: "SEARCH_ERROR" });
+      });
   }, [debouncedSearch]);
 
   const handleSelectTask = (task: Task) => {

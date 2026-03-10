@@ -34,9 +34,11 @@ type Props = {
 export const SettingsModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const { user, updateUser } = useUserStore();
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [isEditingUsername, setIsEditingUsername] = useState(false);
-  const [isEditingEmail, setIsEditingEmail] = useState(false);
-  const [isEditingPassword, setIsEditingPassword] = useState(false);
+  const [editingFields, setEditingFields] = useState({
+    username: false,
+    email: false,
+    password: false,
+  });
 
   const methods = useForm({
     resolver: zodResolver(settingsSchema),
@@ -63,7 +65,7 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const currentEmail = watch("email");
 
   const isPasswordReady =
-    !isEditingPassword ||
+    !editingFields.password ||
     (oldPassword.trim() !== "" &&
       newPassword.trim() !== "" &&
       confirmPassword.trim() !== "");
@@ -73,16 +75,16 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose }) => {
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(currentEmail);
 
   const isProfileChanged =
-    (isEditingUsername &&
+    (editingFields.username &&
       currentUsername !== user?.username &&
       currentUsername.trim() !== "") ||
-    (isEditingEmail &&
+    (editingFields.email &&
       currentEmail !== user?.email &&
       currentEmail.trim() !== "");
 
   const shouldShowUpdate =
     (isProfileChanged && isProfileValid) ||
-    (isEditingPassword && isPasswordReady) ||
+    (editingFields.password && isPasswordReady) ||
     avatarFile !== null;
 
   useEffect(() => {
@@ -94,9 +96,7 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose }) => {
         newPassword: "",
         confirmPassword: "",
       });
-      setIsEditingUsername(false);
-      setIsEditingEmail(false);
-      setIsEditingPassword(false);
+      setEditingFields({ username: false, email: false, password: false });
     }
   }, [isOpen, reset, user]);
 
@@ -201,17 +201,23 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose }) => {
               </p>
 
               <ProfileForm
-                isEditingUsername={isEditingUsername}
-                setIsEditingUsername={setIsEditingUsername}
-                isEditingEmail={isEditingEmail}
-                setIsEditingEmail={setIsEditingEmail}
+                isEditingUsername={editingFields.username}
+                setIsEditingUsername={(val) =>
+                  setEditingFields((prev) => ({ ...prev, username: val }))
+                }
+                isEditingEmail={editingFields.email}
+                setIsEditingEmail={(val) =>
+                  setEditingFields((prev) => ({ ...prev, email: val }))
+                }
               />
 
               <Separator className="h-[2px]" />
 
               <PasswordForm
-                isEditingPassword={isEditingPassword}
-                setIsEditingPassword={setIsEditingPassword}
+                isEditingPassword={editingFields.password}
+                setIsEditingPassword={(val) =>
+                  setEditingFields((prev) => ({ ...prev, password: val }))
+                }
               />
             </div>
           </form>

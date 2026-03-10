@@ -22,8 +22,10 @@ export const TiltCard = ({
   maxWidth = "700px",
   aspectRatio = "16/9",
 }: Props) => {
-  const [isTouchDevice, setIsTouchDevice] = useState(false);
-  const [windowWidth, setWindowWidth] = useState(0);
+  const [isTouchDevice] = useState(
+    () => "ontouchstart" in window || navigator.maxTouchPoints > 0,
+  );
+  const [windowWidth, setWindowWidth] = useState(() => window.innerWidth);
   const cardRef = useRef<HTMLDivElement>(null);
 
   const x = useMotionValue(0);
@@ -47,16 +49,7 @@ export const TiltCard = ({
   const scale = useSpring(1, { stiffness: 150, damping: 20 });
 
   useEffect(() => {
-    const touchDevice =
-      "ontouchstart" in window || navigator.maxTouchPoints > 0;
-    setIsTouchDevice(touchDevice);
-
-    const handleResize = () => {
-      setWindowWidth(window.innerWidth);
-    };
-
-    setWindowWidth(window.innerWidth);
-
+    const handleResize = () => setWindowWidth(window.innerWidth);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);

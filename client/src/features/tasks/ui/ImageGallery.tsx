@@ -1,4 +1,4 @@
-import { KeyboardEvent, useCallback, useEffect, useState } from "react";
+import { KeyboardEvent, useCallback, useEffect, useReducer, useState } from "react";
 import type { UseEmblaCarouselType } from "embla-carousel-react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { AnimatePresence } from "motion/react";
@@ -16,6 +16,34 @@ import {
   DialogTitle,
 } from "@/shared/ui/dialog";
 import { OptimizedImage } from "@/shared/ui/optimized-image";
+
+type CarouselNavState = {
+  canScrollPrev: boolean;
+  canScrollNext: boolean;
+  currentIndex: number;
+};
+
+type CarouselNavAction = {
+  type: "UPDATE";
+  canScrollPrev: boolean;
+  canScrollNext: boolean;
+  currentIndex: number;
+};
+
+const INITIAL_NAV: CarouselNavState = {
+  canScrollPrev: false,
+  canScrollNext: false,
+  currentIndex: 0,
+};
+
+const carouselNavReducer = (
+  _state: CarouselNavState,
+  action: CarouselNavAction,
+): CarouselNavState => ({
+  canScrollPrev: action.canScrollPrev,
+  canScrollNext: action.canScrollNext,
+  currentIndex: action.currentIndex,
+});
 
 type Props = {
   images: TaskImage[];
@@ -36,23 +64,19 @@ export const ImageGallery: React.FC<Props> = ({
     UseEmblaCarouselType[1] | null
   >(null);
 
-  const [canScrollPrev, setCanScrollPrev] = useState(false);
-  const [canScrollNext, setCanScrollNext] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  const updateCurrentIndex = useCallback(() => {
-    if (!carouselApi) return;
-    const index = carouselApi.selectedScrollSnap();
-    setCurrentIndex(index);
-  }, [carouselApi]);
+  const [{ canScrollPrev, canScrollNext, currentIndex }, dispatchNav] =
+    useReducer(carouselNavReducer, INITIAL_NAV);
 
   useEffect(() => {
     if (!carouselApi) return;
 
     const onSelect = () => {
-      setCanScrollPrev(carouselApi.canScrollPrev());
-      setCanScrollNext(carouselApi.canScrollNext());
-      updateCurrentIndex();
+      dispatchNav({
+        type: "UPDATE",
+        canScrollPrev: carouselApi.canScrollPrev(),
+        canScrollNext: carouselApi.canScrollNext(),
+        currentIndex: carouselApi.selectedScrollSnap(),
+      });
     };
 
     carouselApi.on("select", onSelect);
@@ -62,7 +86,7 @@ export const ImageGallery: React.FC<Props> = ({
     return () => {
       carouselApi.off("select", onSelect);
     };
-  }, [carouselApi, updateCurrentIndex]);
+  }, [carouselApi]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLDivElement>) => {
