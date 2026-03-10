@@ -1,0 +1,8 @@
+{
+  "ignore": {
+    "rules": [
+      "react-hooks-js/incompatible-library",
+      "react-hooks-js/set-state-in-effect"
+    ]
+  }
+}
