@@ -94,7 +94,7 @@ jobs:
   deploy:
     runs-on: ubuntu-24.04
 
-    needs: [code-quality, build-client, build-server]
+    needs: [code-client-react-quality, build-client, build-server]
 
     steps:
       - name: Checkout 🛎
