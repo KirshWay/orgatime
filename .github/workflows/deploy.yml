@@ -16,7 +16,7 @@ env:
   GITHUB_REPOSITORY: kirshway/orgatime
 
 jobs:
-  code-quality:
+  code-client-react-quality:
     runs-on: ubuntu-24.04
 
     steps:
