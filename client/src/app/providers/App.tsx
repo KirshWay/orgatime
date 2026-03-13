@@ -38,6 +38,12 @@ const Home = lazy(() =>
   import('@/pages/home').then((module) => ({ default: module.Home })),
 );
 
+const AllTasks = lazy(() =>
+  import('@/pages/all-tasks').then((module) => ({
+    default: module.AllTasks,
+  })),
+);
+
 const NotFound = lazy(() =>
   import('@/pages/not-found').then((module) => ({ default: module.NotFound })),
 );
@@ -117,6 +123,16 @@ export const App = () => {
                       <LazyPage>
                         <PageTransition>
                           <Home />
+                        </PageTransition>
+                      </LazyPage>
+                    }
+                  />
+                  <Route
+                    path="/tasks"
+                    element={
+                      <LazyPage>
+                        <PageTransition>
+                          <AllTasks />
                         </PageTransition>
                       </LazyPage>
                     }

@@ -8,7 +8,7 @@ The backend of Orgatime is built with NestJS, providing a robust foundation for 
 
 ## 🧪 Technology Stack
 
-- **Core Framework**: NestJS 11, TypeScript 5
+- **Core Framework**: NestJS 11, TypeScript 5.9
 - **Database**:
   - PostgreSQL 17
   - Prisma ORM 6.x for type-safe database operations
@@ -18,10 +18,10 @@ The backend of Orgatime is built with NestJS, providing a robust foundation for 
   - Passport strategies
 - **File Management**:
   - Multer for file uploads
-  - Sharp for image processing
+  - Sharp for image processing (WebP conversion)
 - **API Documentation**: Swagger/OpenAPI
 - **Validation**: class-validator and class-transformer
-- **Monitoring**: Built-in NestJS logging and exception handling
+- **Linting & Formatting**: Oxlint, Oxfmt
 
 ## 🏗️ Architecture
 
@@ -35,6 +35,7 @@ The backend follows NestJS modular architecture, with clear separation of concer
   /common        # Shared decorators, filters, and utilities
   /prisma        # Prisma service and schema
   /utils         # Utility functions and helpers
+  /scripts       # Admin CLI scripts
   main.ts        # Application entry point
   app.module.ts  # Root application module
 ```
@@ -47,26 +48,24 @@ Each feature module (auth, users, tasks) follows a consistent pattern:
 - **Service**: Contains business logic
 - **DTO**: Data Transfer Objects for validation
 - **Entities**: TypeScript interfaces matching Prisma models
-- **Repository Pattern**: Service uses Prisma for database operations
 
 ## 📊 Database Schema
 
 The database schema is defined using Prisma and includes these main entities:
 
 - **User**: User accounts and authentication
-- **Task**: Core task entity with properties like title, description, date
+- **Task**: Core task entity with properties like title, description, date, color, order
 - **Subtask**: Child tasks belonging to a parent task
-- **TaskImage**: Images attached to tasks
+- **TaskImage**: Images attached to tasks (stored as WebP)
 
 ## 🔐 Security Features
 
-- JWT-based authentication with refresh tokens
+- JWT-based authentication with refresh tokens (1h access, 7d refresh)
 - Password hashing with bcrypt
-- Password reset with secure tokens
-- Role-based access control for endpoints
-- Request throttling for auth endpoints
-- JWT token expiration and refresh mechanism
-- Secure cookie handling
+- Password reset with secure one-time tokens (admin-generated)
+- Login brute-force protection (5 attempts, 15-minute lockout)
+- Password reset cooldown (3 minutes between requests)
+- Secure cookie handling (`sameSite: strict`, `secure`, `httpOnly`)
 - CORS configuration
 - Input validation using DTOs and class-validator
 
@@ -78,8 +77,8 @@ The database schema is defined using Prisma and includes these main entities:
 - `POST /api/auth/login` - Log in and get access token
 - `POST /api/auth/refresh` - Refresh access token
 - `POST /api/auth/logout` - Log out and invalidate tokens
-- `POST /api/auth/forgot-password` - Request password reset
-- `POST /api/auth/reset-password` - Reset password with token
+- `POST /api/auth/forgot-password` - Request password reset (directs to support)
+- `POST /api/auth/reset-password` - Reset password with one-time token
 
 ### Users
 
@@ -90,13 +89,24 @@ The database schema is defined using Prisma and includes these main entities:
 
 ### Tasks
 
-- `GET /api/tasks` - Get tasks list (with filtering)
-- `GET /api/tasks/:id` - Get specific task
+- `GET /api/tasks` - Get all tasks for the authenticated user
+- `GET /api/tasks/:id` - Get specific task with subtasks and images
 - `POST /api/tasks` - Create new task
 - `PATCH /api/tasks/:id` - Update task
-- `DELETE /api/tasks/:id` - Delete task
+- `DELETE /api/tasks/:id` - Delete task (cascades to subtasks and images)
+- `PATCH /api/tasks/order` - Batch update task order and due dates
+- `PATCH /api/tasks/:id/date` - Update task date (tomorrow, next week, someday, custom)
+- `POST /api/tasks/:id/duplicate` - Duplicate task with subtasks and images
+- `POST /api/tasks/search` - Full-text search across task titles, descriptions, and subtasks
+
+### Task Images
+
 - `POST /api/tasks/:id/images` - Upload images to task
-- `DELETE /api/tasks/images/:id` - Remove image from task
+- `GET /api/tasks/:id/images` - Get task images
+- `DELETE /api/tasks/:id/images/:imageId` - Remove image from task
+
+### Subtasks
+
 - `POST /api/tasks/:id/subtasks` - Add subtask
 - `PATCH /api/tasks/subtasks/:id` - Update subtask
 - `DELETE /api/tasks/subtasks/:id` - Delete subtask
@@ -109,7 +119,7 @@ Create a `.env` file with the following variables:
 
 ```
 # Database
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/orgatime?schema=public"
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/orgatime-dev?schema=public"
 
 # Authentication
 JWT_SECRET="your-secret-key"
@@ -142,14 +152,27 @@ pnpm build
 # Run in production mode
 pnpm start:prod
 
+# Lint code
+pnpm lint
+
+# Auto-fix lint issues
+pnpm lint:fix
+
+# Format code
+pnpm format
+
+# Check formatting
+pnpm format:check
+
 # Generate manual password reset link (after build)
-pnpm admin:reset-link --email user@example.com --ttl-minutes 60
+pnpm admin:reset-link -- --email user@example.com --ttl-minutes 60
 
 # Run database migrations in production
 pnpm prisma:migrate:deploy
 ```
 
-## 🔧 Manual Password Recovery (Runbook)
+<details>
+<summary>🔧 Manual Password Recovery (Runbook)</summary>
 
 When automatic email delivery is unavailable, use manual recovery via support.
 
@@ -174,7 +197,7 @@ docker ps --filter "name=server"
 docker exec -it <server-container-id> sh
 
 # generate reset link (valid for 60 minutes by default)
-pnpm admin:reset-link --email user@example.com --ttl-minutes 60
+pnpm admin:reset-link -- --email user@example.com --ttl-minutes 60
 ```
 
 The command prints:
@@ -183,15 +206,18 @@ The command prints:
 - expiry timestamp
 - one-time reset URL (send this URL to the user manually)
 
+</details>
+
 ## 🐳 Docker Support
 
 The backend includes Docker configuration for easy deployment:
 
-- `Dockerfile` - Multi-stage build for production
+- `Dockerfile` - Multi-stage build for production (Node 22 Alpine)
 - `docker-entrypoint.sh` - Entry script for container initialization
 - `compose.dev.yaml` - Development setup with PostgreSQL
 
-## 🧩 Code Structure Example
+<details>
+<summary>🧩 Code Structure Example</summary>
 
 Controller example:
 
@@ -202,14 +228,14 @@ export class TasksController {
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  async findAll(@User() user: UserEntity, @Query() query: GetTasksDto) {
-    return this.tasksService.findAll(user.id, query);
+  async findAll(@Req() req: Request) {
+    return this.tasksService.findAllTasks(req.user.id);
   }
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  async create(@User() user: UserEntity, @Body() createTaskDto: CreateTaskDto) {
-    return this.tasksService.create(user.id, createTaskDto);
+  async create(@Req() req: Request, @Body() createTaskDto: CreateTaskDto) {
+    return this.tasksService.createTask(req.user.id, createTaskDto);
   }
 
   // Additional endpoints...
@@ -223,15 +249,9 @@ Service example:
 export class TasksService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(userId: string, query: GetTasksDto) {
-    const { completed, date, someday } = query;
-
+  async findAllTasks(userId: string) {
     return this.prisma.task.findMany({
-      where: {
-        userId,
-        completed: completed !== undefined ? completed : undefined,
-        dueDate: someday ? null : date ? date : undefined,
-      },
+      where: { userId },
       include: {
         subtasks: true,
         images: true,
@@ -245,6 +265,8 @@ export class TasksService {
   // Additional methods...
 }
 ```
+
+</details>
 
 ## 📝 API Documentation
 

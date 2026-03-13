@@ -1,3 +1,4 @@
+export * from './useAllTasksGrouping';
 export * from './useDragAndDrop';
 export * from './useSubtaskCrud';
 export * from './useTaskCrud';
