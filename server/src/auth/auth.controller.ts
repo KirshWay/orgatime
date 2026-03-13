@@ -122,9 +122,7 @@ export class AuthController {
   })
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
-  async forgotPassword(
-    @Body() forgotPasswordDto: ForgotPasswordDto,
-  ) {
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
     await this.authService.forgotPassword(forgotPasswordDto);
 
     return {
@@ -136,9 +134,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Password reset successfully.' })
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
-  async resetPassword(
-    @Body() resetPasswordDto: ResetPasswordDto,
-  ) {
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
     await this.authService.resetPassword(resetPasswordDto);
     return { message: 'The password has been successfully reset' };
   }

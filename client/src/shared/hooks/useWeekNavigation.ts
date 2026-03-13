@@ -1,8 +1,8 @@
-import { useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
-import { format, isSameDay, startOfWeek } from "date-fns";
+import { useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { format, isSameDay, startOfWeek } from 'date-fns';
 
-import { useWeekStore } from "@/shared/stores/weekStore";
+import { useWeekStore } from '@/shared/stores/weekStore';
 
 export const useWeekNavigation = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -17,7 +17,7 @@ export const useWeekNavigation = () => {
   } = useWeekStore();
 
   useEffect(() => {
-    const dateParam = searchParams.get("date");
+    const dateParam = searchParams.get('date');
     const initialWeekStart = getWeekDateFromUrl(dateParam);
     setWeekStart(initialWeekStart);
   }, [getWeekDateFromUrl, searchParams, setWeekStart]);
@@ -48,9 +48,9 @@ export const useWeekNavigation = () => {
     const actualWeekStart = useWeekStore.getState().weekStart;
 
     if (isSameDay(actualWeekStart, currentWeekStart)) {
-      newParams.delete("date");
+      newParams.delete('date');
     } else {
-      newParams.set("date", format(actualWeekStart, "yyyy-MM-dd"));
+      newParams.set('date', format(actualWeekStart, 'yyyy-MM-dd'));
     }
 
     setSearchParams(newParams);

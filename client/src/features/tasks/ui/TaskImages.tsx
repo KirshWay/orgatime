@@ -1,13 +1,13 @@
-import { useState } from "react";
-import { ImageIcon } from "lucide-react";
+import { useState } from 'react';
+import { ImageIcon } from 'lucide-react';
 
-import { TaskImage } from "@/entities/task";
-import { Button } from "@/shared/ui/button";
-import { Separator } from "@/shared/ui/separator";
+import { TaskImage } from '@/entities/task';
+import { Button } from '@/shared/ui/button';
+import { Separator } from '@/shared/ui/separator';
 
-import { useDeleteTaskImage, useUploadTaskImage } from "../hooks";
-import { ImageGallery } from "./ImageGallery";
-import { ImageUploader } from "./ImageUploader";
+import { useDeleteTaskImage, useUploadTaskImage } from '../hooks';
+import { ImageGallery } from './ImageGallery';
+import { ImageUploader } from './ImageUploader';
 
 type Props = {
   taskId: string;

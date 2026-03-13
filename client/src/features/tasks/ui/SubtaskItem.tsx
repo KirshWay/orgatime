@@ -1,10 +1,10 @@
-import React, { useState } from "react";
-import { Check, Pencil, Trash, X } from "lucide-react";
+import React, { useState } from 'react';
+import { Check, Pencil, Trash, X } from 'lucide-react';
 
-import { Subtask } from "@/entities/task";
-import { Button } from "@/shared/ui/button";
-import { Checkbox } from "@/shared/ui/checkbox";
-import { Input } from "@/shared/ui/input";
+import { Subtask } from '@/entities/task';
+import { Button } from '@/shared/ui/button';
+import { Checkbox } from '@/shared/ui/checkbox';
+import { Input } from '@/shared/ui/input';
 
 type Props = {
   subtask: Subtask;
@@ -76,7 +76,7 @@ export const SubtaskItem: React.FC<Props> = ({
               className="w-8 h-8"
               checked={subtask.completed}
               onCheckedChange={(checked) => {
-                if (typeof checked === "boolean") {
+                if (typeof checked === 'boolean') {
                   handleToggle(checked);
                 }
               }}

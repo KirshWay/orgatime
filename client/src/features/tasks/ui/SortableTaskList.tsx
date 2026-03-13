@@ -1,12 +1,12 @@
-import React, { memo, useMemo } from "react";
+import React, { memo, useMemo } from 'react';
 import {
   SortableContext,
   verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
+} from '@dnd-kit/sortable';
 
-import { Task } from "@/entities/task";
+import { Task } from '@/entities/task';
 
-import { SortableTaskItem } from "./SortableTaskItem";
+import { SortableTaskItem } from './SortableTaskItem';
 
 type Props = {
   tasks: Task[];

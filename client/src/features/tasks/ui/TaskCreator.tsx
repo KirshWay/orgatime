@@ -1,8 +1,8 @@
-import React, { useState } from "react";
-import { Check, X } from "lucide-react";
+import React, { useState } from 'react';
+import { Check, X } from 'lucide-react';
 
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
+import { Button } from '@/shared/ui/button';
+import { Input } from '@/shared/ui/input';
 
 type Props = {
   onConfirm: (title: string) => void;
@@ -10,14 +10,14 @@ type Props = {
 };
 
 export const TaskCreator: React.FC<Props> = ({ onConfirm, onCancel }) => {
-  const [inputValue, setInputValue] = useState("");
+  const [inputValue, setInputValue] = useState('');
 
   const handleConfirm = () => {
     if (inputValue.trim()) onConfirm(inputValue.trim());
   };
 
   const handleCancel = () => {
-    setInputValue("");
+    setInputValue('');
     onCancel();
   };
 

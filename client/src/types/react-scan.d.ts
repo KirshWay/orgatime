@@ -1,4 +1,4 @@
-declare module "react-scan" {
+declare module 'react-scan' {
   interface ReactScan {
     init(): void;
   }
@@ -7,4 +7,4 @@ declare module "react-scan" {
   export default reactScan;
 }
 
-declare module "react-scan/dist/auto.global.js" {}
+declare module 'react-scan/dist/auto.global.js' {}

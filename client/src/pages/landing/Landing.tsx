@@ -1,11 +1,11 @@
-import { Link } from "react-router-dom";
-import { User } from "lucide-react";
-import * as m from "motion/react-m";
+import { Link } from 'react-router-dom';
+import { User } from 'lucide-react';
+import * as m from 'motion/react-m';
 
-import { useAuth } from "@/app/providers";
-import { useUserStore } from "@/shared/stores/userStore";
-import { BackgroundPaths } from "@/shared/ui/background-paths";
-import { Button } from "@/shared/ui/button";
+import { useAuth } from '@/app/providers';
+import { useUserStore } from '@/shared/stores/userStore';
+import { BackgroundPaths } from '@/shared/ui/background-paths';
+import { Button } from '@/shared/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,11 +13,11 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/shared/ui/dropdown-menu";
-import { OptimizedImage } from "@/shared/ui/optimized-image";
-import { SEO } from "@/shared/ui/seo";
+} from '@/shared/ui/dropdown-menu';
+import { OptimizedImage } from '@/shared/ui/optimized-image';
+import { SEO } from '@/shared/ui/seo';
 
-import { FeatureCards, TiltCard } from "./components";
+import { FeatureCards, TiltCard } from './components';
 
 export const Landing = () => {
   const { isAuthenticated, logout } = useAuth();
@@ -25,9 +25,9 @@ export const Landing = () => {
 
   const features = [
     {
-      title: "Weekly planning",
+      title: 'Weekly planning',
       description:
-        "Clear view of the whole week with the ability to drag tasks between days.",
+        'Clear view of the whole week with the ability to drag tasks between days.',
       icon: (
         <path
           strokeLinecap="round"
@@ -38,9 +38,9 @@ export const Landing = () => {
       delay: 0,
     },
     {
-      title: "Task management",
+      title: 'Task management',
       description:
-        "Break down complex tasks into subtasks for easier project management.",
+        'Break down complex tasks into subtasks for easier project management.',
       icon: (
         <path
           strokeLinecap="round"
@@ -51,9 +51,9 @@ export const Landing = () => {
       delay: 0.1,
     },
     {
-      title: "Color marking",
+      title: 'Color marking',
       description:
-        "Use colors to categorize and prioritize tasks by importance and type.",
+        'Use colors to categorize and prioritize tasks by importance and type.',
       icon: (
         <path
           strokeLinecap="round"
@@ -69,7 +69,7 @@ export const Landing = () => {
     try {
       await logout();
     } catch (error) {
-      console.error("Logout error:", error);
+      console.error('Logout error:', error);
     }
   };
 
@@ -124,7 +124,7 @@ export const Landing = () => {
                 <DropdownMenuLabel>{user?.username}</DropdownMenuLabel>
                 <DropdownMenuItem
                   className="cursor-pointer"
-                  onClick={() => (window.location.href = "/")}
+                  onClick={() => (window.location.href = '/')}
                 >
                   Dashboard
                 </DropdownMenuItem>

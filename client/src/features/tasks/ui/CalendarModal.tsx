@@ -1,11 +1,11 @@
-import { useState } from "react";
-import { format, isSameDay } from "date-fns";
-import { Calendar as CalendarIcon } from "lucide-react";
-import { AnimatePresence } from "motion/react";
-import * as m from "motion/react-m";
+import { useState } from 'react';
+import { format, isSameDay } from 'date-fns';
+import { Calendar as CalendarIcon } from 'lucide-react';
+import { AnimatePresence } from 'motion/react';
+import * as m from 'motion/react-m';
 
-import { Button } from "@/shared/ui/button";
-import { Calendar } from "@/shared/ui/calendar";
+import { Button } from '@/shared/ui/button';
+import { Calendar } from '@/shared/ui/calendar';
 import {
   Dialog,
   DialogContent,
@@ -13,7 +13,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/shared/ui/dialog";
+} from '@/shared/ui/dialog';
 
 type Props = {
   isOpen: boolean;
@@ -71,8 +71,8 @@ export const CalendarModal: React.FC<Props> = ({
             }}
             modifiersStyles={{
               booked: {
-                backgroundColor: "rgba(217, 217, 217, 0.3)",
-                borderRadius: "0",
+                backgroundColor: 'rgba(217, 217, 217, 0.3)',
+                borderRadius: '0',
               },
             }}
           />
@@ -93,7 +93,7 @@ export const CalendarModal: React.FC<Props> = ({
                 transition={{ duration: 0.3 }}
               >
                 <Button onClick={handleSelectDate} className="w-full">
-                  {`Move to ${format(date, "dd.MM.yyyy")}`}
+                  {`Move to ${format(date, 'dd.MM.yyyy')}`}
                 </Button>
               </m.div>
             )}

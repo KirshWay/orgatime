@@ -1,8 +1,8 @@
-import { memo } from "react";
+import { memo } from 'react';
 
-import { useTasks } from "@/features/tasks/hooks";
-import { useTaskCreation } from "@/widgets/shared";
-import { TaskContainerBase } from "@/widgets/shared";
+import { useTasks } from '@/features/tasks/hooks';
+import { useTaskCreation } from '@/widgets/shared';
+import { TaskContainerBase } from '@/widgets/shared';
 
 type Props = {
   onNavigateToWeek?: (date: Date) => void;

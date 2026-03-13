@@ -1,10 +1,10 @@
-import { Task } from "@/entities/task";
+import { Task } from '@/entities/task';
 
-export type DragContainerType = "day" | "someday";
+export type DragContainerType = 'day' | 'someday';
 
 export type TaskDragData = {
   task: Task;
-  type: "task";
+  type: 'task';
 };
 
 export type ContainerInfo = {
@@ -14,9 +14,8 @@ export type ContainerInfo = {
 };
 
 export type ContainerDragData = {
-  type: "container";
+  type: 'container';
   containerType: DragContainerType;
   accepts: string[];
   dayIndex?: number;
 };
-

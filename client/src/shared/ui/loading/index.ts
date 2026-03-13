@@ -1,1 +1,1 @@
-export { LoadingFallback } from "./LoadingFallback";
+export { LoadingFallback } from './LoadingFallback';

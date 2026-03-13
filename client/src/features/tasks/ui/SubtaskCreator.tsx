@@ -1,8 +1,8 @@
-import React, { useState } from "react";
-import { Check, X } from "lucide-react";
+import React, { useState } from 'react';
+import { Check, X } from 'lucide-react';
 
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
+import { Button } from '@/shared/ui/button';
+import { Input } from '@/shared/ui/input';
 
 type Props = {
   onConfirm: (title: string) => void;
@@ -10,17 +10,17 @@ type Props = {
 };
 
 export const SubtaskCreator: React.FC<Props> = ({ onConfirm, onCancel }) => {
-  const [title, setTitle] = useState("");
+  const [title, setTitle] = useState('');
 
   const handleConfirm = () => {
     if (title.trim()) {
       onConfirm(title.trim());
-      setTitle("");
+      setTitle('');
     }
   };
 
   const handleCancel = () => {
-    setTitle("");
+    setTitle('');
     onCancel();
   };
 

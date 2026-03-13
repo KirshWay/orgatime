@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react";
-import { useMotionValue, useSpring, useTransform } from "motion/react";
-import * as m from "motion/react-m";
+import { useEffect, useRef, useState } from 'react';
+import { useMotionValue, useSpring, useTransform } from 'motion/react';
+import * as m from 'motion/react-m';
 
 const style = `
   .perspective-1000 {
@@ -19,11 +19,11 @@ type Props = {
 
 export const TiltCard = ({
   children,
-  maxWidth = "700px",
-  aspectRatio = "16/9",
+  maxWidth = '700px',
+  aspectRatio = '16/9',
 }: Props) => {
   const [isTouchDevice] = useState(
-    () => "ontouchstart" in window || navigator.maxTouchPoints > 0,
+    () => 'ontouchstart' in window || navigator.maxTouchPoints > 0,
   );
   const [windowWidth, setWindowWidth] = useState(() => window.innerWidth);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -50,8 +50,8 @@ export const TiltCard = ({
 
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -116,13 +116,13 @@ export const TiltCard = ({
         ref={cardRef}
         className="relative mx-auto rounded-xl perspective-1000 cursor-pointer"
         style={{
-          width: "100%",
+          width: '100%',
           maxWidth,
           aspectRatio,
           rotateX: isTouchDevice ? 0 : rotateX,
           rotateY: isTouchDevice ? 0 : rotateY,
           scale,
-          filter: "drop-shadow(0px 10px 25px rgba(0,0,0,0.15))",
+          filter: 'drop-shadow(0px 10px 25px rgba(0,0,0,0.15))',
         }}
         onMouseMove={handleMouseMove}
         onMouseEnter={handleMouseEnter}

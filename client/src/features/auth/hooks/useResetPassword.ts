@@ -1,6 +1,6 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation } from '@tanstack/react-query';
 
-import { resetPassword } from "../api/resetPassword";
+import { resetPassword } from '../api/resetPassword';
 
 type ResetPasswordParams = {
   token: string;

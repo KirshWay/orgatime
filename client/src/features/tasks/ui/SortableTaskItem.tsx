@@ -1,10 +1,10 @@
-import React, { memo, useMemo } from "react";
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
+import React, { memo, useMemo } from 'react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
-import { Task } from "@/entities/task";
+import { Task } from '@/entities/task';
 
-import { TaskItem } from "./TaskItem";
+import { TaskItem } from './TaskItem';
 
 type Props = {
   task: Task;
@@ -25,7 +25,7 @@ export const SortableTaskItem: React.FC<Props> = memo(
       id: task.id,
       data: {
         task,
-        type: "task",
+        type: 'task',
       },
     });
 

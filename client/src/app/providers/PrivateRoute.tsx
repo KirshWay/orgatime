@@ -1,10 +1,10 @@
-import React from "react";
-import { Navigate, Outlet, useLocation } from "react-router-dom";
+import React from 'react';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
-import { useUserStore } from "@/shared/stores/userStore";
-import { LoadingFallback } from "@/shared/ui/loading";
+import { useUserStore } from '@/shared/stores/userStore';
+import { LoadingFallback } from '@/shared/ui/loading';
 
-import { useAuth } from "./auth";
+import { useAuth } from './auth';
 
 export const PrivateRoute: React.FC = () => {
   const { user } = useUserStore();

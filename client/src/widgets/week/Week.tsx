@@ -1,13 +1,13 @@
-import { memo } from "react";
-import { AnimatePresence } from "motion/react";
-import * as m from "motion/react-m";
+import { memo } from 'react';
+import { AnimatePresence } from 'motion/react';
+import * as m from 'motion/react-m';
 
-import { useTasks } from "@/features/tasks/hooks";
-import { useTaskGrouping } from "@/features/tasks/hooks/useTaskGrouping";
-import { useTaskCreation } from "@/widgets/shared";
-import { getWeekDays } from "@/widgets/utils";
+import { useTasks } from '@/features/tasks/hooks';
+import { useTaskGrouping } from '@/features/tasks/hooks/useTaskGrouping';
+import { useTaskCreation } from '@/widgets/shared';
+import { getWeekDays } from '@/widgets/utils';
 
-import { DayColumn } from "./DayColumn";
+import { DayColumn } from './DayColumn';
 
 type Props = {
   weekStart: Date;

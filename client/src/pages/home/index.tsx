@@ -1,26 +1,26 @@
-import { lazy, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import { closestCenter, DndContext, DragOverlay } from "@dnd-kit/core";
+import { lazy, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { closestCenter, DndContext, DragOverlay } from '@dnd-kit/core';
 
-import { useDragAndDrop, useTasks } from "@/features/tasks/hooks";
-import { TaskItem } from "@/features/tasks/ui/TaskItem";
-import { useWeekNavigation } from "@/shared/hooks";
-import { LazyWidget } from "@/shared/ui/lazy";
-import { SEO } from "@/shared/ui/seo";
-import { Header } from "@/widgets/header";
+import { useDragAndDrop, useTasks } from '@/features/tasks/hooks';
+import { TaskItem } from '@/features/tasks/ui/TaskItem';
+import { useWeekNavigation } from '@/shared/hooks';
+import { LazyWidget } from '@/shared/ui/lazy';
+import { SEO } from '@/shared/ui/seo';
+import { Header } from '@/widgets/header';
 
 const TaskModal = lazy(() =>
-  import("@/features/tasks/ui/TaskModal").then((module) => ({
+  import('@/features/tasks/ui/TaskModal').then((module) => ({
     default: module.TaskModal,
   })),
 );
 
 const Someday = lazy(() =>
-  import("@/widgets/someday").then((module) => ({ default: module.Someday })),
+  import('@/widgets/someday').then((module) => ({ default: module.Someday })),
 );
 
 const Week = lazy(() =>
-  import("@/widgets/week").then((module) => ({ default: module.Week })),
+  import('@/widgets/week').then((module) => ({ default: module.Week })),
 );
 
 export const Home = () => {
@@ -44,7 +44,7 @@ export const Home = () => {
     });
 
   useEffect(() => {
-    const taskId = searchParams.get("task");
+    const taskId = searchParams.get('task');
     if (taskId) {
       setSelectedTaskId(taskId);
       setIsTaskModalOpen(true);
@@ -55,7 +55,7 @@ export const Home = () => {
     setIsTaskModalOpen(false);
     setSelectedTaskId(null);
 
-    if (searchParams.has("task") || searchParams.has("date")) {
+    if (searchParams.has('task') || searchParams.has('date')) {
       setSearchParams({});
     }
   };
@@ -127,7 +127,7 @@ export const Home = () => {
             onClose={handleCloseTaskModal}
             taskId={selectedTask.id}
             initialTitle={selectedTask.title}
-            initialDescription={selectedTask.description || ""}
+            initialDescription={selectedTask.description || ''}
             initialCompleted={selectedTask.completed}
             initialColor={selectedTask.color}
             initialDueDate={selectedTask.dueDate}

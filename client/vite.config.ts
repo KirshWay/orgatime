@@ -1,58 +1,58 @@
-import tailwindcss from "@tailwindcss/vite";
-import react from "@vitejs/plugin-react";
-import path from "path";
-import { defineConfig } from "vite";
-import { VitePWA } from "vite-plugin-pwa";
-import sitemap from "vite-plugin-sitemap";
+import tailwindcss from '@tailwindcss/vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+import { defineConfig } from 'vite';
+import { VitePWA } from 'vite-plugin-pwa';
+import sitemap from 'vite-plugin-sitemap';
 
-const domain = process.env.VITE_SITE_DOMAIN || "http://localhost:5173";
+const domain = process.env.VITE_SITE_DOMAIN || 'http://localhost:5173';
 
 export default defineConfig({
   plugins: [
     react({
       babel: {
-        plugins: [["babel-plugin-react-compiler", {}]],
+        plugins: [['babel-plugin-react-compiler', {}]],
       },
     }),
     tailwindcss(),
     VitePWA({
-      registerType: "autoUpdate",
+      registerType: 'autoUpdate',
       includeAssets: [
-        "favicon.ico",
-        "favicon-16x16.png",
-        "favicon-32x32.png",
-        "apple-touch-icon.png",
-        "robots.txt",
+        'favicon.ico',
+        'favicon-16x16.png',
+        'favicon-32x32.png',
+        'apple-touch-icon.png',
+        'robots.txt',
       ],
       manifest: {
-        name: "Orgatime - organise your week",
-        short_name: "Orgatime",
-        description: "Organise your week and be productive",
-        theme_color: "#dde1fb",
-        background_color: "#ffffff",
-        display: "standalone",
+        name: 'Orgatime - organise your week',
+        short_name: 'Orgatime',
+        description: 'Organise your week and be productive',
+        theme_color: '#dde1fb',
+        background_color: '#ffffff',
+        display: 'standalone',
         icons: [
           {
-            src: "android-chrome-192x192.png",
-            sizes: "192x192",
-            type: "image/png",
+            src: 'android-chrome-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
           },
           {
-            src: "android-chrome-512x512.png",
-            sizes: "512x512",
-            type: "image/png",
+            src: 'android-chrome-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
           },
         ],
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,jpg,jpeg,json}"],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,jpeg,json}'],
         runtimeCaching: [
           {
             urlPattern:
               /\.(?:png|jpg|jpeg|svg|gif|ico|woff|woff2|ttf|otf|css|js)$/,
-            handler: "CacheFirst",
+            handler: 'CacheFirst',
             options: {
-              cacheName: "static-assets",
+              cacheName: 'static-assets',
               expiration: {
                 maxEntries: 100,
                 maxAgeSeconds: 60 * 60 * 24 * 30,
@@ -61,9 +61,9 @@ export default defineConfig({
           },
           {
             urlPattern: /^https:\/\/[^/]+\/((?!api).)*$/,
-            handler: "StaleWhileRevalidate",
+            handler: 'StaleWhileRevalidate',
             options: {
-              cacheName: "html-cache",
+              cacheName: 'html-cache',
               expiration: {
                 maxEntries: 30,
                 maxAgeSeconds: 60 * 60 * 24 * 7,
@@ -71,27 +71,27 @@ export default defineConfig({
             },
           },
         ],
-        navigateFallback: "/index.html",
+        navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//, /^\/_/],
       },
     }),
     sitemap({
       hostname: domain,
-      dynamicRoutes: ["/", "/auth/login", "/auth/signup"],
+      dynamicRoutes: ['/', '/auth/login', '/auth/signup'],
       exclude: [
-        "/auth/forgot-password",
-        "/auth/reset-password",
-        "/404",
-        "/error",
+        '/auth/forgot-password',
+        '/auth/reset-password',
+        '/404',
+        '/error',
       ],
       lastmod: new Date(),
-      changefreq: "weekly",
+      changefreq: 'weekly',
       priority: 0.8,
       robots: [
         {
-          userAgent: "*",
-          allow: "/",
-          disallow: ["/auth/forgot-password", "/auth/reset-password"],
+          userAgent: '*',
+          allow: '/',
+          disallow: ['/auth/forgot-password', '/auth/reset-password'],
         },
       ],
       readable: true,
@@ -99,7 +99,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path.resolve(import.meta.dirname, "./src"),
+      '@': path.resolve(import.meta.dirname, './src'),
     },
   },
   build: {
@@ -109,30 +109,30 @@ export default defineConfig({
         codeSplitting: {
           groups: [
             {
-              name: "react",
+              name: 'react',
               test: /node_modules[\\/](react|react-dom|react-router-dom)[\\/]/,
             },
             {
-              name: "ui",
+              name: 'ui',
               test: /node_modules[\\/](@radix-ui|@dnd-kit|lucide-react|class-variance-authority|clsx|tailwind-merge|tailwindcss-animate)[\\/]/,
             },
             {
-              name: "forms",
+              name: 'forms',
               test: /node_modules[\\/](react-hook-form|@hookform|zod)[\\/]/,
             },
             {
-              name: "data",
+              name: 'data',
               test: /node_modules[\\/](date-fns|react-day-picker|@tanstack[\\/]react-query|zustand)[\\/]/,
             },
             {
-              name: "utils",
+              name: 'utils',
               test: /node_modules[\\/](axios|react-helmet-async|react-hot-toast|cmdk|embla-carousel|motion)[\\/]/,
             },
           ],
         },
       },
     },
-    minify: "terser",
+    minify: 'terser',
     terserOptions: {
       compress: {
         drop_console: true,
@@ -140,28 +140,28 @@ export default defineConfig({
       },
     },
     cssCodeSplit: true,
-    target: "esnext",
+    target: 'esnext',
     sourcemap: false,
   },
   optimizeDeps: {
     include: [
-      "react",
-      "react-dom",
-      "react-router-dom",
-      "@tanstack/react-query",
-      "zustand",
-      "axios",
+      'react',
+      'react-dom',
+      'react-router-dom',
+      '@tanstack/react-query',
+      'zustand',
+      'axios',
     ],
-    exclude: ["react-scan"],
+    exclude: ['react-scan'],
   },
   server: {
     proxy: {
-      "/api": {
-        target: process.env.VITE_BACKEND_URL || "http://localhost:8000",
+      '/api': {
+        target: process.env.VITE_BACKEND_URL || 'http://localhost:8000',
         changeOrigin: true,
       },
-      "/uploads": {
-        target: process.env.VITE_BACKEND_URL || "http://localhost:8000",
+      '/uploads': {
+        target: process.env.VITE_BACKEND_URL || 'http://localhost:8000',
         changeOrigin: true,
       },
     },

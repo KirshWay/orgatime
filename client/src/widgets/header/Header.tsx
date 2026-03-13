@@ -1,19 +1,19 @@
-import { lazy, Suspense, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { startOfWeek } from "date-fns";
-import { Info, Printer, Settings, User } from "lucide-react";
+import { lazy, Suspense, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { startOfWeek } from 'date-fns';
+import { Info, Printer, Settings, User } from 'lucide-react';
 
 const SettingsModal = lazy(() =>
-  import("@/features/settings/SettingsModal").then((module) => ({
+  import('@/features/settings/SettingsModal').then((module) => ({
     default: module.SettingsModal,
   })),
 );
 
-import { useAuth } from "@/app/providers";
-import { SearchBar } from "@/features/search";
-import { useWeekNavigation } from "@/shared/hooks";
-import { useUserStore } from "@/shared/stores/userStore";
-import { Button } from "@/shared/ui/button";
+import { useAuth } from '@/app/providers';
+import { SearchBar } from '@/features/search';
+import { useWeekNavigation } from '@/shared/hooks';
+import { useUserStore } from '@/shared/stores/userStore';
+import { Button } from '@/shared/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,9 +21,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/shared/ui/dropdown-menu";
-import { ModeToggle } from "@/shared/ui/mode-toggle";
-import { OptimizedImage } from "@/shared/ui/optimized-image";
+} from '@/shared/ui/dropdown-menu';
+import { ModeToggle } from '@/shared/ui/mode-toggle';
+import { OptimizedImage } from '@/shared/ui/optimized-image';
 
 export const Header: React.FC = () => {
   const { weekStart, handleNextWeek, handlePrevWeek, handleResetWeek } =
@@ -35,16 +35,16 @@ export const Header: React.FC = () => {
   const now = new Date();
   const currentWeekStart = startOfWeek(now, { weekStartsOn: 1 });
   const isCurrentWeek = currentWeekStart.getTime() === weekStart.getTime();
-  const monthYear = `${now.toLocaleString("default", { month: "long" })} ${now.getFullYear()}`;
+  const monthYear = `${now.toLocaleString('default', { month: 'long' })} ${now.getFullYear()}`;
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
       await logout();
-      navigate("/auth/login");
+      navigate('/auth/login');
     } catch (error) {
-      console.error("Logout error:", error);
+      console.error('Logout error:', error);
     }
   };
 
@@ -111,7 +111,7 @@ export const Header: React.FC = () => {
             </DropdownMenuItem>
             <DropdownMenuItem
               className="cursor-pointer flex justify-between"
-              onClick={() => navigate("/about")}
+              onClick={() => navigate('/about')}
             >
               About
               <Info />

@@ -1,11 +1,11 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { useLocation } from "react-router-dom";
-import { useQueryClient } from "@tanstack/react-query";
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 
-import { apiClient } from "@/shared/api";
-import { useUserStore } from "@/shared/stores/userStore";
+import { apiClient } from '@/shared/api';
+import { useUserStore } from '@/shared/stores/userStore';
 
-import { AuthContext, AuthContextType } from "./AuthContext";
+import { AuthContext, AuthContextType } from './AuthContext';
 
 type Props = {
   children: React.ReactNode;
@@ -33,7 +33,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
   }, [accessToken]);
 
   const login = async (email: string, password: string) => {
-    const response = await apiClient.post("/auth/login", { email, password });
+    const response = await apiClient.post('/auth/login', { email, password });
     setAccessToken(response.data.accessToken);
     setUser(response.data.user);
   };
@@ -44,25 +44,25 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     password: string;
     avatar?: string;
   }) => {
-    const response = await apiClient.post("/auth/register", data);
+    const response = await apiClient.post('/auth/register', data);
     setAccessToken(response.data.accessToken);
     setUser(response.data.user);
   };
 
   const logout = useCallback(async () => {
-    await apiClient.post("/auth/logout");
+    await apiClient.post('/auth/logout');
     setAccessToken(null);
     clearUser();
     queryClient.clear();
   }, [clearUser, queryClient]);
 
   const refreshToken = async () => {
-    const refreshResponse = await apiClient.post("/auth/refresh");
+    const refreshResponse = await apiClient.post('/auth/refresh');
     setAccessToken(refreshResponse.data.accessToken);
   };
 
   useEffect(() => {
-    if (!location.pathname.startsWith("/auth")) {
+    if (!location.pathname.startsWith('/auth')) {
       if (initialRefreshAttempted.current) {
         return;
       }
@@ -70,11 +70,11 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
       initialRefreshAttempted.current = true;
 
       apiClient
-        .post("/auth/refresh")
+        .post('/auth/refresh')
         .then((res) => {
           const newToken = res.data.accessToken;
           setAccessToken(newToken);
-          return apiClient.get("/users/profile", {
+          return apiClient.get('/users/profile', {
             headers: { Authorization: `Bearer ${newToken}` },
           });
         })
@@ -92,7 +92,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
   }, [location.pathname, setUser, clearUser]);
 
   useEffect(() => {
-    if (!location.pathname.startsWith("/auth")) {
+    if (!location.pathname.startsWith('/auth')) {
       const interval = setInterval(
         () => refreshToken().catch(() => logout()),
         55 * 60 * 1000,

@@ -1,13 +1,14 @@
 {
   "name": "orgatime-server",
   "version": "1.0.0",
-  "description": "",
-  "author": "",
   "private": true,
+  "description": "",
   "license": "UNLICENSED",
+  "author": "",
   "scripts": {
     "build": "nest build",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev --name init",
     "prisma:migrate:deploy": "prisma migrate deploy --schema=./prisma/schema.prisma",
@@ -16,7 +17,8 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "admin:reset-link": "node dist/scripts/admin-reset-link.js",
-    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix"
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix"
   },
   "dependencies": {
     "@nestjs/common": "11.1.16",
@@ -43,8 +45,6 @@
     "uuid": "11.1.0"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "3.3.5",
-    "@eslint/js": "9.39.4",
     "@nestjs/cli": "11.0.16",
     "@nestjs/schematics": "11.0.9",
     "@swc/cli": "0.8.0",
@@ -55,17 +55,13 @@
     "@types/node": "25.4.0",
     "@types/passport-jwt": "4.0.1",
     "@types/uuid": "10.0.0",
-    "eslint": "9.39.4",
-    "eslint-config-prettier": "10.1.8",
-    "eslint-plugin-prettier": "5.5.5",
-    "globals": "16.5.0",
-    "prettier": "3.8.1",
+    "oxfmt": "0.40.0",
+    "oxlint": "1.55.0",
     "source-map-support": "0.5.21",
     "ts-loader": "9.5.4",
     "ts-node": "10.9.2",
     "tsconfig-paths": "4.2.0",
-    "typescript": "5.9.3",
-    "typescript-eslint": "8.57.0"
+    "typescript": "5.9.3"
   },
   "packageManager": "pnpm@10.32.1",
   "pnpm": {

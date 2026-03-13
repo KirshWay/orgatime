@@ -1,19 +1,19 @@
-import { useForm } from "react-hook-form";
-import toast from "react-hot-toast";
-import { Link, useNavigate } from "react-router-dom";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import { useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
+import { Link, useNavigate } from 'react-router-dom';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 
-import { useAuth } from "@/app/providers";
-import { parseApiError } from "@/shared/lib/parseApiError";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { OptimizedImage } from "@/shared/ui/optimized-image";
-import { SEO } from "@/shared/ui/seo";
+import { useAuth } from '@/app/providers';
+import { parseApiError } from '@/shared/lib/parseApiError';
+import { Button } from '@/shared/ui/button';
+import { Input } from '@/shared/ui/input';
+import { OptimizedImage } from '@/shared/ui/optimized-image';
+import { SEO } from '@/shared/ui/seo';
 
 const loginSchema = z.object({
-  email: z.email("Please enter a valid email"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  email: z.email('Please enter a valid email'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -33,8 +33,8 @@ export const Login = () => {
   const onSubmit = async (data: LoginFormData) => {
     try {
       await login(data.email, data.password);
-      toast.success("Logged in successfully");
-      navigate("/");
+      toast.success('Logged in successfully');
+      navigate('/');
     } catch (err) {
       toast.error(parseApiError(err));
     }
@@ -69,7 +69,7 @@ export const Login = () => {
               Email
             </label>
             <Input
-              {...register("email")}
+              {...register('email')}
               type="email"
               id="email"
               autoComplete="email"
@@ -91,7 +91,7 @@ export const Login = () => {
               Password
             </label>
             <Input
-              {...register("password")}
+              {...register('password')}
               type="password"
               id="password"
               autoComplete="current-password"
@@ -106,19 +106,19 @@ export const Login = () => {
           </div>
 
           <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? "Logging in..." : "Login"}
+            {isSubmitting ? 'Logging in...' : 'Login'}
           </Button>
         </form>
 
         <p className="text-sm text-center mt-4">
-          Don't have an account?{" "}
+          Don't have an account?{' '}
           <Link to="/auth/signup" className="text-blue-600 hover:underline">
             Sign up
           </Link>
         </p>
 
         <p className="text-sm text-center mt-4">
-          Need help accessing account?{" "}
+          Need help accessing account?{' '}
           <Link
             to="/auth/forgot-password"
             className="text-blue-600 hover:underline"

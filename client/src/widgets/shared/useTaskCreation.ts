@@ -1,7 +1,7 @@
-import { useState } from "react";
-import { format } from "date-fns";
+import { useState } from 'react';
+import { format } from 'date-fns';
 
-import { useCreateTask } from "@/features/tasks/hooks";
+import { useCreateTask } from '@/features/tasks/hooks';
 
 export const useTaskCreation = () => {
   const [creatingForDay, setCreatingForDay] = useState<boolean[]>(
@@ -28,7 +28,7 @@ export const useTaskCreation = () => {
     createTaskMutation.mutate(
       {
         title: newTitle,
-        dueDate: format(dateObj, "yyyy-MM-dd"),
+        dueDate: format(dateObj, 'yyyy-MM-dd'),
       },
       {
         onSuccess: () => {

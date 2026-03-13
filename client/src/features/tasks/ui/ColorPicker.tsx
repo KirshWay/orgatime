@@ -1,18 +1,18 @@
-import { Pipette, Trash } from "lucide-react";
+import { Pipette, Trash } from 'lucide-react';
 
-import { TASK_COLOR_HEX, TaskColor } from "@/entities/task";
-import { cn } from "@/shared/lib/utils";
-import { Button } from "@/shared/ui/button";
+import { TASK_COLOR_HEX, TaskColor } from '@/entities/task';
+import { cn } from '@/shared/lib/utils';
+import { Button } from '@/shared/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/shared/ui/dropdown-menu";
-import { Separator } from "@/shared/ui/separator";
+} from '@/shared/ui/dropdown-menu';
+import { Separator } from '@/shared/ui/separator';
 
-import { getTaskColorClass } from "./task-color-utils";
+import { getTaskColorClass } from './task-color-utils';
 
 type Props = {
   selectedColor: TaskColor | null;
@@ -27,9 +27,9 @@ export const ColorPicker: React.FC<Props> = ({
     <DropdownMenuTrigger asChild>
       <Button
         className={cn(
-          "rounded-full h-8 w-8 p-0 sm:h-10 sm:w-10",
+          'rounded-full h-8 w-8 p-0 sm:h-10 sm:w-10',
           selectedColor && getTaskColorClass(selectedColor),
-          selectedColor && "bg-task-color",
+          selectedColor && 'bg-task-color',
         )}
         variant="outline"
         title="Change color"
@@ -39,21 +39,21 @@ export const ColorPicker: React.FC<Props> = ({
     </DropdownMenuTrigger>
     <DropdownMenuContent className="p-3">
       <DropdownMenuGroup className="flex justify-center gap-2">
-        <DropdownMenuItem onClick={() => onColorChange("STANDART")}>
+        <DropdownMenuItem onClick={() => onColorChange('STANDART')}>
           <div
             className="w-6 h-6 rounded-full cursor-pointer"
             style={{ backgroundColor: TASK_COLOR_HEX.STANDART }}
           />
         </DropdownMenuItem>
 
-        <DropdownMenuItem onClick={() => onColorChange("BLUE")}>
+        <DropdownMenuItem onClick={() => onColorChange('BLUE')}>
           <div
             className="w-6 h-6 rounded-full cursor-pointer"
             style={{ backgroundColor: TASK_COLOR_HEX.BLUE }}
           />
         </DropdownMenuItem>
 
-        <DropdownMenuItem onClick={() => onColorChange("RED")}>
+        <DropdownMenuItem onClick={() => onColorChange('RED')}>
           <div
             className="w-6 h-6 rounded-full cursor-pointer"
             style={{ backgroundColor: TASK_COLOR_HEX.RED }}

@@ -1,35 +1,35 @@
-import { useForm } from "react-hook-form";
-import toast from "react-hot-toast";
-import { Link, useNavigate } from "react-router-dom";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import { useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
+import { Link, useNavigate } from 'react-router-dom';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 
-import { useAuth } from "@/app/providers";
-import { parseApiError } from "@/shared/lib/parseApiError";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { OptimizedImage } from "@/shared/ui/optimized-image";
-import { SEO } from "@/shared/ui/seo";
+import { useAuth } from '@/app/providers';
+import { parseApiError } from '@/shared/lib/parseApiError';
+import { Button } from '@/shared/ui/button';
+import { Input } from '@/shared/ui/input';
+import { OptimizedImage } from '@/shared/ui/optimized-image';
+import { SEO } from '@/shared/ui/seo';
 
 const signUpSchema = z.object({
-  email: z.email("Please enter a valid email"),
+  email: z.email('Please enter a valid email'),
   username: z
     .string()
-    .min(3, "Username must be at least 3 characters")
-    .max(20, "Username must not exceed 20 characters")
+    .min(3, 'Username must be at least 3 characters')
+    .max(20, 'Username must not exceed 20 characters')
     .regex(
       /^[a-zA-Z0-9_]+$/,
-      "Username can only contain letters, numbers and underscores",
+      'Username can only contain letters, numbers and underscores',
     ),
   password: z
     .string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/(?=.*[a-z])/, "Password must contain at least one lowercase letter")
-    .regex(/(?=.*[A-Z])/, "Password must contain at least one uppercase letter")
-    .regex(/(?=.*\d)/, "Password must contain at least one number")
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/(?=.*[a-z])/, 'Password must contain at least one lowercase letter')
+    .regex(/(?=.*[A-Z])/, 'Password must contain at least one uppercase letter')
+    .regex(/(?=.*\d)/, 'Password must contain at least one number')
     .regex(
       /(?=.*[@$!%*?&])/,
-      "Password must contain at least one special character (@$!%*?&)",
+      'Password must contain at least one special character (@$!%*?&)',
     ),
 });
 
@@ -50,8 +50,8 @@ export const SignUp = () => {
   const onSubmit = async (data: SignUpFormData) => {
     try {
       await registerUser(data);
-      toast.success("Registration successful");
-      navigate("/");
+      toast.success('Registration successful');
+      navigate('/');
     } catch (err) {
       toast.error(parseApiError(err));
     }
@@ -86,7 +86,7 @@ export const SignUp = () => {
               Email
             </label>
             <Input
-              {...register("email")}
+              {...register('email')}
               type="email"
               id="email"
               autoComplete="email"
@@ -108,7 +108,7 @@ export const SignUp = () => {
               Username
             </label>
             <Input
-              {...register("username")}
+              {...register('username')}
               type="text"
               id="username"
               autoComplete="username"
@@ -130,7 +130,7 @@ export const SignUp = () => {
               Password
             </label>
             <Input
-              {...register("password")}
+              {...register('password')}
               type="password"
               id="password"
               autoComplete="new-password"
@@ -145,12 +145,12 @@ export const SignUp = () => {
           </div>
 
           <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? "Signing up..." : "Sign Up"}
+            {isSubmitting ? 'Signing up...' : 'Sign Up'}
           </Button>
         </form>
 
         <p className="text-sm text-center mt-4">
-          Already have an account?{" "}
+          Already have an account?{' '}
           <Link to="/auth/login" className="text-blue-600 hover:underline">
             Log in
           </Link>

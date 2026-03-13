@@ -1,8 +1,8 @@
-import { parseISO, startOfWeek } from "date-fns";
-import { create } from "zustand";
-import { devtools } from "zustand/middleware";
+import { parseISO, startOfWeek } from 'date-fns';
+import { create } from 'zustand';
+import { devtools } from 'zustand/middleware';
 
-import { STORE_NAMES } from "@/shared/lib/store";
+import { STORE_NAMES } from '@/shared/lib/store';
 
 type WeekState = {
   weekStart: Date;
@@ -24,7 +24,7 @@ export const useWeekStore = create<WeekState>()(
         weekStart: initialWeekStart,
 
         setWeekStart: (date: Date) =>
-          set({ weekStart: date }, false, "week/setWeekStart"),
+          set({ weekStart: date }, false, 'week/setWeekStart'),
 
         nextWeek: () => {
           set(
@@ -34,7 +34,7 @@ export const useWeekStore = create<WeekState>()(
               return { weekStart: nextWeekDate };
             },
             false,
-            "week/nextWeek",
+            'week/nextWeek',
           );
         },
 
@@ -46,7 +46,7 @@ export const useWeekStore = create<WeekState>()(
               return { weekStart: prevWeekDate };
             },
             false,
-            "week/prevWeek",
+            'week/prevWeek',
           );
         },
 
@@ -56,13 +56,13 @@ export const useWeekStore = create<WeekState>()(
           set(
             { weekStart: currentWeekStart },
             false,
-            "week/resetToCurrentWeek",
+            'week/resetToCurrentWeek',
           );
         },
 
         navigateToWeek: (date: Date) => {
           const weekStart = startOfWeek(date, { weekStartsOn: 1 });
-          set({ weekStart }, false, "week/navigateToWeek");
+          set({ weekStart }, false, 'week/navigateToWeek');
         },
 
         getWeekDateFromUrl: (dateParam: string | null) => {
@@ -74,7 +74,7 @@ export const useWeekStore = create<WeekState>()(
             const date = parseISO(dateParam);
             return startOfWeek(date, { weekStartsOn: 1 });
           } catch (error) {
-            console.error("Invalid date format in URL", error);
+            console.error('Invalid date format in URL', error);
             return startOfWeek(new Date(), { weekStartsOn: 1 });
           }
         },

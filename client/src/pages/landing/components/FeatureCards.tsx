@@ -1,4 +1,4 @@
-import * as m from "motion/react-m";
+import * as m from 'motion/react-m';
 
 type Feature = {
   title: string;

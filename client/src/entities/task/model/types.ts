@@ -1,4 +1,4 @@
-import { TaskColor } from "./task-colors";
+import { TaskColor } from './task-colors';
 
 export type TaskImage = {
   id: string;
@@ -29,4 +29,3 @@ export type Subtask = {
   createdAt?: string;
   updatedAt?: string;
 };
-

@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useMemo } from "react";
-import * as m from "motion/react-m";
+import { useMemo } from 'react';
+import * as m from 'motion/react-m';
 
 function FloatingPaths({ position }: { position: number }) {
   const paths = useMemo(
@@ -46,7 +46,7 @@ function FloatingPaths({ position }: { position: number }) {
             transition={{
               duration: path.duration,
               repeat: Number.POSITIVE_INFINITY,
-              ease: "linear",
+              ease: 'linear',
             }}
           />
         ))}
@@ -56,7 +56,7 @@ function FloatingPaths({ position }: { position: number }) {
 }
 
 export const BackgroundPaths = ({
-  className = "",
+  className = '',
   opacity = 0.5,
   zIndex = 0,
 }: {

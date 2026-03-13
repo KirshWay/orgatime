@@ -1,6 +1,6 @@
-import { Suspense } from "react";
+import { Suspense } from 'react';
 
-import { LoadingFallback } from "@/shared/ui/loading";
+import { LoadingFallback } from '@/shared/ui/loading';
 
 type Props = {
   children: React.ReactNode;

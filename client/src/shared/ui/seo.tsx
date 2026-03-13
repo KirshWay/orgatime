@@ -1,4 +1,4 @@
-import { Helmet } from "react-helmet-async";
+import { Helmet } from 'react-helmet-async';
 
 type Props = {
   title: string;
@@ -17,9 +17,9 @@ export const SEO = ({
   nofollow = false,
   canonicalUrl,
 }: Props) => {
-  const siteTitle = title ? `${title} | OrgaTime` : "OrgaTime";
-  const metaRobots = `${noindex ? "noindex" : "index"},${
-    nofollow ? "nofollow" : "follow"
+  const siteTitle = title ? `${title} | OrgaTime` : 'OrgaTime';
+  const metaRobots = `${noindex ? 'noindex' : 'index'},${
+    nofollow ? 'nofollow' : 'follow'
   }`;
 
   return (

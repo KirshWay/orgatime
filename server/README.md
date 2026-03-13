@@ -178,6 +178,7 @@ pnpm admin:reset-link --email user@example.com --ttl-minutes 60
 ```
 
 The command prints:
+
 - masked audit line
 - expiry timestamp
 - one-time reset URL (send this URL to the user manually)
