@@ -3,9 +3,9 @@ import {
   CalendarRange,
   ChevronRight,
   Copy,
-} from "lucide-react";
+} from 'lucide-react';
 
-import { Button } from "@/shared/ui/button";
+import { Button } from '@/shared/ui/button';
 
 type Props = {
   isSomeday: boolean;

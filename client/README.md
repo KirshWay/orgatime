@@ -11,11 +11,11 @@ The frontend of Orgatime is built with modern React and follows the Feature-Slic
 - **Core**: React 19, TypeScript 5, Vite 5
 - **State Management**: React Query, Context API, Zustand
 - **Routing**: React Router 6
-- **UI Components**: 
+- **UI Components**:
   - TailwindCSS for styling
   - shadcn/ui for component primitives
   - Lucide React for icons
-- **Forms & Validation**: 
+- **Forms & Validation**:
   - React Hook Form for form state
   - Zod for schema validation
 - **Drag & Drop**: react-dnd-kit
@@ -58,6 +58,7 @@ The application uses Zustand for state management with Redux DevTools integratio
 ### Store Structure
 
 Stores are organized following the FSD principles:
+
 - Entity-specific state (user profile, etc.) is in `entities/**/model`
 - Feature-specific state is in `features/**/model`
 - Shared global state is in `shared/stores`
@@ -67,9 +68,9 @@ Stores are organized following the FSD principles:
 All stores are configured with Redux DevTools middleware for better debugging:
 
 ```tsx
-import { create } from "zustand";
-import { devtools } from "zustand/middleware";
-import { STORE_NAMES } from "@/shared/lib/store";
+import { create } from 'zustand';
+import { devtools } from 'zustand/middleware';
+import { STORE_NAMES } from '@/shared/lib/store';
 
 type MyStore = {
   // your types here
@@ -79,11 +80,17 @@ export const useMyStore = create<MyStore>()(
   devtools(
     (set) => ({
       // state and actions
-      myAction: () => 
-        set({ /* new state */ }, false, 'storeName/actionName'),
-    }), 
-    { name: STORE_NAMES.MY_STORE }
-  )
+      myAction: () =>
+        set(
+          {
+            /* new state */
+          },
+          false,
+          'storeName/actionName',
+        ),
+    }),
+    { name: STORE_NAMES.MY_STORE },
+  ),
 );
 ```
 
@@ -107,8 +114,8 @@ For consistency, store names are defined as constants in `STORE_NAMES`:
 
 ```tsx
 export const STORE_NAMES = {
-  USER_STORE: "UserStore",
-  WEEK_STORE: "WeekStore",
+  USER_STORE: 'UserStore',
+  WEEK_STORE: 'WeekStore',
 };
 ```
 
@@ -194,6 +201,7 @@ Components follow a consistent pattern:
 - Prop destructuring with defaults
 
 Example component structure:
+
 ```tsx
 import { useState } from 'react';
 import { Button } from '@/shared/ui/button';
@@ -208,14 +216,10 @@ interface TaskItemProps {
 export const TaskItem = ({ task, isEditable = false }: TaskItemProps) => {
   const { updateTask, deleteTask } = useTaskActions();
   const [isEditing, setIsEditing] = useState(false);
-  
+
   // Business logic...
-  
-  return (
-    <div className="task-item">
-      {/* Component JSX */}
-    </div>
-  );
+
+  return <div className="task-item">{/* Component JSX */}</div>;
 };
 ```
 

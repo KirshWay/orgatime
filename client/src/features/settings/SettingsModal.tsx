@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from "react";
-import { FormProvider, useForm } from "react-hook-form";
-import toast from "react-hot-toast";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
-import { AnimatePresence } from "motion/react";
-import * as m from "motion/react-m";
+import React, { useEffect, useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation } from '@tanstack/react-query';
+import { AnimatePresence } from 'motion/react';
+import * as m from 'motion/react-m';
 
-import { parseApiError } from "@/shared/lib/parseApiError";
-import { UserProfile, useUserStore } from "@/shared/stores/userStore";
-import { Button } from "@/shared/ui/button";
+import { parseApiError } from '@/shared/lib/parseApiError';
+import { UserProfile, useUserStore } from '@/shared/stores/userStore';
+import { Button } from '@/shared/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -16,15 +16,15 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/shared/ui/dialog";
-import { Separator } from "@/shared/ui/separator";
+} from '@/shared/ui/dialog';
+import { Separator } from '@/shared/ui/separator';
 
-import { updateAvatar, updatePassword, updateProfile } from "./api";
-import { AvatarUploader } from "./AvatarUploader";
-import { SettingsFormData } from "./model/types";
-import { settingsSchema } from "./model/validation";
-import { PasswordForm } from "./ui/PasswordForm";
-import { ProfileForm } from "./ui/ProfileForm";
+import { updateAvatar, updatePassword, updateProfile } from './api';
+import { AvatarUploader } from './AvatarUploader';
+import { SettingsFormData } from './model/types';
+import { settingsSchema } from './model/validation';
+import { PasswordForm } from './ui/PasswordForm';
+import { ProfileForm } from './ui/ProfileForm';
 
 type Props = {
   isOpen: boolean;
@@ -43,11 +43,11 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const methods = useForm({
     resolver: zodResolver(settingsSchema),
     defaultValues: {
-      username: user?.username || "",
-      email: user?.email || "",
-      oldPassword: "",
-      newPassword: "",
-      confirmPassword: "",
+      username: user?.username || '',
+      email: user?.email || '',
+      oldPassword: '',
+      newPassword: '',
+      confirmPassword: '',
     },
   });
 
@@ -58,17 +58,17 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose }) => {
     formState: { isDirty },
   } = methods;
 
-  const oldPassword = watch("oldPassword");
-  const newPassword = watch("newPassword");
-  const confirmPassword = watch("confirmPassword");
-  const currentUsername = watch("username");
-  const currentEmail = watch("email");
+  const oldPassword = watch('oldPassword');
+  const newPassword = watch('newPassword');
+  const confirmPassword = watch('confirmPassword');
+  const currentUsername = watch('username');
+  const currentEmail = watch('email');
 
   const isPasswordReady =
     !editingFields.password ||
-    (oldPassword.trim() !== "" &&
-      newPassword.trim() !== "" &&
-      confirmPassword.trim() !== "");
+    (oldPassword.trim() !== '' &&
+      newPassword.trim() !== '' &&
+      confirmPassword.trim() !== '');
 
   const isProfileValid =
     currentUsername.trim().length >= 4 &&
@@ -77,10 +77,10 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const isProfileChanged =
     (editingFields.username &&
       currentUsername !== user?.username &&
-      currentUsername.trim() !== "") ||
+      currentUsername.trim() !== '') ||
     (editingFields.email &&
       currentEmail !== user?.email &&
-      currentEmail.trim() !== "");
+      currentEmail.trim() !== '');
 
   const shouldShowUpdate =
     (isProfileChanged && isProfileValid) ||
@@ -90,11 +90,11 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose }) => {
   useEffect(() => {
     if (!isOpen) {
       reset({
-        username: user?.username || "",
-        email: user?.email || "",
-        oldPassword: "",
-        newPassword: "",
-        confirmPassword: "",
+        username: user?.username || '',
+        email: user?.email || '',
+        oldPassword: '',
+        newPassword: '',
+        confirmPassword: '',
       });
       setEditingFields({ username: false, email: false, password: false });
     }
@@ -108,7 +108,7 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose }) => {
     mutationFn: updateProfile,
     onSuccess: (data) => {
       updateUser(data);
-      toast.success("Profile updated successfully");
+      toast.success('Profile updated successfully');
     },
     onError: (error) => {
       toast.error(parseApiError(error));
@@ -122,7 +122,7 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose }) => {
   >({
     mutationFn: updatePassword,
     onSuccess: () => {
-      toast.success("Password updated successfully");
+      toast.success('Password updated successfully');
     },
     onError: (error) => {
       toast.error(parseApiError(error));
@@ -134,7 +134,7 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose }) => {
     onSuccess: (data) => {
       updateUser({ avatar: data.avatarUrl });
       setAvatarFile(null);
-      toast.success("Avatar updated successfully");
+      toast.success('Avatar updated successfully');
     },
     onError: (error) => {
       toast.error(parseApiError(error));
@@ -174,7 +174,7 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose }) => {
       await Promise.all(promises);
       onClose();
     } catch (error) {
-      console.error("Error updating settings:", error);
+      console.error('Error updating settings:', error);
     }
   };
 
@@ -192,7 +192,7 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose }) => {
           <form id="settings-form" onSubmit={handleSubmit(onSubmit)}>
             <div className="space-y-2 mt-4">
               <AvatarUploader
-                img={user?.avatar || ""}
+                img={user?.avatar || ''}
                 onFileChange={(file) => setAvatarFile(file)}
               />
 

@@ -1,20 +1,20 @@
-import { useEffect, useReducer, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { format } from "date-fns";
-import { Loader2, Search } from "lucide-react";
+import { useEffect, useReducer, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { format } from 'date-fns';
+import { Loader2, Search } from 'lucide-react';
 
-import { Task } from "@/entities/task";
-import { TASK_COLOR_HEX } from "@/entities/task/model/task-colors";
-import { searchTasks } from "@/features/tasks/api";
-import { useDebounce } from "@/shared/hooks/useDebounce";
-import { cn } from "@/shared/lib/utils";
-import { Button } from "@/shared/ui/button";
+import { Task } from '@/entities/task';
+import { TASK_COLOR_HEX } from '@/entities/task/model/task-colors';
+import { searchTasks } from '@/features/tasks/api';
+import { useDebounce } from '@/shared/hooks/useDebounce';
+import { cn } from '@/shared/lib/utils';
+import { Button } from '@/shared/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
-} from "@/shared/ui/dialog";
+} from '@/shared/ui/dialog';
 
 type SearchState = {
   results: Task[];
@@ -22,10 +22,10 @@ type SearchState = {
 };
 
 type SearchAction =
-  | { type: "SEARCH_START" }
-  | { type: "SEARCH_SUCCESS"; results: Task[] }
-  | { type: "SEARCH_ERROR" }
-  | { type: "CLEAR" };
+  | { type: 'SEARCH_START' }
+  | { type: 'SEARCH_SUCCESS'; results: Task[] }
+  | { type: 'SEARCH_ERROR' }
+  | { type: 'CLEAR' };
 
 const INITIAL_SEARCH_STATE: SearchState = { results: [], loading: false };
 
@@ -34,20 +34,20 @@ const searchReducer = (
   action: SearchAction,
 ): SearchState => {
   switch (action.type) {
-    case "SEARCH_START":
+    case 'SEARCH_START':
       return { ...state, loading: true };
-    case "SEARCH_SUCCESS":
+    case 'SEARCH_SUCCESS':
       return { results: action.results, loading: false };
-    case "SEARCH_ERROR":
+    case 'SEARCH_ERROR':
       return { ...state, loading: false };
-    case "CLEAR":
+    case 'CLEAR':
       return INITIAL_SEARCH_STATE;
   }
 };
 
 export const SearchBar = () => {
   const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState('');
   const [{ results, loading }, dispatch] = useReducer(
     searchReducer,
     INITIAL_SEARCH_STATE,
@@ -58,30 +58,30 @@ export const SearchBar = () => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         setOpen((open) => !open);
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   useEffect(() => {
     if (debouncedSearch.trim().length === 0) {
-      dispatch({ type: "CLEAR" });
+      dispatch({ type: 'CLEAR' });
       return;
     }
 
-    dispatch({ type: "SEARCH_START" });
+    dispatch({ type: 'SEARCH_START' });
     searchTasks(debouncedSearch)
       .then((fetchedResults) => {
-        dispatch({ type: "SEARCH_SUCCESS", results: fetchedResults });
+        dispatch({ type: 'SEARCH_SUCCESS', results: fetchedResults });
       })
       .catch((error) => {
-        console.error("Error searching tasks:", error);
-        dispatch({ type: "SEARCH_ERROR" });
+        console.error('Error searching tasks:', error);
+        dispatch({ type: 'SEARCH_ERROR' });
       });
   }, [debouncedSearch]);
 
@@ -160,7 +160,7 @@ export const SearchBar = () => {
                         tabIndex={0}
                         onClick={() => handleSelectTask(task)}
                         onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
+                          if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
                             handleSelectTask(task);
                           }
@@ -170,8 +170,8 @@ export const SearchBar = () => {
                         <div className="flex items-center flex-1 truncate">
                           {getTaskColorDot(task.color)}
                           <span
-                            className={cn("truncate", {
-                              "line-through opacity-60": task.completed,
+                            className={cn('truncate', {
+                              'line-through opacity-60': task.completed,
                             })}
                           >
                             {task.title}
@@ -180,7 +180,7 @@ export const SearchBar = () => {
 
                         {task.dueDate && (
                           <span className="text-xs text-gray-500">
-                            {format(new Date(task.dueDate), "dd.MM.yyyy")}
+                            {format(new Date(task.dueDate), 'dd.MM.yyyy')}
                           </span>
                         )}
                       </div>

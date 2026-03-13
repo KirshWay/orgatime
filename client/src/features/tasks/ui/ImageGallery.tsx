@@ -1,21 +1,27 @@
-import { KeyboardEvent, useCallback, useEffect, useReducer, useState } from "react";
-import type { UseEmblaCarouselType } from "embla-carousel-react";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
-import { AnimatePresence } from "motion/react";
-import * as m from "motion/react-m";
+import {
+  KeyboardEvent,
+  useCallback,
+  useEffect,
+  useReducer,
+  useState,
+} from 'react';
+import type { UseEmblaCarouselType } from 'embla-carousel-react';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { AnimatePresence } from 'motion/react';
+import * as m from 'motion/react-m';
 
-import { TaskImage } from "@/entities/task";
-import { AspectRatio } from "@/shared/ui/aspect-ratio";
-import { Button } from "@/shared/ui/button";
-import { Carousel, CarouselContent, CarouselItem } from "@/shared/ui/carousel";
+import { TaskImage } from '@/entities/task';
+import { AspectRatio } from '@/shared/ui/aspect-ratio';
+import { Button } from '@/shared/ui/button';
+import { Carousel, CarouselContent, CarouselItem } from '@/shared/ui/carousel';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/shared/ui/dialog";
-import { OptimizedImage } from "@/shared/ui/optimized-image";
+} from '@/shared/ui/dialog';
+import { OptimizedImage } from '@/shared/ui/optimized-image';
 
 type CarouselNavState = {
   canScrollPrev: boolean;
@@ -24,7 +30,7 @@ type CarouselNavState = {
 };
 
 type CarouselNavAction = {
-  type: "UPDATE";
+  type: 'UPDATE';
   canScrollPrev: boolean;
   canScrollNext: boolean;
   currentIndex: number;
@@ -72,19 +78,19 @@ export const ImageGallery: React.FC<Props> = ({
 
     const onSelect = () => {
       dispatchNav({
-        type: "UPDATE",
+        type: 'UPDATE',
         canScrollPrev: carouselApi.canScrollPrev(),
         canScrollNext: carouselApi.canScrollNext(),
         currentIndex: carouselApi.selectedScrollSnap(),
       });
     };
 
-    carouselApi.on("select", onSelect);
-    carouselApi.on("reInit", onSelect);
+    carouselApi.on('select', onSelect);
+    carouselApi.on('reInit', onSelect);
     onSelect();
 
     return () => {
-      carouselApi.off("select", onSelect);
+      carouselApi.off('select', onSelect);
     };
   }, [carouselApi]);
 
@@ -93,11 +99,11 @@ export const ImageGallery: React.FC<Props> = ({
       if (!carouselApi) return;
 
       switch (e.key) {
-        case "ArrowLeft":
+        case 'ArrowLeft':
           e.preventDefault();
           carouselApi.scrollPrev();
           break;
-        case "ArrowRight":
+        case 'ArrowRight':
           e.preventDefault();
           carouselApi.scrollNext();
           break;

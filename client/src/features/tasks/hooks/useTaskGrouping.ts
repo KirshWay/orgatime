@@ -1,7 +1,7 @@
-import { useMemo } from "react";
-import { isSameDay } from "date-fns";
+import { useMemo } from 'react';
+import { isSameDay } from 'date-fns';
 
-import { Task } from "@/entities/task";
+import { Task } from '@/entities/task';
 
 type DayInfo = {
   dateObj: Date;

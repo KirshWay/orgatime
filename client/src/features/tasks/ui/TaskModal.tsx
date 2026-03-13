@@ -1,15 +1,15 @@
-import { useMemo, useState } from "react";
-import { FormProvider, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { format, startOfWeek } from "date-fns";
-import { Calendar, CalendarDays, Plus, Trash } from "lucide-react";
-import { AnimatePresence } from "motion/react";
-import * as m from "motion/react-m";
+import { useMemo, useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { format, startOfWeek } from 'date-fns';
+import { Calendar, CalendarDays, Plus, Trash } from 'lucide-react';
+import { AnimatePresence } from 'motion/react';
+import * as m from 'motion/react-m';
 
-import { Subtask, TaskColor, TaskImage } from "@/entities/task";
-import { cn } from "@/shared/lib/utils";
-import { Button } from "@/shared/ui/button";
-import { Checkbox } from "@/shared/ui/checkbox";
+import { Subtask, TaskColor, TaskImage } from '@/entities/task';
+import { cn } from '@/shared/lib/utils';
+import { Button } from '@/shared/ui/button';
+import { Checkbox } from '@/shared/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -17,10 +17,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/shared/ui/dialog";
-import { Input } from "@/shared/ui/input";
-import { Separator } from "@/shared/ui/separator";
-import { Textarea } from "@/shared/ui/textarea";
+} from '@/shared/ui/dialog';
+import { Input } from '@/shared/ui/input';
+import { Separator } from '@/shared/ui/separator';
+import { Textarea } from '@/shared/ui/textarea';
 
 import {
   useCreateSubtask,
@@ -29,15 +29,15 @@ import {
   useUpdateSubtask,
   useUpdateTask,
   useUpdateTaskDate,
-} from "../hooks";
-import { TaskFormData, taskSchema } from "../model/validation";
-import { CalendarModal } from "./CalendarModal";
-import { ColorPicker } from "./ColorPicker";
-import { SubtaskCreator } from "./SubtaskCreator";
-import { SubtaskItem } from "./SubtaskItem";
-import { getTaskColorClass } from "./task-color-utils";
-import { TaskDateActions } from "./TaskDateActions";
-import { TaskImages } from "./TaskImages";
+} from '../hooks';
+import { TaskFormData, taskSchema } from '../model/validation';
+import { CalendarModal } from './CalendarModal';
+import { ColorPicker } from './ColorPicker';
+import { SubtaskCreator } from './SubtaskCreator';
+import { SubtaskItem } from './SubtaskItem';
+import { getTaskColorClass } from './task-color-utils';
+import { TaskDateActions } from './TaskDateActions';
+import { TaskImages } from './TaskImages';
 
 const EMPTY_SUBTASKS: Subtask[] = [];
 const EMPTY_IMAGES: TaskImage[] = [];
@@ -100,7 +100,7 @@ export const TaskModal: React.FC<Props> = ({
     resolver: zodResolver(taskSchema),
     defaultValues: {
       title: initialTitle,
-      description: initialDescription || "",
+      description: initialDescription || '',
       completed: initialCompleted,
       color: initialColor,
     },
@@ -108,9 +108,9 @@ export const TaskModal: React.FC<Props> = ({
 
   const { watch, formState, setValue } = methods;
 
-  const titleValue = watch("title");
-  const completed = watch("completed");
-  const selectedColor = watch("color");
+  const titleValue = watch('title');
+  const completed = watch('completed');
+  const selectedColor = watch('color');
 
   const isTitleValid = titleValue.trim().length > 0;
   const isUpdateEnabled = formState.isDirty && isTitleValid;
@@ -126,7 +126,7 @@ export const TaskModal: React.FC<Props> = ({
   const handleUpdate = (data: TaskFormData) => {
     onSave({
       title: data.title,
-      description: data.description || "",
+      description: data.description || '',
       completed: data.completed || false,
       color: data.color || null,
     });
@@ -139,7 +139,7 @@ export const TaskModal: React.FC<Props> = ({
   };
 
   const handleCompletedChange = (val: boolean) => {
-    setValue("completed", val, { shouldDirty: true });
+    setValue('completed', val, { shouldDirty: true });
     if (val !== initialCompleted) {
       updateTaskMutation.mutate({
         id: taskId,
@@ -152,7 +152,7 @@ export const TaskModal: React.FC<Props> = ({
     updateDateMutation.mutate(
       {
         taskId,
-        data: { action: "tomorrow" },
+        data: { action: 'tomorrow' },
       },
       {
         onSuccess: () => onClose(),
@@ -164,7 +164,7 @@ export const TaskModal: React.FC<Props> = ({
     updateDateMutation.mutate(
       {
         taskId,
-        data: { action: "nextWeek" },
+        data: { action: 'nextWeek' },
       },
       {
         onSuccess: () => onClose(),
@@ -176,7 +176,7 @@ export const TaskModal: React.FC<Props> = ({
     updateDateMutation.mutate(
       {
         taskId,
-        data: { action: "someday" },
+        data: { action: 'someday' },
       },
       {
         onSuccess: () => onClose(),
@@ -189,7 +189,7 @@ export const TaskModal: React.FC<Props> = ({
       {
         taskId,
         data: {
-          action: "custom",
+          action: 'custom',
           customDate: date.toISOString(),
         },
       },
@@ -274,15 +274,15 @@ export const TaskModal: React.FC<Props> = ({
   };
 
   const handleColorChange = (color: TaskColor | null) => {
-    setValue("color", color, { shouldDirty: true });
+    setValue('color', color, { shouldDirty: true });
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
         className={cn(
-          "max-w-xl max-h-[75svh] overflow-y-auto sm:max-h-[90svh] p-4 sm:p-6",
-          selectedColor && "border-l-[6px] pl-6",
+          'max-w-xl max-h-[75svh] overflow-y-auto sm:max-h-[90svh] p-4 sm:p-6',
+          selectedColor && 'border-l-[6px] pl-6',
           selectedColor && getTaskColorClass(selectedColor),
         )}
       >
@@ -291,8 +291,8 @@ export const TaskModal: React.FC<Props> = ({
             <span className="flex items-center gap-2 text-lg text-gray-700 dark:text-white">
               {initialDueDate && (
                 <>
-                  <Calendar className="hidden sm:inline" />{" "}
-                  {format(initialDueDate, "EEE, dd MMM yyyy")}
+                  <Calendar className="hidden sm:inline" />{' '}
+                  {format(initialDueDate, 'EEE, dd MMM yyyy')}
                 </>
               )}
             </span>
@@ -320,12 +320,12 @@ export const TaskModal: React.FC<Props> = ({
         <FormProvider {...methods}>
           <div className="grid gap-4 py-2 sm:py-4 pb-4">
             <div className="flex justify-between items-center gap-3">
-              <Input {...methods.register("title")} placeholder="Task title" />
+              <Input {...methods.register('title')} placeholder="Task title" />
               <Checkbox
                 className="h-9 w-9"
                 checked={completed}
                 onCheckedChange={(val) => {
-                  if (typeof val === "boolean") {
+                  if (typeof val === 'boolean') {
                     handleCompletedChange(val);
                   }
                 }}
@@ -362,7 +362,7 @@ export const TaskModal: React.FC<Props> = ({
               )}
 
             <Textarea
-              {...methods.register("description")}
+              {...methods.register('description')}
               placeholder="Task description"
               className="resize-none"
               rows={4}

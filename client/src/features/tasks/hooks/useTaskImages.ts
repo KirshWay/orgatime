@@ -1,16 +1,16 @@
-import { useState } from "react";
-import { toast } from "react-hot-toast";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from 'react';
+import { toast } from 'react-hot-toast';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { TaskImage } from "@/entities/task";
-import { parseApiError } from "@/shared/lib/parseApiError";
+import { TaskImage } from '@/entities/task';
+import { parseApiError } from '@/shared/lib/parseApiError';
 
 import {
   deleteTaskImage,
   getTaskImages,
   replaceTaskImage,
   uploadTaskImage,
-} from "../api";
+} from '../api';
 
 export const useUploadTaskImage = () => {
   const queryClient = useQueryClient();
@@ -26,8 +26,8 @@ export const useUploadTaskImage = () => {
         setUploadProgress(progress);
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      toast.success("Image uploaded successfully");
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      toast.success('Image uploaded successfully');
       setUploadProgress(0);
     },
     onError: (error) => {
@@ -35,19 +35,19 @@ export const useUploadTaskImage = () => {
       setUploadProgress(0);
 
       if (
-        errorMessage.includes("Payload too large") ||
-        errorMessage.includes("413")
+        errorMessage.includes('Payload too large') ||
+        errorMessage.includes('413')
       ) {
-        toast.error("File is too large. Maximum size: 10MB");
+        toast.error('File is too large. Maximum size: 10MB');
       } else if (
-        errorMessage.includes("timeout") ||
-        errorMessage.includes("network")
+        errorMessage.includes('timeout') ||
+        errorMessage.includes('network')
       ) {
         toast.error(
-          "Network problem. Please check your connection and try again",
+          'Network problem. Please check your connection and try again',
         );
       } else {
-        toast.error(errorMessage || "Image upload error");
+        toast.error(errorMessage || 'Image upload error');
       }
     },
   });
@@ -68,8 +68,8 @@ export const useReplaceTaskImage = () => {
     mutationFn: ({ taskId, imageId, imageFile }) =>
       replaceTaskImage(taskId, imageId, imageFile),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      toast.success("Image replaced successfully");
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      toast.success('Image replaced successfully');
     },
     onError: (error) => {
       toast.error(parseApiError(error));
@@ -79,7 +79,7 @@ export const useReplaceTaskImage = () => {
 
 export const useTaskImages = (taskId: string) => {
   return useQuery<TaskImage[], Error>({
-    queryKey: ["taskImages", taskId],
+    queryKey: ['taskImages', taskId],
     queryFn: () => getTaskImages(taskId),
     enabled: !!taskId,
   });
@@ -94,8 +94,8 @@ export const useDeleteTaskImage = () => {
   >({
     mutationFn: ({ taskId, imageId }) => deleteTaskImage(taskId, imageId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      toast.success("Image deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      toast.success('Image deleted successfully');
     },
     onError: (error) => {
       toast.error(parseApiError(error));

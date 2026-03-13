@@ -1,9 +1,9 @@
-import React from "react";
-import { useFormContext } from "react-hook-form";
-import { Pencil, X } from "lucide-react";
+import React from 'react';
+import { useFormContext } from 'react-hook-form';
+import { Pencil, X } from 'lucide-react';
 
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
+import { Button } from '@/shared/ui/button';
+import { Input } from '@/shared/ui/input';
 
 type Props = {
   isEditingUsername: boolean;
@@ -40,11 +40,11 @@ export const ProfileForm: React.FC<Props> = ({
               id="username"
               placeholder="Enter your username"
               autoComplete="username"
-              {...register("username")}
+              {...register('username')}
             />
           ) : (
             <p className="block text-sm font-bold text-gray-700 dark:text-gray-300">
-              {getValues("username")}
+              {getValues('username')}
             </p>
           )}
           <Button
@@ -75,11 +75,11 @@ export const ProfileForm: React.FC<Props> = ({
               id="email"
               placeholder="Enter your email"
               autoComplete="email"
-              {...register("email")}
+              {...register('email')}
             />
           ) : (
             <p className="block text-sm font-bold text-gray-700 dark:text-gray-300">
-              {getValues("email")}
+              {getValues('email')}
             </p>
           )}
           <Button

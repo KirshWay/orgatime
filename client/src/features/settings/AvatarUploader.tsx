@@ -1,7 +1,7 @@
-import React, { ChangeEvent, useEffect, useState } from "react";
-import { UserRoundX } from "lucide-react";
+import React, { ChangeEvent, useEffect, useState } from 'react';
+import { UserRoundX } from 'lucide-react';
 
-import { OptimizedImage } from "@/shared/ui/optimized-image";
+import { OptimizedImage } from '@/shared/ui/optimized-image';
 
 type Props = {
   img: string;

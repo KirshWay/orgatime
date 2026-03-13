@@ -1,12 +1,12 @@
-import toast from "react-hot-toast";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
+import toast from 'react-hot-toast';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { format } from 'date-fns';
 
-import { Task } from "@/entities/task";
+import { Task } from '@/entities/task';
 
-import { updateTasksOrder } from "../api";
-import { getContainerTasks } from "../lib/container-utils";
-import { ContainerInfo, UpdateTasksOrderDto } from "../model";
+import { updateTasksOrder } from '../api';
+import { getContainerTasks } from '../lib/container-utils';
+import { ContainerInfo, UpdateTasksOrderDto } from '../model';
 
 /**
  * Hook for handling drag and drop actions
@@ -17,11 +17,11 @@ export const useDragAndDropActions = () => {
   const updateTasksOrderMutation = useMutation({
     mutationFn: updateTasksOrder,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
     },
     onError: (error) => {
-      console.error("Failed to update tasks order:", error);
-      toast.error("Failed to update tasks order");
+      console.error('Failed to update tasks order:', error);
+      toast.error('Failed to update tasks order');
     },
   });
 
@@ -43,8 +43,8 @@ export const useDragAndDropActions = () => {
       await updateTasksOrderMutation.mutateAsync(payload);
       return true;
     } catch (error) {
-      console.error("Failed to move task to Someday:", error);
-      toast.error("Failed to move task to Someday");
+      console.error('Failed to move task to Someday:', error);
+      toast.error('Failed to move task to Someday');
       return false;
     }
   };
@@ -59,7 +59,7 @@ export const useDragAndDropActions = () => {
           {
             id: taskId,
             order: 0,
-            dueDate: format(targetDate, "yyyy-MM-dd"),
+            dueDate: format(targetDate, 'yyyy-MM-dd'),
           },
         ],
       };
@@ -67,8 +67,8 @@ export const useDragAndDropActions = () => {
       await updateTasksOrderMutation.mutateAsync(payload);
       return true;
     } catch (error) {
-      console.error("Failed to move task from Someday:", error);
-      toast.error("Failed to move task to day");
+      console.error('Failed to move task from Someday:', error);
+      toast.error('Failed to move task to day');
       return false;
     }
   };
@@ -83,7 +83,7 @@ export const useDragAndDropActions = () => {
           {
             id: taskId,
             order: 0,
-            dueDate: format(targetDate, "yyyy-MM-dd"),
+            dueDate: format(targetDate, 'yyyy-MM-dd'),
           },
         ],
       };
@@ -91,8 +91,8 @@ export const useDragAndDropActions = () => {
       await updateTasksOrderMutation.mutateAsync(payload);
       return true;
     } catch (error) {
-      console.error("Failed to move task between days:", error);
-      toast.error("Failed to move task between days");
+      console.error('Failed to move task between days:', error);
+      toast.error('Failed to move task between days');
       return false;
     }
   };
@@ -117,7 +117,7 @@ export const useDragAndDropActions = () => {
     );
 
     if (activeTaskIndex === -1 || overTaskIndex === -1) {
-      console.error("Could not find task indexes for reordering");
+      console.error('Could not find task indexes for reordering');
       return false;
     }
 
@@ -136,8 +136,8 @@ export const useDragAndDropActions = () => {
       await updateTasksOrderMutation.mutateAsync(payload);
       return true;
     } catch (error) {
-      console.error("Failed to update task order:", error);
-      toast.error("Failed to reorder tasks");
+      console.error('Failed to update task order:', error);
+      toast.error('Failed to reorder tasks');
       return false;
     }
   };

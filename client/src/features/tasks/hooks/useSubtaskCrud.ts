@@ -1,11 +1,11 @@
-import { toast } from "react-hot-toast";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from 'react-hot-toast';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { Subtask } from "@/entities/task";
-import { parseApiError } from "@/shared/lib/parseApiError";
+import { Subtask } from '@/entities/task';
+import { parseApiError } from '@/shared/lib/parseApiError';
 
-import { createSubtask, deleteSubtask, updateSubtask } from "../api";
-import { CreateSubtaskDto, UpdateSubtaskDto } from "../model";
+import { createSubtask, deleteSubtask, updateSubtask } from '../api';
+import { CreateSubtaskDto, UpdateSubtaskDto } from '../model';
 
 export const useCreateSubtask = () => {
   const queryClient = useQueryClient();
@@ -16,8 +16,8 @@ export const useCreateSubtask = () => {
   >({
     mutationFn: ({ taskId, data }) => createSubtask(taskId, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      toast.success("Subtask created successfully");
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      toast.success('Subtask created successfully');
     },
     onError: (error) => {
       toast.error(parseApiError(error));
@@ -35,8 +35,8 @@ export const useUpdateSubtask = () => {
     mutationFn: ({ taskId, subtaskId, data }) =>
       updateSubtask(taskId, subtaskId, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      toast.success("Subtask updated successfully");
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      toast.success('Subtask updated successfully');
     },
     onError: (error) => {
       toast.error(parseApiError(error));
@@ -53,8 +53,8 @@ export const useDeleteSubtask = () => {
   >({
     mutationFn: ({ taskId, subtaskId }) => deleteSubtask(taskId, subtaskId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      toast.success("Subtask deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      toast.success('Subtask deleted successfully');
     },
     onError: (error) => {
       toast.error(parseApiError(error));

@@ -1,6 +1,6 @@
-import { Link } from "react-router-dom";
+import { Link } from 'react-router-dom';
 
-import { SEO } from "@/shared/ui/seo";
+import { SEO } from '@/shared/ui/seo';
 
 export const NotFound = () => {
   return (

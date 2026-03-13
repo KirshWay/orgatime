@@ -1,5 +1,5 @@
-import { Subtask, Task, TaskImage } from "@/entities/task";
-import { apiClient } from "@/shared/api";
+import { Subtask, Task, TaskImage } from '@/entities/task';
+import { apiClient } from '@/shared/api';
 
 import {
   CreateSubtaskDto,
@@ -8,15 +8,15 @@ import {
   UpdateTaskDateDto,
   UpdateTaskDto,
   UpdateTasksOrderDto,
-} from "../model/dto";
+} from '../model/dto';
 
 export const fetchTasks = async (): Promise<Task[]> => {
-  const response = await apiClient.get<Task[]>("/tasks");
+  const response = await apiClient.get<Task[]>('/tasks');
   return response.data;
 };
 
 export const createTask = async (data: CreateTaskDto): Promise<Task> => {
-  const response = await apiClient.post<Task>("/tasks", data);
+  const response = await apiClient.post<Task>('/tasks', data);
   return response.data;
 };
 
@@ -82,7 +82,7 @@ export const duplicateTask = async (taskId: string): Promise<Task> => {
 export const updateTasksOrder = async (
   payload: UpdateTasksOrderDto,
 ): Promise<Task[]> => {
-  const response = await apiClient.patch<Task[]>("/tasks/order", payload);
+  const response = await apiClient.patch<Task[]>('/tasks/order', payload);
   return response.data;
 };
 
@@ -92,13 +92,13 @@ export const uploadTaskImage = async (
   onProgress?: (progress: number) => void,
 ): Promise<TaskImage> => {
   const formData = new FormData();
-  formData.append("image", imageFile);
+  formData.append('image', imageFile);
 
   const response = await apiClient.post<TaskImage>(
     `/tasks/${taskId}/images`,
     formData,
     {
-      headers: { "Content-Type": "multipart/form-data" },
+      headers: { 'Content-Type': 'multipart/form-data' },
       onUploadProgress: (progressEvent) => {
         if (onProgress && progressEvent.total) {
           const percentCompleted = Math.round(
@@ -120,13 +120,13 @@ export const replaceTaskImage = async (
   imageFile: File,
 ): Promise<TaskImage> => {
   const formData = new FormData();
-  formData.append("image", imageFile);
+  formData.append('image', imageFile);
 
   const response = await apiClient.patch<TaskImage>(
     `/tasks/${taskId}/images/${imageId}`,
     formData,
     {
-      headers: { "Content-Type": "multipart/form-data" },
+      headers: { 'Content-Type': 'multipart/form-data' },
     },
   );
 
@@ -149,6 +149,6 @@ export const deleteTaskImage = async (
 };
 
 export const searchTasks = async (query: string): Promise<Task[]> => {
-  const response = await apiClient.post<Task[]>("/tasks/search", { query });
+  const response = await apiClient.post<Task[]>('/tasks/search', { query });
   return response.data;
 };

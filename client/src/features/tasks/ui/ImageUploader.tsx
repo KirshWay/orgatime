@@ -1,9 +1,9 @@
-import { ChangeEvent, useState } from "react";
-import { Camera, XCircle } from "lucide-react";
+import { ChangeEvent, useState } from 'react';
+import { Camera, XCircle } from 'lucide-react';
 
-import { Button } from "@/shared/ui/button";
-import { OptimizedImage } from "@/shared/ui/optimized-image";
-import { Progress } from "@/shared/ui/progress";
+import { Button } from '@/shared/ui/button';
+import { OptimizedImage } from '@/shared/ui/optimized-image';
+import { Progress } from '@/shared/ui/progress';
 
 type Props = {
   onFileChange: (file: File | null) => void;

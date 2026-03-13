@@ -1,17 +1,17 @@
-import { useForm } from "react-hook-form";
-import toast from "react-hot-toast";
-import { useLocation, useNavigate } from "react-router-dom";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import { useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 
-import { useResetPassword } from "@/features/auth/hooks/useResetPassword";
-import { parseApiError } from "@/shared/lib/parseApiError";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { SEO } from "@/shared/ui/seo";
+import { useResetPassword } from '@/features/auth/hooks/useResetPassword';
+import { parseApiError } from '@/shared/lib/parseApiError';
+import { Button } from '@/shared/ui/button';
+import { Input } from '@/shared/ui/input';
+import { SEO } from '@/shared/ui/seo';
 
 const resetPasswordSchema = z.object({
-  newPassword: z.string().min(8, "Password must be at least 8 characters long"),
+  newPassword: z.string().min(8, 'Password must be at least 8 characters long'),
 });
 
 type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
@@ -30,7 +30,7 @@ export const ResetPassword = () => {
   const resetPasswordMutation = useResetPassword();
 
   const queryParams = new URLSearchParams(location.search);
-  const token = queryParams.get("token") || "";
+  const token = queryParams.get('token') || '';
 
   const onSubmit = async (data: ResetPasswordFormData) => {
     try {
@@ -38,8 +38,8 @@ export const ResetPassword = () => {
         token,
         newPassword: data.newPassword,
       });
-      toast.success("Password successfully reset");
-      navigate("/auth/login");
+      toast.success('Password successfully reset');
+      navigate('/auth/login');
     } catch (error: unknown) {
       toast.error(parseApiError(error));
     }
@@ -62,7 +62,7 @@ export const ResetPassword = () => {
         className="w-full max-w-md space-y-4 flex flex-col"
       >
         <Input
-          {...register("newPassword")}
+          {...register('newPassword')}
           placeholder="Enter a new password"
           type="password"
         />
@@ -76,8 +76,8 @@ export const ResetPassword = () => {
           disabled={isSubmitting || resetPasswordMutation.isPending}
         >
           {isSubmitting || resetPasswordMutation.isPending
-            ? "Reset..."
-            : "Reset password"}
+            ? 'Reset...'
+            : 'Reset password'}
         </Button>
       </form>
     </div>

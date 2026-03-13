@@ -1,5 +1,5 @@
-import { TaskColor } from "@/entities/task";
-import { ApiRequest } from "@/shared/api";
+import { TaskColor } from '@/entities/task';
+import { ApiRequest } from '@/shared/api';
 
 export interface CreateTaskDto extends ApiRequest {
   title: string;
@@ -27,7 +27,7 @@ export interface UpdateSubtaskDto extends ApiRequest {
 }
 
 export interface UpdateTaskDateDto extends ApiRequest {
-  action: "tomorrow" | "nextWeek" | "someday" | "custom";
+  action: 'tomorrow' | 'nextWeek' | 'someday' | 'custom';
   customDate?: string;
 }
 

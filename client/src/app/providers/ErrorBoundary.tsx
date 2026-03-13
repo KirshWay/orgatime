@@ -1,8 +1,8 @@
-import React from "react";
+import React from 'react';
 
-import { Button } from "@/shared/ui/button";
-import { OptimizedImage } from "@/shared/ui/optimized-image";
-import { SEO } from "@/shared/ui/seo";
+import { Button } from '@/shared/ui/button';
+import { OptimizedImage } from '@/shared/ui/optimized-image';
+import { SEO } from '@/shared/ui/seo';
 
 type Props = {
   children: React.ReactNode;
@@ -30,7 +30,7 @@ export class ErrorBoundary extends React.Component<Props, ErrorBoundaryState> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error("Uncaught error:", error, errorInfo);
+    console.error('Uncaught error:', error, errorInfo);
   }
 
   render() {
@@ -54,7 +54,7 @@ export class ErrorBoundary extends React.Component<Props, ErrorBoundaryState> {
           </h1>
 
           <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
-            {this.state.errorInfo?.message || "Unknown error"}
+            {this.state.errorInfo?.message || 'Unknown error'}
           </p>
 
           <Button

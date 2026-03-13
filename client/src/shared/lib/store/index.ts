@@ -1,1 +1,1 @@
-export { STORE_NAMES } from "./storeNames";
+export { STORE_NAMES } from './storeNames';

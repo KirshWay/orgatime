@@ -1,9 +1,9 @@
-import React from "react";
-import { useFormContext } from "react-hook-form";
-import { Pencil, X } from "lucide-react";
+import React from 'react';
+import { useFormContext } from 'react-hook-form';
+import { Pencil, X } from 'lucide-react';
 
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
+import { Button } from '@/shared/ui/button';
+import { Input } from '@/shared/ui/input';
 
 type Props = {
   isEditingPassword: boolean;
@@ -46,7 +46,7 @@ export const PasswordForm: React.FC<Props> = ({
             id="oldPassword"
             placeholder="Enter current password"
             autoComplete="current-password"
-            {...register("oldPassword")}
+            {...register('oldPassword')}
           />
           {errors.oldPassword && (
             <p className="text-xs text-red-600">
@@ -65,7 +65,7 @@ export const PasswordForm: React.FC<Props> = ({
             id="newPassword"
             placeholder="Enter new password"
             autoComplete="new-password"
-            {...register("newPassword")}
+            {...register('newPassword')}
           />
           {errors.newPassword && (
             <p className="text-xs text-red-600">
@@ -84,7 +84,7 @@ export const PasswordForm: React.FC<Props> = ({
             id="confirmPassword"
             placeholder="Repeat new password"
             autoComplete="new-password"
-            {...register("confirmPassword")}
+            {...register('confirmPassword')}
           />
           {errors.confirmPassword && (
             <p className="text-xs text-red-600">

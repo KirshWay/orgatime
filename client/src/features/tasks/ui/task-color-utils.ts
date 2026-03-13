@@ -1,16 +1,16 @@
-import { TaskColor } from "@/entities/task";
+import { TaskColor } from '@/entities/task';
 
 export const getTaskColorClass = (color: TaskColor | null): string => {
-  if (!color) return "";
+  if (!color) return '';
 
   switch (color) {
-    case "STANDART":
-      return "task-color-standart";
-    case "RED":
-      return "task-color-red";
-    case "BLUE":
-      return "task-color-blue";
+    case 'STANDART':
+      return 'task-color-standart';
+    case 'RED':
+      return 'task-color-red';
+    case 'BLUE':
+      return 'task-color-blue';
     default:
-      return "";
+      return '';
   }
 };

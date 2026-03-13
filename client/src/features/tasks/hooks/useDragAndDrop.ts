@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState } from 'react';
 import {
   DragEndEvent,
   DragStartEvent,
@@ -6,14 +6,14 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-} from "@dnd-kit/core";
-import { addDays } from "date-fns";
+} from '@dnd-kit/core';
+import { addDays } from 'date-fns';
 
-import { Task } from "@/entities/task";
+import { Task } from '@/entities/task';
 
-import { getContainerInfo, getTaskContainer } from "../lib/container-utils";
-import { ContainerDragData, ContainerInfo, TaskDragData } from "../model";
-import { useDragAndDropActions } from "./useDragAndDropActions";
+import { getContainerInfo, getTaskContainer } from '../lib/container-utils';
+import { ContainerDragData, ContainerInfo, TaskDragData } from '../model';
+import { useDragAndDropActions } from './useDragAndDropActions';
 
 type Props = {
   tasks: Task[];
@@ -48,7 +48,7 @@ export const useDragAndDrop = ({ tasks, weekStart }: Props) => {
     const { active } = event;
     const activeData = active.data.current as TaskDragData | undefined;
 
-    if (activeData?.type === "task") {
+    if (activeData?.type === 'task') {
       setActiveTask(activeData.task);
     }
   };
@@ -67,7 +67,7 @@ export const useDragAndDrop = ({ tasks, weekStart }: Props) => {
 
     const activeData = active.data.current as TaskDragData | undefined;
 
-    if (!activeData || activeData.type !== "task") {
+    if (!activeData || activeData.type !== 'task') {
       return;
     }
 
@@ -86,7 +86,7 @@ export const useDragAndDrop = ({ tasks, weekStart }: Props) => {
     );
 
     if (!activeContainerInfo) {
-      console.error("Could not determine the source container of the task");
+      console.error('Could not determine the source container of the task');
       return;
     }
 
@@ -99,7 +99,7 @@ export const useDragAndDrop = ({ tasks, weekStart }: Props) => {
     );
 
     if (!overContainerInfo) {
-      console.error("Could not determine the target container", over);
+      console.error('Could not determine the target container', over);
       return;
     }
 
@@ -120,19 +120,19 @@ export const useDragAndDrop = ({ tasks, weekStart }: Props) => {
     tasks: Task[],
     weekStart: Date,
   ) => {
-    if (typeof overId === "string") {
-      if (overId === "someday") {
+    if (typeof overId === 'string') {
+      if (overId === 'someday') {
         return getContainerInfo(overId);
-      } else if (overId.startsWith("day-")) {
+      } else if (overId.startsWith('day-')) {
         return getContainerInfo(overId);
       } else {
         const overData = over.data.current as ContainerDragData | undefined;
-        if (overData?.type === "container" && overData.containerType) {
-          if (overData.containerType === "someday") {
-            return getContainerInfo("someday");
+        if (overData?.type === 'container' && overData.containerType) {
+          if (overData.containerType === 'someday') {
+            return getContainerInfo('someday');
           } else if (
-            overData.containerType === "day" &&
-            typeof overData.dayIndex === "number"
+            overData.containerType === 'day' &&
+            typeof overData.dayIndex === 'number'
           ) {
             return getContainerInfo(`day-${overData.dayIndex}`);
           }
@@ -154,15 +154,15 @@ export const useDragAndDrop = ({ tasks, weekStart }: Props) => {
     overItemId?: string,
   ) => {
     // Scenario 1: Moving from day to Someday
-    if (overContainer.type === "someday" && activeContainer.type === "day") {
+    if (overContainer.type === 'someday' && activeContainer.type === 'day') {
       return handleMoveToSomeday(taskId);
     }
 
     // Scenario 2: Moving from Someday to day
     if (
-      activeContainer.type === "someday" &&
-      overContainer.type === "day" &&
-      typeof overContainer.dayIndex === "number"
+      activeContainer.type === 'someday' &&
+      overContainer.type === 'day' &&
+      typeof overContainer.dayIndex === 'number'
     ) {
       const targetDate = addDays(weekStart, overContainer.dayIndex);
       return handleMoveFromSomeday(taskId, targetDate);
@@ -170,10 +170,10 @@ export const useDragAndDrop = ({ tasks, weekStart }: Props) => {
 
     // Scenario 3: Moving between days
     if (
-      activeContainer.type === "day" &&
-      overContainer.type === "day" &&
+      activeContainer.type === 'day' &&
+      overContainer.type === 'day' &&
       activeContainer.id !== overContainer.id &&
-      typeof overContainer.dayIndex === "number"
+      typeof overContainer.dayIndex === 'number'
     ) {
       const targetDate = addDays(weekStart, overContainer.dayIndex);
       return handleMoveBetweenDays(taskId, targetDate);

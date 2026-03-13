@@ -1,15 +1,15 @@
-import React, { lazy, Suspense, useState } from "react";
+import React, { lazy, Suspense, useState } from 'react';
 
-import { Subtask, TASK_COLOR_HEX, TaskColor, TaskImage } from "@/entities/task";
-import { Checkbox } from "@/shared/ui/checkbox";
-import { Separator } from "@/shared/ui/separator";
+import { Subtask, TASK_COLOR_HEX, TaskColor, TaskImage } from '@/entities/task';
+import { Checkbox } from '@/shared/ui/checkbox';
+import { Separator } from '@/shared/ui/separator';
 
-import { useDeleteTask, useUpdateTask } from "../hooks";
+import { useDeleteTask, useUpdateTask } from '../hooks';
 
 const EMPTY_IMAGES: TaskImage[] = [];
 
 const TaskModal = lazy(() =>
-  import("./TaskModal").then((module) => ({
+  import('./TaskModal').then((module) => ({
     default: module.TaskModal,
   })),
 );
@@ -31,7 +31,7 @@ type Props = {
 export const TaskItem: React.FC<Props> = ({
   id,
   title,
-  description = "",
+  description = '',
   completed,
   color = null,
   dueDate,
@@ -47,7 +47,7 @@ export const TaskItem: React.FC<Props> = ({
   const deleteTaskMutation = useDeleteTask();
 
   const parsedDueDate =
-    dueDate && typeof dueDate === "string" ? new Date(dueDate) : dueDate;
+    dueDate && typeof dueDate === 'string' ? new Date(dueDate) : dueDate;
 
   const handleSave = (updatedData: {
     title: string;
@@ -79,7 +79,7 @@ export const TaskItem: React.FC<Props> = ({
           style={
             color
               ? {
-                  textDecoration: "underline",
+                  textDecoration: 'underline',
                   textDecorationColor: TASK_COLOR_HEX[color],
                 }
               : {}
@@ -89,7 +89,7 @@ export const TaskItem: React.FC<Props> = ({
           tabIndex={0}
           onClick={handleItemClick}
           onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
+            if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
               handleItemClick();
             }
@@ -101,7 +101,7 @@ export const TaskItem: React.FC<Props> = ({
           className="w-6 h-6"
           checked={completed}
           onCheckedChange={(checked) => {
-            if (typeof checked === "boolean") {
+            if (typeof checked === 'boolean') {
               updateTaskMutation.mutate({ id, data: { completed: checked } });
             }
           }}

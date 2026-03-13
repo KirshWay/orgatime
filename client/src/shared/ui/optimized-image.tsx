@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState } from 'react';
 
-import { cn } from "@/shared/lib/utils";
+import { cn } from '@/shared/lib/utils';
 
 type OptimizedImageProps = {
   src: string;
@@ -9,7 +9,7 @@ type OptimizedImageProps = {
   width?: number;
   height?: number;
   placeholderSrc?: string;
-  objectFit?: "contain" | "cover" | "fill" | "none" | "scale-down";
+  objectFit?: 'contain' | 'cover' | 'fill' | 'none' | 'scale-down';
   isAvatar?: boolean;
   isGallery?: boolean;
   onLoad?: () => void;
@@ -23,7 +23,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   width,
   height,
   placeholderSrc,
-  objectFit = "cover",
+  objectFit = 'cover',
   isAvatar = false,
   isGallery = false,
   onLoad,
@@ -55,10 +55,10 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
         src={isError && placeholderSrc ? placeholderSrc : src}
         alt={alt}
         className={cn(
-          "transition-opacity",
+          'transition-opacity',
           {
-            "opacity-0": !isLoaded && !isError,
-            "opacity-100": isLoaded || isError,
+            'opacity-0': !isLoaded && !isError,
+            'opacity-100': isLoaded || isError,
           },
           className,
         )}
@@ -79,7 +79,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
     return (
       <div
         className={cn(
-          "relative w-full h-full flex items-center justify-center",
+          'relative w-full h-full flex items-center justify-center',
           className,
         )}
       >
@@ -87,16 +87,16 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
           src={isError && placeholderSrc ? placeholderSrc : src}
           alt={alt}
           className={cn(
-            "transition-opacity object-contain max-w-full max-h-full",
+            'transition-opacity object-contain max-w-full max-h-full',
             {
-              "opacity-0": !isLoaded && !isError,
-              "opacity-100": isLoaded || isError,
+              'opacity-0': !isLoaded && !isError,
+              'opacity-100': isLoaded || isError,
             },
           )}
           width={width}
           height={height}
           loading="lazy"
-          style={{ maxHeight: "100%", maxWidth: "100%" }}
+          style={{ maxHeight: '100%', maxWidth: '100%' }}
           aria-label={alt}
           onLoad={handleLoad}
           onError={handleError}
@@ -108,16 +108,16 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   return (
     <div
       className={cn(
-        "relative flex items-center justify-center overflow-hidden",
+        'relative flex items-center justify-center overflow-hidden',
         className,
       )}
     >
       <img
         src={isError && placeholderSrc ? placeholderSrc : src}
         alt={alt}
-        className={cn("max-h-full max-w-full transition-opacity", {
-          "opacity-0": !isLoaded && !isError,
-          "opacity-100": isLoaded || isError,
+        className={cn('max-h-full max-w-full transition-opacity', {
+          'opacity-0': !isLoaded && !isError,
+          'opacity-100': isLoaded || isError,
         })}
         width={width}
         height={height}

@@ -1,2 +1,2 @@
-export { apiClient } from "./lib/apiClient";
-export * from "./model";
+export { apiClient } from './lib/apiClient';
+export * from './model';

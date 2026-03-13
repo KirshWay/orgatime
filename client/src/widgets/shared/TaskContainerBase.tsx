@@ -1,12 +1,12 @@
-import React, { memo } from "react";
-import { useDroppable } from "@dnd-kit/core";
-import { Plus } from "lucide-react";
+import React, { memo } from 'react';
+import { useDroppable } from '@dnd-kit/core';
+import { Plus } from 'lucide-react';
 
-import { Task } from "@/entities/task";
-import { SortableTaskList } from "@/features/tasks/ui/SortableTaskList";
-import { TaskCreator } from "@/features/tasks/ui/TaskCreator";
-import { cn } from "@/shared/lib/utils";
-import { Button } from "@/shared/ui/button";
+import { Task } from '@/entities/task';
+import { SortableTaskList } from '@/features/tasks/ui/SortableTaskList';
+import { TaskCreator } from '@/features/tasks/ui/TaskCreator';
+import { cn } from '@/shared/lib/utils';
+import { Button } from '@/shared/ui/button';
 
 type TaskContainerProps = {
   tasks: Task[];
@@ -41,11 +41,11 @@ export const TaskContainerBase: React.FC<TaskContainerProps> = memo(
     const { setNodeRef, isOver } = useDroppable({
       id: containerId,
       data: {
-        type: "container",
-        containerType: isSomeday ? "someday" : "day",
-        accepts: ["task"],
+        type: 'container',
+        containerType: isSomeday ? 'someday' : 'day',
+        accepts: ['task'],
         dayIndex: !isSomeday
-          ? parseInt(containerId.split("-")[1], 10)
+          ? parseInt(containerId.split('-')[1], 10)
           : undefined,
       },
     });
@@ -54,13 +54,13 @@ export const TaskContainerBase: React.FC<TaskContainerProps> = memo(
       <div
         ref={setNodeRef}
         className={cn(
-          "transition-all duration-200 ease-in-out",
+          'transition-all duration-200 ease-in-out',
           containerClassName,
           isOver
             ? highlightClassName ||
-                "bg-indigo-100 dark:bg-indigo-900/30 rounded-md shadow-md border-2 border-indigo-300 dark:border-indigo-700"
-            : "border-2 border-transparent",
-          isSomeday && "mb-4 md:mb-0",
+                'bg-indigo-100 dark:bg-indigo-900/30 rounded-md shadow-md border-2 border-indigo-300 dark:border-indigo-700'
+            : 'border-2 border-transparent',
+          isSomeday && 'mb-4 md:mb-0',
         )}
       >
         {headerContent ||
