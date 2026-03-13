@@ -8,7 +8,7 @@ import {
   Post,
   Query,
   Req,
-  Res,
+  StreamableFile,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -24,7 +24,7 @@ import {
   ApiBody,
   ApiQuery,
 } from '@nestjs/swagger';
-import { Request, Response } from 'express';
+import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreateSubtaskDto } from './dto/create-subtask.dto';
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -71,9 +71,8 @@ export class TasksController {
   @Get('export')
   async exportTasks(
     @Req() req: Request,
-    @Res() res: Response,
     @Query('format') format: string = 'md',
-  ) {
+  ): Promise<StreamableFile> {
     const user = req.user as { id: string };
     const tasks = await this.tasksService.getTasksForExport(user.id);
 
@@ -83,22 +82,18 @@ export class TasksController {
       const uploadsDir = join(process.cwd(), 'uploads', 'tasks');
       const archive = createExportZip(tasks, uploadsDir);
 
-      res.set({
-        'Content-Type': 'application/zip',
-        'Content-Disposition': `attachment; filename="orgatime-export-${today}.zip"`,
+      return new StreamableFile(archive, {
+        type: 'application/zip',
+        disposition: `attachment; filename="orgatime-export-${today}.zip"`,
       });
-
-      archive.pipe(res);
-    } else {
-      const markdown = generateTasksMarkdown(tasks, false);
-
-      res.set({
-        'Content-Type': 'text/markdown; charset=utf-8',
-        'Content-Disposition': `attachment; filename="orgatime-export-${today}.md"`,
-      });
-
-      res.send(markdown);
     }
+
+    const markdown = generateTasksMarkdown(tasks, false);
+
+    return new StreamableFile(Buffer.from(markdown), {
+      type: 'text/markdown; charset=utf-8',
+      disposition: `attachment; filename="orgatime-export-${today}.md"`,
+    });
   }
 
   @ApiOperation({ summary: 'Get all tasks for the user' })
