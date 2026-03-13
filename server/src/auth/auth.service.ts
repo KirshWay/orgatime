@@ -1,9 +1,11 @@
 import {
   ConflictException,
-  Injectable,
-  UnauthorizedException,
   HttpException,
   HttpStatus,
+  Injectable,
+  OnModuleDestroy,
+  OnModuleInit,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
@@ -15,7 +17,7 @@ import { RegisterDto } from './dto/register.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Injectable()
-export class AuthService {
+export class AuthService implements OnModuleInit, OnModuleDestroy {
   private passwordResetRequests: Map<string, Date> = new Map();
   private readonly PASSWORD_RESET_COOLDOWN = 3 * 60 * 1000;
 
@@ -24,10 +26,39 @@ export class AuthService {
   private readonly MAX_LOGIN_ATTEMPTS = 5;
   private readonly LOGIN_LOCKOUT_TIME = 15 * 60 * 1000;
 
+  private cleanupInterval: ReturnType<typeof setInterval>;
+
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
   ) {}
+
+  onModuleInit() {
+    this.cleanupInterval = setInterval(
+      () => this.cleanupStaleMaps(),
+      30 * 60 * 1000,
+    );
+  }
+
+  onModuleDestroy() {
+    clearInterval(this.cleanupInterval);
+  }
+
+  private cleanupStaleMaps() {
+    const now = Date.now();
+
+    for (const [email, attempts] of this.loginAttempts) {
+      if (now - attempts.lastAttempt.getTime() > this.LOGIN_LOCKOUT_TIME) {
+        this.loginAttempts.delete(email);
+      }
+    }
+
+    for (const [email, date] of this.passwordResetRequests) {
+      if (now - date.getTime() > this.PASSWORD_RESET_COOLDOWN) {
+        this.passwordResetRequests.delete(email);
+      }
+    }
+  }
 
   async register(registerDto: RegisterDto) {
     const existingUser = await this.usersService.findByEmail(registerDto.email);
@@ -262,5 +293,6 @@ export class AuthService {
 
     await this.usersService.updatePassword(user.id, newHashedPassword);
     await this.usersService.clearPasswordResetToken(user.id);
+    await this.usersService.updateRefreshToken(user.id, null);
   }
 }

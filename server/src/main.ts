@@ -6,6 +6,7 @@ import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
+import helmet from 'helmet';
 import { join } from 'path';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
@@ -32,7 +33,9 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
 
   app.setGlobalPrefix('api');
+  app.set('trust proxy', 1);
   app.use(cookieParser());
+  app.use(helmet());
   app.use('/api', (_, res, next) => {
     res.setHeader('Cache-Control', 'no-store');
     res.setHeader('Pragma', 'no-cache');
@@ -42,7 +45,6 @@ async function bootstrap() {
   app.enableCors({
     origin: configService.get('FRONTEND_URL'),
     credentials: true,
-    exposedHeaders: ['Set-Cookie'],
   });
 
   app.useGlobalPipes(
@@ -83,14 +85,16 @@ async function bootstrap() {
     },
   });
 
-  const config = new DocumentBuilder()
-    .setTitle('OrgaTime API')
-    .setDescription('API for OrgaTime')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  if (process.env.NODE_ENV !== 'production') {
+    const config = new DocumentBuilder()
+      .setTitle('OrgaTime API')
+      .setDescription('API for OrgaTime')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build();
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api/docs', app, document);
+  }
 
   const PORT = configService.get<number>('PORT') || 8000;
   await app.listen(PORT);

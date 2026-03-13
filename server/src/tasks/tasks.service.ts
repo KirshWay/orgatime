@@ -3,6 +3,8 @@ import {
   HttpStatus,
   Injectable,
   NotFoundException,
+  OnModuleDestroy,
+  OnModuleInit,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateSubtaskDto } from './dto/create-subtask.dto';
@@ -18,11 +20,32 @@ import * as path from 'path';
 import { existsSync } from 'fs';
 
 @Injectable()
-export class TasksService {
+export class TasksService implements OnModuleInit, OnModuleDestroy {
   private exportCooldowns = new Map<string, number>();
   private readonly EXPORT_COOLDOWN_MS = 5 * 60 * 1000;
+  private cleanupInterval: ReturnType<typeof setInterval>;
 
   constructor(private prisma: PrismaService) {}
+
+  onModuleInit() {
+    this.cleanupInterval = setInterval(
+      () => this.cleanupStaleCooldowns(),
+      30 * 60 * 1000,
+    );
+  }
+
+  onModuleDestroy() {
+    clearInterval(this.cleanupInterval);
+  }
+
+  private cleanupStaleCooldowns() {
+    const now = Date.now();
+    for (const [userId, timestamp] of this.exportCooldowns) {
+      if (now - timestamp > this.EXPORT_COOLDOWN_MS) {
+        this.exportCooldowns.delete(userId);
+      }
+    }
+  }
 
   async getTasksForExport(userId: string) {
     const lastExport = this.exportCooldowns.get(userId);

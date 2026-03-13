@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
+import { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
 import { apiClient } from '@/shared/api';
 import { useUserStore } from '@/shared/stores/userStore';
@@ -11,26 +12,93 @@ type Props = {
   children: React.ReactNode;
 };
 
+type FailedRequest = {
+  resolve: (token: string) => void;
+  reject: (error: unknown) => void;
+};
+
 export const AuthProvider: React.FC<Props> = ({ children }) => {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
   const initialRefreshAttempted = useRef(false);
+  const isRefreshing = useRef(false);
+  const failedQueue = useRef<FailedRequest[]>([]);
   const queryClient = useQueryClient();
   const location = useLocation();
   const { setUser, clearUser } = useUserStore();
 
+  const processQueue = (error: unknown, token: string | null) => {
+    for (const request of failedQueue.current) {
+      if (token) {
+        request.resolve(token);
+      } else {
+        request.reject(error);
+      }
+    }
+    failedQueue.current = [];
+  };
+
   useEffect(() => {
-    const interceptor = apiClient.interceptors.request.use((config) => {
+    const requestInterceptor = apiClient.interceptors.request.use((config) => {
       if (accessToken) {
         config.headers.Authorization = `Bearer ${accessToken}`;
       }
       return config;
     });
 
+    const responseInterceptor = apiClient.interceptors.response.use(
+      (response) => response,
+      async (error: AxiosError) => {
+        const originalRequest = error.config as InternalAxiosRequestConfig & {
+          _retry?: boolean;
+        };
+
+        if (
+          error.response?.status !== 401 ||
+          originalRequest._retry ||
+          originalRequest.url === '/auth/refresh' ||
+          originalRequest.url === '/auth/login' ||
+          originalRequest.url === '/auth/register'
+        ) {
+          return Promise.reject(error);
+        }
+
+        if (isRefreshing.current) {
+          return new Promise<string>((resolve, reject) => {
+            failedQueue.current.push({ resolve, reject });
+          }).then((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return apiClient(originalRequest);
+          });
+        }
+
+        originalRequest._retry = true;
+        isRefreshing.current = true;
+
+        try {
+          const res = await apiClient.post('/auth/refresh');
+          const newToken = res.data.accessToken;
+          setAccessToken(newToken);
+          processQueue(null, newToken);
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          return apiClient(originalRequest);
+        } catch (refreshError) {
+          processQueue(refreshError, null);
+          setAccessToken(null);
+          clearUser();
+          queryClient.clear();
+          return Promise.reject(refreshError);
+        } finally {
+          isRefreshing.current = false;
+        }
+      },
+    );
+
     return () => {
-      apiClient.interceptors.request.eject(interceptor);
+      apiClient.interceptors.request.eject(requestInterceptor);
+      apiClient.interceptors.response.eject(responseInterceptor);
     };
-  }, [accessToken]);
+  }, [accessToken, clearUser, queryClient]);
 
   const login = async (email: string, password: string) => {
     const response = await apiClient.post('/auth/login', { email, password });
@@ -90,16 +158,6 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
       setIsInitialized(true);
     }
   }, [location.pathname, setUser, clearUser]);
-
-  useEffect(() => {
-    if (!location.pathname.startsWith('/auth')) {
-      const interval = setInterval(
-        () => refreshToken().catch(() => logout()),
-        55 * 60 * 1000,
-      );
-      return () => clearInterval(interval);
-    }
-  }, [accessToken, location.pathname, logout]);
 
   const value: AuthContextType = {
     accessToken,
