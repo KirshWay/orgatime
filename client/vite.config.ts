@@ -99,46 +99,35 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      "@": path.resolve(import.meta.dirname, "./src"),
     },
   },
   build: {
     chunkSizeWarningLimit: 1000,
-    rollupOptions: {
+    rolldownOptions: {
       output: {
-        manualChunks: {
-          react: ["react", "react-dom", "react-router-dom"],
-          "radix-ui": [
-            "@radix-ui/react-aspect-ratio",
-            "@radix-ui/react-checkbox",
-            "@radix-ui/react-dialog",
-            "@radix-ui/react-dropdown-menu",
-            "@radix-ui/react-separator",
-            "@radix-ui/react-slot",
-            "@radix-ui/react-tooltip",
-          ],
-          "ui-utils": [
-            "lucide-react",
-            "class-variance-authority",
-            "clsx",
-            "tailwind-merge",
-            "tailwindcss-animate",
-          ],
-          "dnd-kit": [
-            "@dnd-kit/core",
-            "@dnd-kit/sortable",
-            "@dnd-kit/utilities",
-          ],
-          forms: ["react-hook-form", "@hookform/resolvers", "zod"],
-          "date-utils": ["date-fns", "react-day-picker"],
-          "state-management": ["@tanstack/react-query", "zustand"],
-          utils: [
-            "axios",
-            "react-helmet-async",
-            "react-hot-toast",
-            "cmdk",
-            "embla-carousel-react",
-            "motion",
+        codeSplitting: {
+          groups: [
+            {
+              name: "react",
+              test: /node_modules[\\/](react|react-dom|react-router-dom)[\\/]/,
+            },
+            {
+              name: "ui",
+              test: /node_modules[\\/](@radix-ui|@dnd-kit|lucide-react|class-variance-authority|clsx|tailwind-merge|tailwindcss-animate)[\\/]/,
+            },
+            {
+              name: "forms",
+              test: /node_modules[\\/](react-hook-form|@hookform|zod)[\\/]/,
+            },
+            {
+              name: "data",
+              test: /node_modules[\\/](date-fns|react-day-picker|@tanstack[\\/]react-query|zustand)[\\/]/,
+            },
+            {
+              name: "utils",
+              test: /node_modules[\\/](axios|react-helmet-async|react-hot-toast|cmdk|embla-carousel|motion)[\\/]/,
+            },
           ],
         },
       },
