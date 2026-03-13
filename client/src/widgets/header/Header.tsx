@@ -37,6 +37,14 @@ import {
 import { ModeToggle } from '@/shared/ui/mode-toggle';
 import { OptimizedImage } from '@/shared/ui/optimized-image';
 
+function safeParseMessage(text: string): string | null {
+  try {
+    return JSON.parse(text).message ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export const Header: React.FC = () => {
   const { weekStart, handleNextWeek, handlePrevWeek, handleResetWeek } =
     useWeekNavigation();
@@ -67,47 +75,52 @@ export const Header: React.FC = () => {
   };
 
   const handleExport = async (format: 'md' | 'zip') => {
+    const defaultFilename = format === 'zip' ? 'orgatime-export.zip' : 'orgatime-export.md';
+
+    let response;
     try {
-      const response = await apiClient.get(`/tasks/export?format=${format}`, {
+      response = await apiClient.get(`/tasks/export?format=${format}`, {
         responseType: 'blob',
       });
-
-      const contentDisposition = response.headers['content-disposition'] || '';
-      const filenameMatch = contentDisposition.match(/filename="(.+?)"/);
-      const filename =
-        filenameMatch?.[1] ||
-        `orgatime-export.${format === 'zip' ? 'zip' : 'md'}`;
-
-      const url = URL.createObjectURL(response.data);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      a.click();
-      URL.revokeObjectURL(url);
-
-      toast.success('Export downloaded');
     } catch (error: unknown) {
-      if (
-        error &&
-        typeof error === 'object' &&
-        'response' in error &&
-        (error as any).response?.status === 429
-      ) {
-        const blob = (error as any).response?.data;
-        if (blob instanceof Blob) {
-          try {
-            const text = await blob.text();
-            const json = JSON.parse(text);
-            toast.error(json.message || 'Too many requests. Try again later.');
-          } catch {
-            toast.error('Too many requests. Try again later.');
-          }
-        } else {
-          toast.error('Too many requests. Try again later.');
-        }
+      handleExportError(error);
+      return;
+    }
+
+    const contentDisposition = String(
+      response.headers['content-disposition'] ?? '',
+    );
+    const filenameMatch = contentDisposition.match(/filename="(.+?)"/);
+    const filename = filenameMatch ? filenameMatch[1] : defaultFilename;
+
+    const url = URL.createObjectURL(response.data);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    toast.success('Export downloaded');
+  };
+
+  const handleExportError = async (error: unknown) => {
+    if (
+      error &&
+      typeof error === 'object' &&
+      'response' in error &&
+      (error as Record<string, any>).response?.status === 429
+    ) {
+      const blob = (error as Record<string, any>).response?.data;
+      if (blob instanceof Blob) {
+        const fallback = 'Too many requests. Try again later.';
+        const text = await blob.text().catch(() => '{}');
+        const message = safeParseMessage(text);
+        toast.error(message || fallback);
       } else {
-        toast.error('Export failed');
+        toast.error('Too many requests. Try again later.');
       }
+    } else {
+      toast.error('Export failed');
     }
   };
 

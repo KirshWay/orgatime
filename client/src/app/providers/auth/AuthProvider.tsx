@@ -75,22 +75,25 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
         originalRequest._retry = true;
         isRefreshing.current = true;
 
-        try {
-          const res = await apiClient.post('/auth/refresh');
-          const newToken = res.data.accessToken;
-          setAccessToken(newToken);
-          processQueue(null, newToken);
-          originalRequest.headers.Authorization = `Bearer ${newToken}`;
-          return apiClient(originalRequest);
-        } catch (refreshError) {
-          processQueue(refreshError, null);
-          setAccessToken(null);
-          clearUser();
-          queryClient.clear();
-          return Promise.reject(refreshError);
-        } finally {
-          isRefreshing.current = false;
-        }
+        return apiClient
+          .post('/auth/refresh')
+          .then((res) => {
+            const newToken = res.data.accessToken as string;
+            setAccessToken(newToken);
+            processQueue(null, newToken);
+            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+            return apiClient(originalRequest);
+          })
+          .catch((refreshError) => {
+            processQueue(refreshError, null);
+            setAccessToken(null);
+            clearUser();
+            queryClient.clear();
+            return Promise.reject(refreshError);
+          })
+          .finally(() => {
+            isRefreshing.current = false;
+          });
       },
     );
 
