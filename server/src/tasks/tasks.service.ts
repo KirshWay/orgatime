@@ -1,4 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateSubtaskDto } from './dto/create-subtask.dto';
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -13,8 +20,55 @@ import * as path from 'path';
 import { existsSync } from 'fs';
 
 @Injectable()
-export class TasksService {
+export class TasksService implements OnModuleInit, OnModuleDestroy {
+  private exportCooldowns = new Map<string, number>();
+  private readonly EXPORT_COOLDOWN_MS = 5 * 60 * 1000;
+  private cleanupInterval: ReturnType<typeof setInterval>;
+
   constructor(private prisma: PrismaService) {}
+
+  onModuleInit() {
+    this.cleanupInterval = setInterval(
+      () => this.cleanupStaleCooldowns(),
+      30 * 60 * 1000,
+    );
+  }
+
+  onModuleDestroy() {
+    clearInterval(this.cleanupInterval);
+  }
+
+  private cleanupStaleCooldowns() {
+    const now = Date.now();
+    for (const [userId, timestamp] of this.exportCooldowns) {
+      if (now - timestamp > this.EXPORT_COOLDOWN_MS) {
+        this.exportCooldowns.delete(userId);
+      }
+    }
+  }
+
+  async getTasksForExport(userId: string) {
+    const lastExport = this.exportCooldowns.get(userId);
+    if (lastExport && Date.now() - lastExport < this.EXPORT_COOLDOWN_MS) {
+      const remainingSec = Math.ceil(
+        (this.EXPORT_COOLDOWN_MS - (Date.now() - lastExport)) / 1000,
+      );
+      throw new HttpException(
+        `Export is available once every 5 minutes. Try again in ${remainingSec}s.`,
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+
+    const tasks = await this.prisma.task.findMany({
+      where: { userId },
+      orderBy: { order: 'asc' },
+      include: { subtasks: true, images: true },
+    });
+
+    this.exportCooldowns.set(userId, Date.now());
+
+    return tasks;
+  }
 
   async createTask(userId: string, dto: CreateTaskDto) {
     const { dueDate, ...rest } = dto;

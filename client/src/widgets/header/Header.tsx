@@ -1,7 +1,18 @@
 import { lazy, Suspense, useState } from 'react';
+import toast from 'react-hot-toast';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { startOfWeek } from 'date-fns';
-import { CalendarDays, Info, ListTodo, Printer, Settings, User } from 'lucide-react';
+import {
+  CalendarDays,
+  Download,
+  FileText,
+  FolderArchive,
+  Info,
+  ListTodo,
+  Printer,
+  Settings,
+  User,
+} from 'lucide-react';
 
 const SettingsModal = lazy(() =>
   import('@/features/settings/SettingsModal').then((module) => ({
@@ -11,6 +22,7 @@ const SettingsModal = lazy(() =>
 
 import { useAuth } from '@/app/providers';
 import { SearchBar } from '@/features/search';
+import { apiClient } from '@/shared/api/lib/apiClient';
 import { useWeekNavigation } from '@/shared/hooks';
 import { useUserStore } from '@/shared/stores/userStore';
 import { Button } from '@/shared/ui/button';
@@ -52,6 +64,51 @@ export const Header: React.FC = () => {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleExport = async (format: 'md' | 'zip') => {
+    try {
+      const response = await apiClient.get(`/tasks/export?format=${format}`, {
+        responseType: 'blob',
+      });
+
+      const contentDisposition = response.headers['content-disposition'] || '';
+      const filenameMatch = contentDisposition.match(/filename="(.+?)"/);
+      const filename =
+        filenameMatch?.[1] ||
+        `orgatime-export.${format === 'zip' ? 'zip' : 'md'}`;
+
+      const url = URL.createObjectURL(response.data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      toast.success('Export downloaded');
+    } catch (error: unknown) {
+      if (
+        error &&
+        typeof error === 'object' &&
+        'response' in error &&
+        (error as any).response?.status === 429
+      ) {
+        const blob = (error as any).response?.data;
+        if (blob instanceof Blob) {
+          try {
+            const text = await blob.text();
+            const json = JSON.parse(text);
+            toast.error(json.message || 'Too many requests. Try again later.');
+          } catch {
+            toast.error('Too many requests. Try again later.');
+          }
+        } else {
+          toast.error('Too many requests. Try again later.');
+        }
+      } else {
+        toast.error('Export failed');
+      }
+    }
   };
 
   return (
@@ -116,6 +173,30 @@ export const Header: React.FC = () => {
               Print
               <Printer />
             </DropdownMenuItem>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <DropdownMenuItem className="cursor-pointer flex justify-between">
+                  Export
+                  <Download />
+                </DropdownMenuItem>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent side="left" align="start">
+                <DropdownMenuItem
+                  className="cursor-pointer flex justify-between gap-4"
+                  onClick={() => handleExport('md')}
+                >
+                  Markdown
+                  <FileText className="h-4 w-4" />
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="cursor-pointer flex justify-between gap-4"
+                  onClick={() => handleExport('zip')}
+                >
+                  ZIP (with images)
+                  <FolderArchive className="h-4 w-4" />
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <DropdownMenuItem
               className="cursor-pointer flex justify-between"
               onClick={() => setIsSettingsOpen(true)}

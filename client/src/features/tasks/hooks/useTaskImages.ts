@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { TaskImage } from '@/entities/task';
 import { parseApiError } from '@/shared/lib/parseApiError';
 
 import {
   deleteTaskImage,
-  getTaskImages,
   replaceTaskImage,
   uploadTaskImage,
 } from '../api';
@@ -74,14 +73,6 @@ export const useReplaceTaskImage = () => {
     onError: (error) => {
       toast.error(parseApiError(error));
     },
-  });
-};
-
-export const useTaskImages = (taskId: string) => {
-  return useQuery<TaskImage[], Error>({
-    queryKey: ['taskImages', taskId],
-    queryFn: () => getTaskImages(taskId),
-    enabled: !!taskId,
   });
 };
 

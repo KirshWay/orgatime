@@ -51,12 +51,7 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose }) => {
     },
   });
 
-  const {
-    watch,
-    reset,
-    handleSubmit,
-    formState: { isDirty },
-  } = methods;
+  const { watch, reset, handleSubmit } = methods;
 
   const oldPassword = watch('oldPassword');
   const newPassword = watch('newPassword');
@@ -108,7 +103,6 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose }) => {
     mutationFn: updateProfile,
     onSuccess: (data) => {
       updateUser(data);
-      toast.success('Profile updated successfully');
     },
     onError: (error) => {
       toast.error(parseApiError(error));
@@ -121,9 +115,6 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose }) => {
     { oldPassword: string; newPassword: string }
   >({
     mutationFn: updatePassword,
-    onSuccess: () => {
-      toast.success('Password updated successfully');
-    },
     onError: (error) => {
       toast.error(parseApiError(error));
     },
@@ -134,7 +125,6 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose }) => {
     onSuccess: (data) => {
       updateUser({ avatar: data.avatarUrl });
       setAvatarFile(null);
-      toast.success('Avatar updated successfully');
     },
     onError: (error) => {
       toast.error(parseApiError(error));
@@ -142,13 +132,9 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose }) => {
   });
 
   const onSubmit = async (data: SettingsFormData) => {
-    const promises: (
-      | Promise<UserProfile>
-      | Promise<{ message: string }>
-      | Promise<{ avatarUrl: string }>
-    )[] = [];
+    const promises: Promise<unknown>[] = [];
 
-    if (isDirty || avatarFile) {
+    if (isProfileChanged) {
       promises.push(
         profileMutation.mutateAsync({
           username: data.username,
@@ -172,6 +158,7 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
     try {
       await Promise.all(promises);
+      toast.success('Settings updated');
       onClose();
     } catch (error) {
       console.error('Error updating settings:', error);

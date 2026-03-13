@@ -6,7 +6,9 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
+  Res,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -20,8 +22,9 @@ import {
   ApiOperation,
   ApiTags,
   ApiBody,
+  ApiQuery,
 } from '@nestjs/swagger';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreateSubtaskDto } from './dto/create-subtask.dto';
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -32,6 +35,8 @@ import { UpdateTasksOrderDto } from './dto/update-task-order.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { SearchTasksDto } from './dto/search-tasks.dto';
 import { TasksService } from './tasks.service';
+import { generateTasksMarkdown } from './utils/export-markdown';
+import { createExportZip } from './utils/export-zip';
 import { join } from 'path';
 import { convertToWebp, imageFileFilter } from 'src/utils/file-upload.utils';
 
@@ -54,6 +59,46 @@ export class TasksController {
   createTask(@Body() dto: CreateTaskDto, @Req() req: Request) {
     const user = req.user as { id: string };
     return this.tasksService.createTask(user.id, dto);
+  }
+
+  @ApiOperation({ summary: 'Export tasks as Markdown or ZIP' })
+  @ApiQuery({
+    name: 'format',
+    enum: ['md', 'zip'],
+    required: false,
+    description: 'Export format (default: md)',
+  })
+  @Get('export')
+  async exportTasks(
+    @Req() req: Request,
+    @Res() res: Response,
+    @Query('format') format: string = 'md',
+  ) {
+    const user = req.user as { id: string };
+    const tasks = await this.tasksService.getTasksForExport(user.id);
+
+    const today = new Date().toISOString().slice(0, 10);
+
+    if (format === 'zip') {
+      const uploadsDir = join(process.cwd(), 'uploads', 'tasks');
+      const archive = createExportZip(tasks, uploadsDir);
+
+      res.set({
+        'Content-Type': 'application/zip',
+        'Content-Disposition': `attachment; filename="orgatime-export-${today}.zip"`,
+      });
+
+      archive.pipe(res);
+    } else {
+      const markdown = generateTasksMarkdown(tasks, false);
+
+      res.set({
+        'Content-Type': 'text/markdown; charset=utf-8',
+        'Content-Disposition': `attachment; filename="orgatime-export-${today}.md"`,
+      });
+
+      res.send(markdown);
+    }
   }
 
   @ApiOperation({ summary: 'Get all tasks for the user' })

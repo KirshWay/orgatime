@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   HttpCode,
+  HttpException,
   HttpStatus,
   Post,
   Req,
@@ -28,6 +29,13 @@ export class AuthController {
   private readonly supportEmail =
     process.env.SUPPORT_EMAIL || 'support@example.com';
 
+  private registrationAttempts: Map<
+    string,
+    { count: number; lastAttempt: Date }
+  > = new Map();
+  private readonly MAX_REGISTER_ATTEMPTS = 3;
+  private readonly REGISTER_COOLDOWN = 60 * 60 * 1000;
+
   constructor(private authService: AuthService) {}
 
   @ApiOperation({ summary: 'Register a new user' })
@@ -35,15 +43,19 @@ export class AuthController {
   @Post('register')
   async register(
     @Body() registerDto: RegisterDto,
+    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
+    this.checkRegistrationRate(req.ip || 'unknown');
     const result = await this.authService.register(registerDto);
+    this.recordRegistrationAttempt(req.ip || 'unknown');
 
     res.cookie('refreshToken', result.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/',
     });
     return {
       accessToken: result.accessToken,
@@ -65,6 +77,7 @@ export class AuthController {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/',
     });
 
     return {
@@ -85,6 +98,7 @@ export class AuthController {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
+      path: '/',
     });
 
     return { message: 'Logged out successfully' };
@@ -110,6 +124,7 @@ export class AuthController {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/',
     });
 
     return { accessToken: tokens.accessToken };
@@ -137,5 +152,35 @@ export class AuthController {
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
     await this.authService.resetPassword(resetPasswordDto);
     return { message: 'The password has been successfully reset' };
+  }
+
+  private checkRegistrationRate(ip: string): void {
+    const attempts = this.registrationAttempts.get(ip);
+    if (!attempts) return;
+
+    const now = Date.now();
+    if (now - attempts.lastAttempt.getTime() > this.REGISTER_COOLDOWN) {
+      this.registrationAttempts.delete(ip);
+      return;
+    }
+
+    if (attempts.count >= this.MAX_REGISTER_ATTEMPTS) {
+      throw new HttpException(
+        'Too many registration attempts. Please try again later.',
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+  }
+
+  private recordRegistrationAttempt(ip: string): void {
+    const attempts = this.registrationAttempts.get(ip);
+    const now = new Date();
+
+    if (!attempts || Date.now() - attempts.lastAttempt.getTime() > this.REGISTER_COOLDOWN) {
+      this.registrationAttempts.set(ip, { count: 1, lastAttempt: now });
+    } else {
+      attempts.count += 1;
+      attempts.lastAttempt = now;
+    }
   }
 }
