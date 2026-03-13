@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "description": "",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "author": "",
   "scripts": {
     "build": "nest build",
@@ -52,7 +52,7 @@
     "@types/cookie-parser": "1.4.10",
     "@types/express": "5.0.6",
     "@types/multer": "1.4.13",
-    "@types/node": "25.4.0",
+    "@types/node": "25.5.0",
     "@types/passport-jwt": "4.0.1",
     "@types/uuid": "10.0.0",
     "oxfmt": "0.40.0",

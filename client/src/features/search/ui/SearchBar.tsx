@@ -1,5 +1,5 @@
 import { useEffect, useReducer, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { Loader2, Search } from 'lucide-react';
 
@@ -53,6 +53,7 @@ export const SearchBar = () => {
     INITIAL_SEARCH_STATE,
   );
   const navigate = useNavigate();
+  const location = useLocation();
 
   const debouncedSearch = useDebounce(query, 300);
 
@@ -88,7 +89,11 @@ export const SearchBar = () => {
   const handleSelectTask = (task: Task) => {
     setOpen(false);
 
-    navigate(`/?task=${task.id}`);
+    if (location.pathname === '/tasks') {
+      navigate(`/tasks?task=${task.id}`);
+    } else {
+      navigate(`/?task=${task.id}`);
+    }
   };
 
   const getTaskColorDot = (color: string | null) => {

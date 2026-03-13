@@ -8,21 +8,23 @@ The frontend of Orgatime is built with modern React and follows the Feature-Slic
 
 ## 🧪 Technology Stack
 
-- **Core**: React 19, TypeScript 5, Vite 5
-- **State Management**: React Query, Context API, Zustand
-- **Routing**: React Router 6
+- **Core**: React 19, TypeScript 5.9, Vite 8 (Rolldown)
+- **State Management**: React Query, Zustand
+- **Routing**: React Router 7
 - **UI Components**:
-  - TailwindCSS for styling
+  - TailwindCSS 4 for styling
   - shadcn/ui for component primitives
   - Lucide React for icons
 - **Forms & Validation**:
   - React Hook Form for form state
   - Zod for schema validation
-- **Drag & Drop**: react-dnd-kit
+- **Drag & Drop**: @dnd-kit
 - **HTTP Client**: Axios
 - **Date Handling**: date-fns
 - **Notifications**: react-hot-toast
-- **Image Handling**: Browser native APIs with custom hooks
+- **PWA**: vite-plugin-pwa with Workbox caching
+- **Optimization**: React Compiler (babel-plugin-react-compiler)
+- **Linting & Formatting**: Oxlint, Oxfmt
 
 ## 🏗️ Architecture (Feature-Sliced Design)
 
@@ -30,11 +32,11 @@ The project follows Feature-Sliced Design methodology for clear separation of co
 
 ```
 /src
-  /app         # Application entry, providers setup, global styles
+  /app         # Application entry, providers setup
   /pages       # Page components and routes
   /widgets     # Complex UI blocks combining multiple features
   /features    # User scenarios, business logic implementations
-  /entities    # Business entities (task, user, etc.)
+  /entities    # Business entities (task)
   /shared      # Shared UI components, utils, and types
 ```
 
@@ -42,18 +44,46 @@ The project follows Feature-Sliced Design methodology for clear separation of co
 
 - **app**: Contains global providers, router setup, and application initialization
 - **pages**: Page components that compose widgets and features
-- **widgets**: Complex UI blocks like Header, TaskWeek, Someday section
+- **widgets**: Complex UI blocks like Header, Week view, Someday section, All Tasks list
 - **features**:
   - **auth**: Authentication, registration, password reset
   - **tasks**: Task management (create, update, delete, drag-n-drop)
-  - **settings**: User profile, theme settings, notifications
-  - **search**: Global search functionality
-- **entities**: Reusable business entities (Task, User)
+  - **settings**: User profile, theme settings
+  - **search**: Global search functionality (⌘K)
+- **entities**: Reusable business entities (Task)
 - **shared**: UI components, utility functions, API client setup
 
-## 📊 State Management with Zustand
+## 📱 Key Features
 
-The application uses Zustand for state management with Redux DevTools integration for easier debugging.
+### Task Management
+
+- Visual weekly planner with drag and drop functionality
+- All tasks view with date grouping and status filtering (all/active/completed)
+- "Someday" section for tasks without specific dates
+- Task creation, editing, and deletion
+- Subtasks with completion tracking
+- Task coloring for visual categorization
+- Image attachments with preview functionality
+- Global search with `⌘K` / `Ctrl+K`
+
+### User Experience
+
+- Progressive Web App (installable, service worker caching)
+- Responsive design for mobile and desktop
+- Dark/light theme support
+- Smooth animations and transitions (Motion)
+- Form validations with helpful error messages
+- Toast notifications for user actions
+
+### Authentication & Security
+
+- JWT-based authentication
+- Secure profile management
+- Password reset flow (admin-managed one-time links)
+- Protected routes
+
+<details>
+<summary>📊 State Management with Zustand</summary>
 
 ### Store Structure
 
@@ -119,33 +149,7 @@ export const STORE_NAMES = {
 };
 ```
 
-## 📱 Key Features
-
-### Task Management
-
-- Visual weekly planner with drag and drop functionality
-- "Someday" section for tasks without specific dates
-- Task creation, editing, and deletion
-- Subtasks with completion tracking
-- Task coloring for visual categorization
-- Image attachments with preview functionality
-
-### User Experience
-
-- Responsive design for mobile and desktop
-- Dark/light theme support
-- Smooth animations and transitions
-- Offline detection and recovery
-- Form validations with helpful error messages
-- Toast notifications for user actions
-
-### Authentication & Security
-
-- JWT-based authentication
-- Secure profile management
-- Password reset flow
-- Protected routes
-- CSRF protection
+</details>
 
 ## 🚀 Development
 
@@ -176,8 +180,14 @@ pnpm preview
 # Lint code
 pnpm lint
 
+# Auto-fix lint issues
+pnpm lint:fix
+
 # Format code
 pnpm format
+
+# Check formatting
+pnpm format:check
 ```
 
 ### Debugging with Redux DevTools
@@ -190,7 +200,8 @@ pnpm format
 3. Select the store you want to inspect from the dropdown menu
 4. Track state changes and action history in real-time
 
-## 🧩 Component Architecture
+<details>
+<summary>🧩 Component Architecture</summary>
 
 Components follow a consistent pattern:
 
@@ -205,7 +216,7 @@ Example component structure:
 ```tsx
 import { useState } from 'react';
 import { Button } from '@/shared/ui/button';
-import { useTaskActions } from '@/features/tasks/hooks/useTaskActions';
+import { useUpdateTask, useDeleteTask } from '@/features/tasks/hooks';
 import type { Task } from '@/entities/task/model/types';
 
 interface TaskItemProps {
@@ -214,7 +225,8 @@ interface TaskItemProps {
 }
 
 export const TaskItem = ({ task, isEditable = false }: TaskItemProps) => {
-  const { updateTask, deleteTask } = useTaskActions();
+  const updateTaskMutation = useUpdateTask();
+  const deleteTaskMutation = useDeleteTask();
   const [isEditing, setIsEditing] = useState(false);
 
   // Business logic...
@@ -223,23 +235,25 @@ export const TaskItem = ({ task, isEditable = false }: TaskItemProps) => {
 };
 ```
 
-## 📂 Project Structure
+</details>
 
-The project structure follows Feature-Sliced Design with a clear separation of concerns:
+<details>
+<summary>📂 Project Structure</summary>
 
 ```
 /src
   /app
     /providers      # Global providers (auth, query, theme)
-    /styles         # Global styles
     App.tsx         # Main application component
     main.tsx        # Entry point
   /pages
+    /all-tasks      # All tasks page with date grouping and filtering
     /auth           # Auth pages (login, register, etc.)
     /home           # Main application page
     /landing        # Landing page for non-authenticated users
     /not-found      # 404 page
   /widgets
+    /all-tasks      # All tasks list, date groups, and filter controls
     /header         # Application header
     /week           # Weekly task view
     /someday        # Someday task section
@@ -254,15 +268,18 @@ The project structure follows Feature-Sliced Design with a clear separation of c
       /lib          # Helper functions
       /model        # Types and constants
       /ui           # UI components
+    /search         # Global search feature
     /settings       # User settings features
   /entities
     /task           # Task entity
       /model        # Types and constants
-    /user           # User entity
   /shared
     /api            # API client setup
     /hooks          # Shared hooks
     /lib            # Utility functions
-    /ui             # Reusable UI components
+    /stores         # Zustand stores
     /styles         # Shared styles
+    /ui             # Reusable UI components (shadcn/ui)
 ```
+
+</details>

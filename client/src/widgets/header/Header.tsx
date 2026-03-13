@@ -1,7 +1,7 @@
 import { lazy, Suspense, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { startOfWeek } from 'date-fns';
-import { Info, Printer, Settings, User } from 'lucide-react';
+import { CalendarDays, Info, ListTodo, Printer, Settings, User } from 'lucide-react';
 
 const SettingsModal = lazy(() =>
   import('@/features/settings/SettingsModal').then((module) => ({
@@ -31,6 +31,8 @@ export const Header: React.FC = () => {
   const { user } = useUserStore();
   const { logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isAllTasksPage = location.pathname === '/tasks';
 
   const now = new Date();
   const currentWeekStart = startOfWeek(now, { weekStartsOn: 1 });
@@ -71,6 +73,18 @@ export const Header: React.FC = () => {
 
       <div className="flex items-center gap-4">
         <SearchBar />
+        <Button
+          variant="outline"
+          size="icon"
+          className="rounded-full"
+          onClick={() => navigate(isAllTasksPage ? '/' : '/tasks')}
+        >
+          {isAllTasksPage ? (
+            <CalendarDays className="h-4 w-4" />
+          ) : (
+            <ListTodo className="h-4 w-4" />
+          )}
+        </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -125,24 +139,26 @@ export const Header: React.FC = () => {
 
         <ModeToggle />
 
-        <div className="flex gap-2">
-          <Button
-            onClick={handlePrevWeek}
-            className="rounded-full"
-            variant="outline"
-            size="icon"
-          >
-            ←
-          </Button>
-          <Button
-            onClick={handleNextWeek}
-            className="rounded-full"
-            variant="outline"
-            size="icon"
-          >
-            →
-          </Button>
-        </div>
+        {!isAllTasksPage && (
+          <div className="flex gap-2">
+            <Button
+              onClick={handlePrevWeek}
+              className="rounded-full"
+              variant="outline"
+              size="icon"
+            >
+              ←
+            </Button>
+            <Button
+              onClick={handleNextWeek}
+              className="rounded-full"
+              variant="outline"
+              size="icon"
+            >
+              →
+            </Button>
+          </div>
+        )}
       </div>
 
       <Suspense fallback={null}>
