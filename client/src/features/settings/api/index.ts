@@ -29,9 +29,6 @@ export const updateAvatar = async (
   const response = await apiClient.post<{ avatarUrl: string }>(
     '/users/avatar',
     formData,
-    {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    },
   );
 
   return response.data;

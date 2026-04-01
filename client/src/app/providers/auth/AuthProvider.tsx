@@ -1,10 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
-import { apiClient } from '@/shared/api';
-import { useUserStore } from '@/shared/stores/userStore';
+import { apiClient, ApiError } from '@/shared/api';
+import { UserProfile, useUserStore } from '@/shared/stores/userStore';
 
 import { AuthContext, AuthContextType } from './AuthContext';
 
@@ -48,17 +47,15 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
 
     const responseInterceptor = apiClient.interceptors.response.use(
       (response) => response,
-      async (error: AxiosError) => {
-        const originalRequest = error.config as InternalAxiosRequestConfig & {
-          _retry?: boolean;
-        };
+      async (error: ApiError) => {
+        const originalConfig = error.config;
 
         if (
-          error.response?.status !== 401 ||
-          originalRequest._retry ||
-          originalRequest.url === '/auth/refresh' ||
-          originalRequest.url === '/auth/login' ||
-          originalRequest.url === '/auth/register'
+          error.status !== 401 ||
+          originalConfig._retry ||
+          originalConfig.url === '/auth/refresh' ||
+          originalConfig.url === '/auth/login' ||
+          originalConfig.url === '/auth/register'
         ) {
           return Promise.reject(error);
         }
@@ -67,22 +64,24 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
           return new Promise<string>((resolve, reject) => {
             failedQueue.current.push({ resolve, reject });
           }).then((token) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-            return apiClient(originalRequest);
+            originalConfig.headers = originalConfig.headers ?? {};
+            originalConfig.headers.Authorization = `Bearer ${token}`;
+            return apiClient.request(originalConfig);
           });
         }
 
-        originalRequest._retry = true;
+        originalConfig._retry = true;
         isRefreshing.current = true;
 
         return apiClient
           .post('/auth/refresh')
           .then((res) => {
-            const newToken = res.data.accessToken as string;
+            const newToken = (res.data as { accessToken: string }).accessToken;
             setAccessToken(newToken);
             processQueue(null, newToken);
-            originalRequest.headers.Authorization = `Bearer ${newToken}`;
-            return apiClient(originalRequest);
+            originalConfig.headers = originalConfig.headers ?? {};
+            originalConfig.headers.Authorization = `Bearer ${newToken}`;
+            return apiClient.request(originalConfig);
           })
           .catch((refreshError) => {
             processQueue(refreshError, null);
@@ -105,8 +104,9 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
 
   const login = async (email: string, password: string) => {
     const response = await apiClient.post('/auth/login', { email, password });
-    setAccessToken(response.data.accessToken);
-    setUser(response.data.user);
+    const data = response.data as { accessToken: string; user: any };
+    setAccessToken(data.accessToken);
+    setUser(data.user);
   };
 
   const register = async (data: {
@@ -116,8 +116,9 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     avatar?: string;
   }) => {
     const response = await apiClient.post('/auth/register', data);
-    setAccessToken(response.data.accessToken);
-    setUser(response.data.user);
+    const resData = response.data as { accessToken: string; user: any };
+    setAccessToken(resData.accessToken);
+    setUser(resData.user);
   };
 
   const logout = useCallback(async () => {
@@ -129,7 +130,8 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
 
   const refreshToken = async () => {
     const refreshResponse = await apiClient.post('/auth/refresh');
-    setAccessToken(refreshResponse.data.accessToken);
+    const data = refreshResponse.data as { accessToken: string };
+    setAccessToken(data.accessToken);
   };
 
   useEffect(() => {
@@ -143,9 +145,9 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
       apiClient
         .post('/auth/refresh')
         .then((res) => {
-          const newToken = res.data.accessToken;
+          const newToken = (res.data as { accessToken: string }).accessToken;
           setAccessToken(newToken);
-          return apiClient.get('/users/profile', {
+          return apiClient.get<UserProfile>('/users/profile', {
             headers: { Authorization: `Bearer ${newToken}` },
           });
         })

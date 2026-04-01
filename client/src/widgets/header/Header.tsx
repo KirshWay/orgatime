@@ -22,7 +22,7 @@ const SettingsModal = lazy(() =>
 
 import { useAuth } from '@/app/providers';
 import { SearchBar } from '@/features/search';
-import { apiClient } from '@/shared/api/lib/apiClient';
+import { apiClient, isApiError } from '@/shared/api/lib/apiClient';
 import { useWeekNavigation } from '@/shared/hooks';
 import { useUserStore } from '@/shared/stores/userStore';
 import { Button } from '@/shared/ui/button';
@@ -93,7 +93,7 @@ export const Header: React.FC = () => {
     const filenameMatch = contentDisposition.match(/filename="(.+?)"/);
     const filename = filenameMatch ? filenameMatch[1] : defaultFilename;
 
-    const url = URL.createObjectURL(response.data);
+    const url = URL.createObjectURL(response.data as Blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = filename;
@@ -104,13 +104,8 @@ export const Header: React.FC = () => {
   };
 
   const handleExportError = async (error: unknown) => {
-    if (
-      error &&
-      typeof error === 'object' &&
-      'response' in error &&
-      (error as Record<string, any>).response?.status === 429
-    ) {
-      const blob = (error as Record<string, any>).response?.data;
+    if (isApiError(error) && error.status === 429) {
+      const blob = error.data;
       if (blob instanceof Blob) {
         const fallback = 'Too many requests. Try again later.';
         const text = await blob.text().catch(() => '{}');

@@ -1,19 +1,18 @@
-import axios from 'axios';
+import { isApiError } from '@/shared/api';
 
 export const parseApiError = (error: unknown): string => {
-  if (axios.isAxiosError(error)) {
-    if (
-      error.response?.data?.message &&
-      Array.isArray(error.response.data.message)
-    ) {
-      return error.response.data.message[0];
+  if (isApiError(error)) {
+    const data = error.data as Record<string, unknown> | null;
+
+    if (data?.message && Array.isArray(data.message)) {
+      return data.message[0];
     }
 
-    if (error.response?.data?.message) {
-      return error.response.data.message;
+    if (data?.message) {
+      return data.message as string;
     }
 
-    const status = error.response?.status;
+    const status = error.status;
 
     if (status === 429) {
       return 'Too many attempts. Please try again later.';
