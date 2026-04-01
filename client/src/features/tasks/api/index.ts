@@ -98,7 +98,6 @@ export const uploadTaskImage = async (
     `/tasks/${taskId}/images`,
     formData,
     {
-      headers: { 'Content-Type': 'multipart/form-data' },
       onUploadProgress: (progressEvent) => {
         if (onProgress && progressEvent.total) {
           const percentCompleted = Math.round(
@@ -125,9 +124,6 @@ export const replaceTaskImage = async (
   const response = await apiClient.patch<TaskImage>(
     `/tasks/${taskId}/images/${imageId}`,
     formData,
-    {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    },
   );
 
   return response.data;
