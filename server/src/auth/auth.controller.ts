@@ -5,7 +5,6 @@ import {
   HttpException,
   HttpStatus,
   Post,
-  Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
@@ -15,7 +14,11 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { Request, Response } from 'express';
+import { ClientIp } from 'src/common/decorators/client-ip.decorator';
+import { CookieValue } from 'src/common/decorators/cookie-value.decorator';
+import { CurrentUserId } from 'src/common/decorators/current-user-id.decorator';
+import type { CookieReplyLike } from 'src/common/http/http.types';
+import { RefreshTokenCookieService } from 'src/common/services/refresh-token-cookie.service';
 import { AuthService } from './auth.service';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginDto } from './dto/login.dto';
@@ -36,27 +39,25 @@ export class AuthController {
   private readonly MAX_REGISTER_ATTEMPTS = 3;
   private readonly REGISTER_COOLDOWN = 60 * 60 * 1000;
 
-  constructor(private authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly refreshTokenCookieService: RefreshTokenCookieService,
+  ) {}
 
   @ApiOperation({ summary: 'Register a new user' })
   @ApiResponse({ status: 201, description: 'User registered successfully.' })
   @Post('register')
   async register(
     @Body() registerDto: RegisterDto,
-    @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
+    @ClientIp() clientIp: string,
+    @Res({ passthrough: true }) reply: CookieReplyLike,
   ) {
-    this.checkRegistrationRate(req.ip || 'unknown');
+    this.checkRegistrationRate(clientIp);
     const result = await this.authService.register(registerDto);
-    this.recordRegistrationAttempt(req.ip || 'unknown');
+    this.recordRegistrationAttempt(clientIp);
 
-    res.cookie('refreshToken', result.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      path: '/',
-    });
+    this.refreshTokenCookieService.set(reply, result.refreshToken);
+
     return {
       accessToken: result.accessToken,
       user: result.user,
@@ -68,17 +69,11 @@ export class AuthController {
   @Post('login')
   async login(
     @Body() loginDto: LoginDto,
-    @Res({ passthrough: true }) res: Response,
+    @Res({ passthrough: true }) reply: CookieReplyLike,
   ) {
     const result = await this.authService.login(loginDto);
 
-    res.cookie('refreshToken', result.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      path: '/',
-    });
+    this.refreshTokenCookieService.set(reply, result.refreshToken);
 
     return {
       accessToken: result.accessToken,
@@ -90,16 +85,12 @@ export class AuthController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Logout user' })
   @Post('logout')
-  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    const user = req.user as { id: string };
-    await this.authService.logout(user.id);
-
-    res.clearCookie('refreshToken', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      path: '/',
-    });
+  async logout(
+    @CurrentUserId() userId: string,
+    @Res({ passthrough: true }) reply: CookieReplyLike,
+  ) {
+    await this.authService.logout(userId);
+    this.refreshTokenCookieService.clear(reply);
 
     return { message: 'Logged out successfully' };
   }
@@ -110,22 +101,13 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async refresh(
     @Body('refreshToken') refreshTokenFromBody: string,
-    @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
+    @CookieValue('refreshToken') refreshTokenFromCookie: string | undefined,
+    @Res({ passthrough: true }) reply: CookieReplyLike,
   ) {
-    const cookies = req.cookies as Record<string, string>;
-
-    const refreshToken = refreshTokenFromBody || cookies.refreshToken;
-
+    const refreshToken = (refreshTokenFromBody || refreshTokenFromCookie) as string;
     const tokens = await this.authService.refreshToken(refreshToken);
 
-    res.cookie('refreshToken', tokens.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      path: '/',
-    });
+    this.refreshTokenCookieService.set(reply, tokens.refreshToken);
 
     return { accessToken: tokens.accessToken };
   }
@@ -176,7 +158,10 @@ export class AuthController {
     const attempts = this.registrationAttempts.get(ip);
     const now = new Date();
 
-    if (!attempts || Date.now() - attempts.lastAttempt.getTime() > this.REGISTER_COOLDOWN) {
+    if (
+      !attempts ||
+      Date.now() - attempts.lastAttempt.getTime() > this.REGISTER_COOLDOWN
+    ) {
       this.registrationAttempts.set(ip, { count: 1, lastAttempt: now });
     } else {
       attempts.count += 1;

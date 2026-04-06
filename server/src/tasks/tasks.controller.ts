@@ -9,56 +9,56 @@ import {
   Query,
   Req,
   StreamableFile,
-  UploadedFile,
   UseGuards,
-  UseInterceptors,
-  RequestTimeoutException,
-  InternalServerErrorException,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
+  ApiBody,
   ApiConsumes,
   ApiOperation,
-  ApiTags,
-  ApiBody,
   ApiQuery,
+  ApiTags,
 } from '@nestjs/swagger';
-import { Request } from 'express';
+import { CurrentUserId } from 'src/common/decorators/current-user-id.decorator';
+import type { MultipartRequestLike } from 'src/common/http/http.types';
+import { ImageUploadService } from 'src/common/services/image-upload.service';
+import { join } from 'path';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreateSubtaskDto } from './dto/create-subtask.dto';
 import { CreateTaskDto } from './dto/create-task.dto';
+import { SearchTasksDto } from './dto/search-tasks.dto';
 import { TaskImageDto } from './dto/task-image.dto';
 import { UpdateSubtaskDto } from './dto/update-subtask.dto';
 import { UpdateTaskDateDto } from './dto/update-task-date.dto';
 import { UpdateTasksOrderDto } from './dto/update-task-order.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { SearchTasksDto } from './dto/search-tasks.dto';
 import { TasksService } from './tasks.service';
 import { generateTasksMarkdown } from './utils/export-markdown';
 import { createExportZip } from './utils/export-zip';
-import { join } from 'path';
-import { convertToWebp, imageFileFilter } from 'src/utils/file-upload.utils';
 
 @ApiTags('Tasks')
 @ApiBearerAuth()
 @Controller('tasks')
 @UseGuards(JwtAuthGuard)
 export class TasksController {
-  constructor(private readonly tasksService: TasksService) {}
+  constructor(
+    private readonly tasksService: TasksService,
+    private readonly imageUploadService: ImageUploadService,
+  ) {}
 
   @ApiOperation({ summary: 'Update order of tasks' })
   @Patch('order')
-  updateTasksOrder(@Body() dto: UpdateTasksOrderDto, @Req() req: Request) {
-    const user = req.user as { id: string };
-    return this.tasksService.updateTasksOrder(user.id, dto.tasks);
+  updateTasksOrder(
+    @Body() dto: UpdateTasksOrderDto,
+    @CurrentUserId() userId: string,
+  ) {
+    return this.tasksService.updateTasksOrder(userId, dto.tasks);
   }
 
   @ApiOperation({ summary: 'Create a new task' })
   @Post()
-  createTask(@Body() dto: CreateTaskDto, @Req() req: Request) {
-    const user = req.user as { id: string };
-    return this.tasksService.createTask(user.id, dto);
+  createTask(@Body() dto: CreateTaskDto, @CurrentUserId() userId: string) {
+    return this.tasksService.createTask(userId, dto);
   }
 
   @ApiOperation({ summary: 'Export tasks as Markdown or ZIP' })
@@ -70,12 +70,10 @@ export class TasksController {
   })
   @Get('export')
   async exportTasks(
-    @Req() req: Request,
+    @CurrentUserId() userId: string,
     @Query('format') format: string = 'md',
   ): Promise<StreamableFile> {
-    const user = req.user as { id: string };
-    const tasks = await this.tasksService.getTasksForExport(user.id);
-
+    const tasks = await this.tasksService.getTasksForExport(userId);
     const today = new Date().toISOString().slice(0, 10);
 
     if (format === 'zip') {
@@ -98,16 +96,17 @@ export class TasksController {
 
   @ApiOperation({ summary: 'Get all tasks for the user' })
   @Get()
-  findAllTasks(@Req() req: Request) {
-    const user = req.user as { id: string };
-    return this.tasksService.findAllTasks(user.id);
+  findAllTasks(@CurrentUserId() userId: string) {
+    return this.tasksService.findAllTasks(userId);
   }
 
   @ApiOperation({ summary: 'Get a specific task by ID' })
   @Get(':taskId')
-  findOneTask(@Param('taskId') taskId: string, @Req() req: Request) {
-    const user = req.user as { id: string };
-    return this.tasksService.findOneTask(user.id, taskId);
+  findOneTask(
+    @Param('taskId') taskId: string,
+    @CurrentUserId() userId: string,
+  ) {
+    return this.tasksService.findOneTask(userId, taskId);
   }
 
   @ApiOperation({ summary: 'Update a task' })
@@ -115,17 +114,15 @@ export class TasksController {
   updateTask(
     @Param('taskId') taskId: string,
     @Body() dto: UpdateTaskDto,
-    @Req() req: Request,
+    @CurrentUserId() userId: string,
   ) {
-    const user = req.user as { id: string };
-    return this.tasksService.updateTask(user.id, taskId, dto);
+    return this.tasksService.updateTask(userId, taskId, dto);
   }
 
   @ApiOperation({ summary: 'Delete a task' })
   @Delete(':taskId')
-  removeTask(@Param('taskId') taskId: string, @Req() req: Request) {
-    const user = req.user as { id: string };
-    return this.tasksService.removeTask(user.id, taskId);
+  removeTask(@Param('taskId') taskId: string, @CurrentUserId() userId: string) {
+    return this.tasksService.removeTask(userId, taskId);
   }
 
   @ApiOperation({ summary: 'Create a subtask for a given task' })
@@ -133,10 +130,9 @@ export class TasksController {
   createSubtask(
     @Param('taskId') taskId: string,
     @Body() dto: CreateSubtaskDto,
-    @Req() req: Request,
+    @CurrentUserId() userId: string,
   ) {
-    const user = req.user as { id: string };
-    return this.tasksService.createSubtask(user.id, taskId, dto);
+    return this.tasksService.createSubtask(userId, taskId, dto);
   }
 
   @ApiOperation({ summary: 'Update a subtask' })
@@ -145,10 +141,9 @@ export class TasksController {
     @Param('taskId') taskId: string,
     @Param('subtaskId') subtaskId: string,
     @Body() dto: UpdateSubtaskDto,
-    @Req() req: Request,
+    @CurrentUserId() userId: string,
   ) {
-    const user = req.user as { id: string };
-    return this.tasksService.updateSubtask(user.id, taskId, subtaskId, dto);
+    return this.tasksService.updateSubtask(userId, taskId, subtaskId, dto);
   }
 
   @ApiOperation({ summary: 'Delete a subtask' })
@@ -156,10 +151,9 @@ export class TasksController {
   removeSubtask(
     @Param('taskId') taskId: string,
     @Param('subtaskId') subtaskId: string,
-    @Req() req: Request,
+    @CurrentUserId() userId: string,
   ) {
-    const user = req.user as { id: string };
-    return this.tasksService.removeSubtask(user.id, taskId, subtaskId);
+    return this.tasksService.removeSubtask(userId, taskId, subtaskId);
   }
 
   @ApiOperation({ summary: 'Update the due date of a task' })
@@ -167,27 +161,22 @@ export class TasksController {
   updateTaskDate(
     @Param('taskId') taskId: string,
     @Body() dto: UpdateTaskDateDto,
-    @Req() req: Request,
+    @CurrentUserId() userId: string,
   ) {
-    const user = req.user as { id: string };
-    return this.tasksService.updateTaskDate(user.id, taskId, dto);
+    return this.tasksService.updateTaskDate(userId, taskId, dto);
   }
 
   @Post(':taskId/duplicate')
-  duplicateTask(@Param('taskId') taskId: string, @Req() req: Request) {
-    const user = req.user as { id: string };
-    return this.tasksService.duplicateTask(user.id, taskId);
+  duplicateTask(
+    @Param('taskId') taskId: string,
+    @CurrentUserId() userId: string,
+  ) {
+    return this.tasksService.duplicateTask(userId, taskId);
   }
 
   @ApiOperation({ summary: 'Upload an image for a task' })
   @ApiConsumes('multipart/form-data')
   @Post(':taskId/images')
-  @UseInterceptors(
-    FileInterceptor('image', {
-      fileFilter: imageFileFilter,
-      limits: { fileSize: 10 * 1024 * 1024 },
-    }),
-  )
   @ApiBody({
     schema: {
       type: 'object',
@@ -201,50 +190,22 @@ export class TasksController {
   })
   async uploadTaskImage(
     @Param('taskId') taskId: string,
-    @UploadedFile() file: Express.Multer.File,
-    @Req() req: Request,
+    @Req() request: MultipartRequestLike,
+    @CurrentUserId() userId: string,
   ) {
-    const user = req.user as { id: string };
+    const imageDto: TaskImageDto =
+      await this.imageUploadService.uploadTaskImage(request);
 
-    try {
-      const destination = join(process.cwd(), 'uploads', 'tasks');
-
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Image processing timeout')), 30000);
-      });
-
-      const processingPromise = convertToWebp(file, destination);
-
-      const { filename, path } = (await Promise.race([
-        processingPromise,
-        timeoutPromise,
-      ])) as { filename: string; path: string };
-
-      const imageDto: TaskImageDto = {
-        filename,
-        path,
-      };
-
-      return this.tasksService.addTaskImage(user.id, taskId, imageDto);
-    } catch (error) {
-      console.error('Error processing image:', error);
-      if (
-        error instanceof Error &&
-        error.message === 'Image processing timeout'
-      ) {
-        throw new RequestTimeoutException(
-          'Image processing timeout. Please try reducing the file size or uploading another image.',
-        );
-      }
-      throw new InternalServerErrorException('Error processing image.');
-    }
+    return this.tasksService.addTaskImage(userId, taskId, imageDto);
   }
 
   @ApiOperation({ summary: 'Get all images for a task' })
   @Get(':taskId/images')
-  getTaskImages(@Param('taskId') taskId: string, @Req() req: Request) {
-    const user = req.user as { id: string };
-    return this.tasksService.getTaskImages(user.id, taskId);
+  getTaskImages(
+    @Param('taskId') taskId: string,
+    @CurrentUserId() userId: string,
+  ) {
+    return this.tasksService.getTaskImages(userId, taskId);
   }
 
   @ApiOperation({ summary: 'Delete an image from a task' })
@@ -252,16 +213,14 @@ export class TasksController {
   removeTaskImage(
     @Param('taskId') taskId: string,
     @Param('imageId') imageId: string,
-    @Req() req: Request,
+    @CurrentUserId() userId: string,
   ) {
-    const user = req.user as { id: string };
-    return this.tasksService.removeTaskImage(user.id, taskId, imageId);
+    return this.tasksService.removeTaskImage(userId, taskId, imageId);
   }
 
   @ApiOperation({ summary: 'Search tasks by text query' })
   @Post('search')
-  searchTasks(@Body() dto: SearchTasksDto, @Req() req: Request) {
-    const user = req.user as { id: string };
-    return this.tasksService.searchTasks(user.id, dto.query);
+  searchTasks(@Body() dto: SearchTasksDto, @CurrentUserId() userId: string) {
+    return this.tasksService.searchTasks(userId, dto.query);
   }
 }

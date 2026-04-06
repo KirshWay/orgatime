@@ -17,7 +17,7 @@ The backend of Orgatime is built with NestJS, providing a robust foundation for 
   - bcrypt for password hashing
   - Passport strategies
 - **File Management**:
-  - Multer for file uploads
+  - Fastify multipart for file uploads
   - Sharp for image processing (WebP conversion)
 - **API Documentation**: Swagger/OpenAPI
 - **Validation**: class-validator and class-transformer

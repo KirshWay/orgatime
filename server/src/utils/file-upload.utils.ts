@@ -1,36 +1,14 @@
-import { Request } from 'express';
-import { v4 as uuidv4 } from 'uuid';
+import type { UploadedImageFile } from 'src/common/http/multipart.utils';
 import { existsSync, mkdirSync, writeFile } from 'fs';
-import { promisify } from 'util';
 import { join } from 'path';
 import * as sharp from 'sharp';
+import { promisify } from 'util';
+import { v4 as uuidv4 } from 'uuid';
 
 const writeFileAsync = promisify(writeFile);
 
-export const editFileName = (
-  req: Request,
-  file: Express.Multer.File,
-  callback: (error: Error | null, filename: string) => void,
-): void => {
-  const name = uuidv4();
-  const fileExtName = '.webp';
-  callback(null, `${name}${fileExtName}`);
-};
-
-export const imageFileFilter = (
-  req: Request,
-  file: Express.Multer.File,
-  callback: (error: Error | null, acceptFile: boolean) => void,
-): void => {
-  if (!file.originalname.match(/\.(jpg|jpeg|png|gif|webp)$/)) {
-    return callback(new Error('Only image files are allowed!'), false);
-  }
-
-  callback(null, true);
-};
-
 export const convertToWebp = async (
-  file: Express.Multer.File,
+  file: UploadedImageFile,
   destination: string,
 ): Promise<{ filename: string; path: string }> => {
   if (!existsSync(destination)) {

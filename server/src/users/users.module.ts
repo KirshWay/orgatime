@@ -1,17 +1,11 @@
 import { Module } from '@nestjs/common';
-import { MulterModule } from '@nestjs/platform-express';
-import { memoryStorage } from 'multer';
+import { CommonModule } from 'src/common/common.module';
 import { PrismaModule } from '../prisma/prisma.module';
-import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
+import { UsersService } from './users.service';
 
 @Module({
-  imports: [
-    MulterModule.register({
-      storage: memoryStorage(),
-    }),
-    PrismaModule,
-  ],
+  imports: [CommonModule, PrismaModule],
   providers: [UsersService],
   exports: [UsersService],
   controllers: [UsersController],

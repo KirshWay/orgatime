@@ -6,7 +6,7 @@ import {
   HttpStatus,
   Logger,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { HttpAdapterHost } from '@nestjs/core';
 
 type HttpErrorResponse = {
   message: string | string[];
@@ -18,10 +18,14 @@ type HttpErrorResponse = {
 export class AllExceptionsFilter implements ExceptionFilter {
   private readonly logger = new Logger(AllExceptionsFilter.name);
 
+  constructor(private readonly httpAdapterHost: HttpAdapterHost) {}
+
   catch(exception: unknown, host: ArgumentsHost): void {
+    const { httpAdapter } = this.httpAdapterHost;
     const ctx = host.switchToHttp();
-    const response = ctx.getResponse<Response>();
-    const request = ctx.getRequest<Request>();
+    const response = ctx.getResponse();
+    const request = ctx.getRequest();
+    const path = httpAdapter.getRequestUrl(request);
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Internal server error';
@@ -38,6 +42,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
         'message' in responseBody
       ) {
         const errorResponse = responseBody as HttpErrorResponse;
+
         if (typeof errorResponse.message === 'string') {
           message = errorResponse.message;
         } else if (Array.isArray(errorResponse.message)) {
@@ -54,7 +59,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     if (
       status === HttpStatus.UNAUTHORIZED &&
-      request.url.includes('/api/auth/refresh')
+      path.includes('/api/auth/refresh')
     ) {
       this.logger.debug(logMessage);
     } else if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
@@ -66,11 +71,15 @@ export class AllExceptionsFilter implements ExceptionFilter {
       this.logger.warn(logMessage);
     }
 
-    response.status(status).json({
-      statusCode: status,
-      timestamp: new Date().toISOString(),
-      path: request.url,
-      message,
-    });
+    httpAdapter.reply(
+      response,
+      {
+        statusCode: status,
+        timestamp: new Date().toISOString(),
+        path,
+        message,
+      },
+      status,
+    );
   }
 }
