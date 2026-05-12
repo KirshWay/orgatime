@@ -28,7 +28,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
   const isRefreshing = useRef(false);
   const failedQueue = useRef<FailedRequest[]>([]);
   const queryClient = useQueryClient();
-  const location = useLocation();
+  const { pathname } = useLocation();
   const { setUser, clearUser } = useUserStore();
 
   const processQueue = (error: unknown, token: string | null) => {
@@ -140,7 +140,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
   };
 
   useEffect(() => {
-    if (!location.pathname.startsWith('/auth')) {
+    if (!pathname.startsWith('/auth')) {
       if (initialRefreshAttempted.current) {
         return;
       }
@@ -167,7 +167,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     } else {
       setIsInitialized(true);
     }
-  }, [location.pathname, setUser, clearUser]);
+  }, [pathname, setUser, clearUser]);
 
   const value: AuthContextType = {
     accessToken,
