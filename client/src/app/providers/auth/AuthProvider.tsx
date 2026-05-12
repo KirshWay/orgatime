@@ -16,6 +16,11 @@ type FailedRequest = {
   reject: (error: unknown) => void;
 };
 
+type AuthResponse = {
+  accessToken: string;
+  user: UserProfile;
+};
+
 export const AuthProvider: React.FC<Props> = ({ children }) => {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
@@ -104,7 +109,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
 
   const login = async (email: string, password: string) => {
     const response = await apiClient.post('/auth/login', { email, password });
-    const data = response.data as { accessToken: string; user: any };
+    const data = response.data as AuthResponse;
     setAccessToken(data.accessToken);
     setUser(data.user);
   };
@@ -116,7 +121,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     avatar?: string;
   }) => {
     const response = await apiClient.post('/auth/register', data);
-    const resData = response.data as { accessToken: string; user: any };
+    const resData = response.data as AuthResponse;
     setAccessToken(resData.accessToken);
     setUser(resData.user);
   };
