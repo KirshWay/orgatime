@@ -75,7 +75,8 @@ export const Header: React.FC = () => {
   };
 
   const handleExport = async (format: 'md' | 'zip') => {
-    const defaultFilename = format === 'zip' ? 'orgatime-export.zip' : 'orgatime-export.md';
+    const defaultFilename =
+      format === 'zip' ? 'orgatime-export.zip' : 'orgatime-export.md';
 
     let response;
     try {

@@ -18,7 +18,11 @@ export class ImageUploadService {
     request: MultipartRequestLike,
     currentAvatar?: string,
   ): Promise<{ avatarUrl: string }> {
-    const file = await getMultipartImageFile(request, 'avatar', 5 * 1024 * 1024);
+    const file = await getMultipartImageFile(
+      request,
+      'avatar',
+      5 * 1024 * 1024,
+    );
 
     if (currentAvatar) {
       await this.removeAvatar(currentAvatar);
@@ -33,7 +37,11 @@ export class ImageUploadService {
   async uploadTaskImage(
     request: MultipartRequestLike,
   ): Promise<{ filename: string; path: string }> {
-    const file = await getMultipartImageFile(request, 'image', 10 * 1024 * 1024);
+    const file = await getMultipartImageFile(
+      request,
+      'image',
+      10 * 1024 * 1024,
+    );
     const destination = join(process.cwd(), 'uploads', 'tasks');
 
     try {

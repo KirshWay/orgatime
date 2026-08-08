@@ -5,11 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { TaskImage } from '@/entities/task';
 import { parseApiError } from '@/shared/lib/parseApiError';
 
-import {
-  deleteTaskImage,
-  replaceTaskImage,
-  uploadTaskImage,
-} from '../api';
+import { deleteTaskImage, uploadTaskImage } from '../api';
 
 export const useUploadTaskImage = () => {
   const queryClient = useQueryClient();
@@ -55,25 +51,6 @@ export const useUploadTaskImage = () => {
     ...mutation,
     uploadProgress,
   };
-};
-
-export const useReplaceTaskImage = () => {
-  const queryClient = useQueryClient();
-  return useMutation<
-    TaskImage,
-    Error,
-    { taskId: string; imageId: string; imageFile: File }
-  >({
-    mutationFn: ({ taskId, imageId, imageFile }) =>
-      replaceTaskImage(taskId, imageId, imageFile),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      toast.success('Image replaced successfully');
-    },
-    onError: (error) => {
-      toast.error(parseApiError(error));
-    },
-  });
 };
 
 export const useDeleteTaskImage = () => {

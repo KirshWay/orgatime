@@ -1,7 +1,4 @@
-import {
-  createParamDecorator,
-  type ExecutionContext,
-} from '@nestjs/common';
+import { createParamDecorator, type ExecutionContext } from '@nestjs/common';
 import type { IpRequestLike } from '../http/http.types';
 
 export const ClientIp = createParamDecorator(

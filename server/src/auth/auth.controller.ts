@@ -104,7 +104,8 @@ export class AuthController {
     @CookieValue('refreshToken') refreshTokenFromCookie: string | undefined,
     @Res({ passthrough: true }) reply: CookieReplyLike,
   ) {
-    const refreshToken = (refreshTokenFromBody || refreshTokenFromCookie) as string;
+    const refreshToken = (refreshTokenFromBody ||
+      refreshTokenFromCookie) as string;
     const tokens = await this.authService.refreshToken(refreshToken);
 
     this.refreshTokenCookieService.set(reply, tokens.refreshToken);

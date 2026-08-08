@@ -160,6 +160,9 @@ async function bootstrap() {
 }
 
 void bootstrap().catch((err) => {
-  bootstrapLogger.error('Error during bootstrap', err instanceof Error ? err.stack : String(err));
+  bootstrapLogger.error(
+    'Error during bootstrap',
+    err instanceof Error ? err.stack : String(err),
+  );
   process.exit(1);
 });

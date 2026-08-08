@@ -1,11 +1,5 @@
-import {
-  BadRequestException,
-  PayloadTooLargeException,
-} from '@nestjs/common';
-import type {
-  MultipartFileLike,
-  MultipartRequestLike,
-} from './http.types';
+import { BadRequestException, PayloadTooLargeException } from '@nestjs/common';
+import type { MultipartFileLike, MultipartRequestLike } from './http.types';
 
 export type UploadedImageFile = {
   originalname: string;
@@ -22,10 +16,7 @@ const MULTIPART_LIMIT_ERROR_NAMES = new Set([
 ]);
 
 function isMultipartLimitError(error: unknown): error is Error {
-  return (
-    error instanceof Error &&
-    MULTIPART_LIMIT_ERROR_NAMES.has(error.name)
-  );
+  return error instanceof Error && MULTIPART_LIMIT_ERROR_NAMES.has(error.name);
 }
 
 export async function getMultipartImageFile(

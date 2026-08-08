@@ -113,22 +113,6 @@ export const uploadTaskImage = async (
   return response.data;
 };
 
-export const replaceTaskImage = async (
-  taskId: string,
-  imageId: string,
-  imageFile: File,
-): Promise<TaskImage> => {
-  const formData = new FormData();
-  formData.append('image', imageFile);
-
-  const response = await apiClient.patch<TaskImage>(
-    `/tasks/${taskId}/images/${imageId}`,
-    formData,
-  );
-
-  return response.data;
-};
-
 export const getTaskImages = async (taskId: string): Promise<TaskImage[]> => {
   const response = await apiClient.get<TaskImage[]>(`/tasks/${taskId}/images`);
   return response.data;
