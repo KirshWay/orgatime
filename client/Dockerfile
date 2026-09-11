@@ -1,12 +1,12 @@
 FROM node:22-alpine AS build
 
-RUN npm i -g pnpm
+RUN npm i -g pnpm@10.33.4
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
-RUN pnpm install
+RUN pnpm install --frozen-lockfile
 
 COPY . .
 

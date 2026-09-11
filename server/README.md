@@ -22,6 +22,7 @@ The backend of Orgatime is built with NestJS, providing a robust foundation for 
 - **API Documentation**: Swagger/OpenAPI
 - **Validation**: class-validator and class-transformer
 - **Linting & Formatting**: Oxlint, Oxfmt
+- **Testing**: Vitest 5 with SWC and Fastify HTTP injection
 
 ## 🏗️ Architecture
 
@@ -164,6 +165,13 @@ pnpm format
 # Check formatting
 pnpm format:check
 
+# Isolated compatibility tests (no application, database or listening ports)
+pnpm test
+
+# Watch tests / type-check test files and configuration
+pnpm test:watch
+pnpm test:typecheck
+
 # Generate manual password reset link (after build)
 pnpm admin:reset-link -- --email user@example.com --ttl-minutes 60
 
@@ -267,6 +275,28 @@ export class TasksService {
 ```
 
 </details>
+
+### Testing
+
+Use Node 22.12.0+ on the 22.x line, Node 24.x, or Node 26+, and pnpm 10.33.4.
+For working on both client and server, follow the client's higher Node minimum.
+
+Vitest uses `vitest.config.mts` and SWC with legacy decorators and decorator
+metadata enabled. The `src/` alias and `reflect-metadata` are available in
+tests. This configuration affects tests only; production still uses the
+existing Nest TypeScript/CommonJS build.
+
+The compatibility checks in `test/*.test.ts` cover HTTP behavior, static uploads
+and image conversion. They use `fastify.inject()`
+and temporary directories, without starting the application, opening listening ports or
+connecting to a database. Vitest does not load `.env` files. Future Nest
+module tests must supply isolated dependencies instead of importing the
+production `AppModule` and its database connection.
+
+Tests may also live next to their source as `*.test.ts` or `*.spec.ts`.
+Run `pnpm test:typecheck` separately: SWC transpiles TypeScript without
+checking types. Test files and configuration are excluded from the production
+build. Unlike the frontend's initial empty suite, missing server tests fail.
 
 ## 📝 API Documentation
 

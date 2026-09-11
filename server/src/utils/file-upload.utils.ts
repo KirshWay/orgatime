@@ -1,7 +1,7 @@
 import type { UploadedImageFile } from 'src/common/http/multipart.utils';
 import { existsSync, mkdirSync, writeFile } from 'fs';
 import { join } from 'path';
-import * as sharp from 'sharp';
+import sharp from 'sharp';
 import { promisify } from 'util';
 import { v4 as uuidv4 } from 'uuid';
 

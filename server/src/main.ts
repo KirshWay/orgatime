@@ -19,6 +19,7 @@ import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
+import { createStaticAssetOptions } from './common/http/fastify-options';
 
 const bootstrapLogger = new Logger('Bootstrap');
 
@@ -48,16 +49,7 @@ async function registerFastifyPlugins(
       process.env.NODE_ENV === 'production' ? undefined : false,
   });
   await app.register(fastifyMultipart);
-  await app.register(fastifyStatic, {
-    root: uploadsDir,
-    prefix: '/uploads/',
-    decorateReply: false,
-    setHeaders: (res) => {
-      res.setHeader('Cache-Control', 'public, max-age=604800, immutable');
-      res.setHeader('Expires', new Date(Date.now() + 604800000).toUTCString());
-      res.setHeader('Vary', 'Accept-Encoding');
-    },
-  });
+  await app.register(fastifyStatic, createStaticAssetOptions(uploadsDir));
 }
 
 function registerApiCacheHeaders(app: NestFastifyApplication): void {

@@ -1,4 +1,4 @@
-import * as archiver from 'archiver';
+import archiver from 'archiver';
 import { existsSync } from 'fs';
 import { basename, join } from 'path';
 

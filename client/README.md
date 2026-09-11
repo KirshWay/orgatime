@@ -25,6 +25,7 @@ The frontend of Orgatime is built with modern React and follows the Feature-Slic
 - **PWA**: vite-plugin-pwa with Workbox caching
 - **Optimization**: React Compiler (babel-plugin-react-compiler)
 - **Linting & Formatting**: Oxlint, Oxfmt
+- **Testing**: Vitest 5, jsdom, React Testing Library
 
 ## 🏗️ Architecture (Feature-Sliced Design)
 
@@ -110,14 +111,7 @@ export const useMyStore = create<MyStore>()(
   devtools(
     (set) => ({
       // state and actions
-      myAction: () =>
-        set(
-          {
-            /* new state */
-          },
-          false,
-          'storeName/actionName',
-        ),
+      myAction: () => set({/* new state */}, false, 'storeName/actionName'),
     }),
     { name: STORE_NAMES.MY_STORE },
   ),
@@ -188,7 +182,30 @@ pnpm format
 
 # Check formatting
 pnpm format:check
+
+# Run tests once / watch for changes
+pnpm test
+pnpm test:watch
+
+# Type-check test files and configuration
+pnpm test:typecheck
 ```
+
+### Testing
+
+Use Node 22.22.2+ on the 22.x line, Node 24.15.0+ on the 24.x line, or
+Node 26+, as required by the test tooling. Use pnpm 10.33.4.
+
+Vitest uses `vitest.config.ts`, jsdom and the same React Compiler settings
+and `@/` alias as the application. It does not load `.env` files or run the
+PWA/sitemap build plugins. `test/setup.ts` registers DOM matchers and cleans
+up rendered React trees after each test. Import `test` and `expect` from
+`vitest`, and rendering helpers from `@testing-library/react`.
+
+Place future tests next to their source as `*.test.ts`, `*.test.tsx`,
+`*.spec.ts` or `*.spec.tsx`. No frontend scenarios have been added yet;
+`pnpm test` currently accepts an empty suite. Test files are checked by
+`pnpm test:typecheck` and excluded from the application TypeScript build.
 
 ### Debugging with Redux DevTools
 
