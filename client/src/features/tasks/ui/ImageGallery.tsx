@@ -91,6 +91,7 @@ export const ImageGallery: React.FC<Props> = ({
 
     return () => {
       carouselApi.off('select', onSelect);
+      carouselApi.off('reInit', onSelect);
     };
   }, [carouselApi]);
 

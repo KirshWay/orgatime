@@ -203,8 +203,8 @@ up rendered React trees after each test. Import `test` and `expect` from
 `vitest`, and rendering helpers from `@testing-library/react`.
 
 Place future tests next to their source as `*.test.ts`, `*.test.tsx`,
-`*.spec.ts` or `*.spec.tsx`. No frontend scenarios have been added yet;
-`pnpm test` currently accepts an empty suite. Test files are checked by
+`*.spec.ts` or `*.spec.tsx`. The carousel compatibility tests cover navigation
+and image previews when the carousel instance changes. Test files are checked by
 `pnpm test:typecheck` and excluded from the application TypeScript build.
 
 ### Debugging with Redux DevTools
