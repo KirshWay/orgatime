@@ -72,6 +72,7 @@ export const CalendarModal: React.FC<Props> = ({
             modifiersStyles={{
               booked: {
                 backgroundColor: 'rgba(217, 217, 217, 0.3)',
+                color: 'var(--color-foreground)',
                 borderRadius: '0',
               },
             }}
