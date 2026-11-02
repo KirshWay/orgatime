@@ -56,7 +56,9 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
 
   useEffect(() => {
     const requestInterceptor = apiClient.interceptors.request.use((config) => {
-      config._authEpoch ??= currentEpoch();
+      if (config._authEpoch === undefined || config._authEpoch === null) {
+        config._authEpoch = currentEpoch();
+      }
       if (config._authEpoch !== currentEpoch()) throw sessionChanged();
       if (tokenRef.current && !config.headers.Authorization) {
         config.headers.Authorization = `Bearer ${tokenRef.current}`;

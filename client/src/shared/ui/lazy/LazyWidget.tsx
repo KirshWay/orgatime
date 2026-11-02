@@ -7,9 +7,10 @@ type Props = {
   fallback?: React.ReactNode;
 };
 
-export const LazyWidget = ({
-  children,
-  fallback = <LoadingStatus />,
-}: Props) => {
-  return <Suspense fallback={fallback}>{children}</Suspense>;
+export const LazyWidget = ({ children, fallback }: Props) => {
+  return (
+    <Suspense fallback={fallback === undefined ? <LoadingStatus /> : fallback}>
+      {children}
+    </Suspense>
+  );
 };

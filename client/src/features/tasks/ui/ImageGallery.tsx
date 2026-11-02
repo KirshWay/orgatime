@@ -236,7 +236,7 @@ export const ImageGallery: React.FC<Props> = ({
                 {images.map((image, index) => (
                   <CarouselItem
                     key={image.id}
-                    className="transition-all duration-300"
+                    className="transition-[opacity,transform] duration-300"
                   >
                     <div className="flex h-full w-full items-center justify-center p-2 sm:p-4">
                       <div className="flex items-center justify-center max-h-[70vh] w-full">

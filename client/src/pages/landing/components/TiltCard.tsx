@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState, useSyncExternalStore } from 'react';
 import { useMotionValue, useSpring, useTransform } from 'motion/react';
 import * as m from 'motion/react-m';
 
@@ -10,6 +10,13 @@ const style = `
     transform-style: preserve-3d;
   }
 `;
+
+function subscribeToWindowResize(onChange: () => void) {
+  window.addEventListener('resize', onChange);
+  return () => window.removeEventListener('resize', onChange);
+}
+
+const getWindowWidth = () => window.innerWidth;
 
 type Props = {
   children: React.ReactNode;
@@ -25,7 +32,10 @@ export const TiltCard = ({
   const [isTouchDevice] = useState(
     () => 'ontouchstart' in window || navigator.maxTouchPoints > 0,
   );
-  const [windowWidth, setWindowWidth] = useState(() => window.innerWidth);
+  const windowWidth = useSyncExternalStore(
+    subscribeToWindowResize,
+    getWindowWidth,
+  );
   const cardRef = useRef<HTMLDivElement>(null);
 
   const x = useMotionValue(0);
@@ -47,12 +57,6 @@ export const TiltCard = ({
     [-getRotationIntensity(), getRotationIntensity()],
   );
   const scale = useSpring(1, { stiffness: 150, damping: 20 });
-
-  useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isTouchDevice || !cardRef.current) return;

@@ -1,4 +1,4 @@
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 import { Camera, XCircle } from 'lucide-react';
 
 import { Button } from '@/shared/ui/button';
@@ -18,8 +18,19 @@ export const ImageUploader: React.FC<Props> = ({
   isUploading = false,
   uploadProgress = 0,
 }) => {
+  const [previewFile, setPreviewFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!previewFile) {
+      setPreviewUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(previewFile);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [previewFile]);
 
   const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
@@ -43,16 +54,13 @@ export const ImageUploader: React.FC<Props> = ({
         return;
       }
 
-      setPreviewUrl(URL.createObjectURL(selectedFile));
+      setPreviewFile(selectedFile);
       onFileChange(selectedFile);
     }
   };
 
   const handleCancel = () => {
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-    }
-    setPreviewUrl(null);
+    setPreviewFile(null);
     setFileError(null);
     onFileChange(null);
     onCancel();
@@ -84,6 +92,8 @@ export const ImageUploader: React.FC<Props> = ({
             )}
           </div>
           <button
+            type="button"
+            aria-label="Cancel image upload"
             onClick={handleCancel}
             className="absolute -top-2 -right-2 rounded-full bg-white text-red-500 shadow-md"
             disabled={isUploading}

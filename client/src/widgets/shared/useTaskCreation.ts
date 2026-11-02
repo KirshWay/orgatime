@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { useCreateTask } from '@/features/tasks/hooks';
 
 export const useTaskCreation = () => {
-  const [creatingForDay, setCreatingForDay] = useState<boolean[]>(
+  const [creatingForDay, setCreatingForDay] = useState<boolean[]>(() =>
     Array(7).fill(false),
   );
 

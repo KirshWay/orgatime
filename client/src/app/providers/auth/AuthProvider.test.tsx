@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, render, waitFor } from '@testing-library/react';
@@ -23,7 +24,10 @@ function deferred<T>() {
   return { promise, resolve };
 }
 function Probe() {
-  auth = useAuth();
+  const currentAuth = useAuth();
+  useEffect(() => {
+    auth = currentAuth;
+  }, [currentAuth]);
   return null;
 }
 function mount() {
