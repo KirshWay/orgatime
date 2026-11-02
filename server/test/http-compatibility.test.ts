@@ -1,73 +1,97 @@
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
 import fastify from 'fastify';
-import fastifyStatic from '@fastify/static';
-import { expect, test } from 'vitest';
-import { createStaticAssetOptions } from 'src/common/http/fastify-options';
+import { expect, onTestFinished, test } from 'vitest';
 
-test('retains the existing single-hop proxy behavior', async (t) => {
-  const app = fastify({ trustProxy: 1 });
-  t.onTestFinished(() => app.close());
+const trustedProxyCidrs = '10.0.4.0/24,10.0.2.0/24';
+
+function createApp(trustProxy: string | false = trustedProxyCidrs) {
+  const app = fastify({ trustProxy });
+  onTestFinished(() => app.close());
   app.get('/identity', (request) => ({
     ip: request.ip,
     hostname: request.hostname,
     protocol: request.protocol,
   }));
+  return app;
+}
+
+test.each(['10.0.4.12', '::ffff:10.0.4.12'])(
+  'resolves distinct visitors through Caddy and nginx from %s',
+  async (remoteAddress) => {
+    const app = createApp();
+    for (const visitor of ['198.51.100.20', '203.0.113.30']) {
+      const response = await app.inject({
+        url: '/identity',
+        remoteAddress,
+        headers: {
+          host: 'orgatime.test',
+          'x-forwarded-for': `${visitor}, 10.0.2.8`,
+        },
+      });
+      expect(response.statusCode).toBe(200);
+      expect(response.json().ip).toBe(visitor);
+    }
+    expect(app.server.listening).toBe(false);
+  },
+);
+
+test.each([
+  '198.51.100.1',
+  '2001:db8::1',
+  '10.0.5.2',
+  '192.168.1.2',
+  '127.0.0.1',
+])(
+  'ignores forwarded headers from untrusted peer %s',
+  async (remoteAddress) => {
+    const app = createApp();
+    const response = await app.inject({
+      url: '/identity',
+      remoteAddress,
+      headers: {
+        host: 'orgatime.test',
+        'x-forwarded-for': '198.51.100.99, 10.0.2.8',
+        'x-forwarded-host': 'spoofed.test',
+        'x-forwarded-proto': 'https',
+      },
+    });
+    expect(response.json()).toEqual({
+      ip: remoteAddress,
+      hostname: 'orgatime.test',
+      protocol: 'http',
+    });
+  },
+);
+
+test('stops at an untrusted intermediate proxy instead of accepting its claimed visitor', async () => {
+  const app = createApp();
   const response = await app.inject({
     url: '/identity',
-    remoteAddress: '10.0.0.2',
-    headers: {
-      host: 'orgatime.test',
-      'x-forwarded-for': '198.51.100.99, 192.168.1.20',
-      'x-forwarded-host': 'forwarded.test',
-      'x-forwarded-proto': 'https',
-    },
+    remoteAddress: '10.0.4.12',
+    headers: { 'x-forwarded-for': '198.51.100.99, 10.0.5.8' },
   });
-  expect(response.statusCode).toBe(200);
-  expect(response.json()).toEqual({
-    ip: '192.168.1.20',
-    hostname: 'forwarded.test',
-    protocol: 'https',
-  });
-  expect(app.server.listening).toBe(false);
+  expect(response.json().ip).toBe('10.0.5.8');
 });
 
-test('static uploads keep GET/HEAD, cache headers and path containment', async (t) => {
-  const directory = await mkdtemp(join(tmpdir(), 'orgatime-static-'));
-  const root = join(directory, 'uploads');
-  await mkdir(root);
-  await writeFile(join(root, 'image.txt'), 'fixture image');
-  await writeFile(join(directory, 'outside.txt'), 'outside fixture');
-  const app = fastify();
-  t.onTestFinished(async () => {
-    await app.close();
-    await rm(directory, { recursive: true, force: true });
+test('does not follow forged entries beyond the first untrusted client', async () => {
+  const app = createApp();
+  const response = await app.inject({
+    url: '/identity',
+    remoteAddress: '10.0.4.12',
+    headers: { 'x-forwarded-for': '192.0.2.99, 198.51.100.20, 10.0.2.8' },
   });
-  await app.register(fastifyStatic, createStaticAssetOptions(root));
+  expect(response.json().ip).toBe('198.51.100.20');
+});
 
-  for (const method of ['GET', 'HEAD'] as const) {
-    const response = await app.inject({ method, url: '/uploads/image.txt' });
-    expect(response.statusCode).toBe(200);
-    expect(response.headers['cache-control']).toBe(
-      'public, max-age=604800, immutable',
-    );
-    expect(response.headers.vary).toBe('Accept-Encoding');
-    expect(response.headers['content-type']).toMatch(/^text\/plain/);
-    expect(Date.parse(String(response.headers.expires))).toBeGreaterThan(
-      Date.now(),
-    );
-    expect(response.body).toBe(method === 'GET' ? 'fixture image' : '');
-  }
+test('local development without proxy trust ignores forwarded IPs', async () => {
+  const app = createApp(false);
+  const response = await app.inject({
+    url: '/identity',
+    remoteAddress: '127.0.0.1',
+    headers: { 'x-forwarded-for': '198.51.100.20' },
+  });
+  expect(response.json().ip).toBe('127.0.0.1');
+});
 
-  for (const url of [
-    '/uploads/missing.txt',
-    '/uploads/%2e%2e/outside.txt',
-    '/uploads/a/../../outside.txt',
-  ]) {
-    const response = await app.inject({ url });
-    expect(response.statusCode).not.toBe(200);
-    expect(response.body).not.toContain('outside fixture');
-  }
-  expect(app.server.listening).toBe(false);
+test('rejects an invalid proxy range during initialization', () => {
+  expect(() => fastify({ trustProxy: 'invalid-network' })).toThrow();
 });

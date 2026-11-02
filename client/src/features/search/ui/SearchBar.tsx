@@ -1,7 +1,8 @@
-import { useEffect, useReducer, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import { Loader2, Search } from 'lucide-react';
+import { Loader2, Search, X } from 'lucide-react';
 
 import { Task } from '@/entities/task';
 import { TASK_COLOR_HEX } from '@/entities/task/model/task-colors';
@@ -16,193 +17,173 @@ import {
   DialogTitle,
 } from '@/shared/ui/dialog';
 
-type SearchState = {
-  results: Task[];
-  loading: boolean;
-};
-
-type SearchAction =
-  | { type: 'SEARCH_START' }
-  | { type: 'SEARCH_SUCCESS'; results: Task[] }
-  | { type: 'SEARCH_ERROR' }
-  | { type: 'CLEAR' };
-
-const INITIAL_SEARCH_STATE: SearchState = { results: [], loading: false };
-
-const searchReducer = (
-  state: SearchState,
-  action: SearchAction,
-): SearchState => {
-  switch (action.type) {
-    case 'SEARCH_START':
-      return { ...state, loading: true };
-    case 'SEARCH_SUCCESS':
-      return { results: action.results, loading: false };
-    case 'SEARCH_ERROR':
-      return { ...state, loading: false };
-    case 'CLEAR':
-      return INITIAL_SEARCH_STATE;
-  }
-};
-
 export const SearchBar = () => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const [{ results, loading }, dispatch] = useReducer(
-    searchReducer,
-    INITIAL_SEARCH_STATE,
-  );
   const navigate = useNavigate();
   const location = useLocation();
+  const term = query.trim();
+  const debouncedTerm = useDebounce(term, 300);
+  const settled = term === debouncedTerm;
+  const search = useQuery({
+    queryKey: ['tasks', 'search', debouncedTerm],
+    queryFn: () => searchTasks(debouncedTerm),
+    enabled: open && !!debouncedTerm && settled,
+    retry: false,
+  });
+  const results = settled ? (search.data ?? []) : [];
+  const searching = !!term && (!settled || search.isFetching);
 
-  const debouncedSearch = useDebounce(query, 300);
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next);
+    if (!next) setQuery('');
+  };
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        setOpen((open) => !open);
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        setOpen((current) => !current);
+        setQuery('');
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  useEffect(() => {
-    if (debouncedSearch.trim().length === 0) {
-      dispatch({ type: 'CLEAR' });
-      return;
-    }
-
-    dispatch({ type: 'SEARCH_START' });
-    searchTasks(debouncedSearch)
-      .then((fetchedResults) => {
-        dispatch({ type: 'SEARCH_SUCCESS', results: fetchedResults });
-      })
-      .catch((error) => {
-        console.error('Error searching tasks:', error);
-        dispatch({ type: 'SEARCH_ERROR' });
-      });
-  }, [debouncedSearch]);
-
   const handleSelectTask = (task: Task) => {
-    setOpen(false);
-
-    if (location.pathname === '/tasks') {
-      navigate(`/tasks?task=${task.id}`);
-    } else {
-      navigate(`/?task=${task.id}`);
-    }
-  };
-
-  const getTaskColorDot = (color: string | null) => {
-    if (!color) return null;
-
-    return (
-      <div
-        className="h-2 w-2 rounded-full mr-2 shrink-0"
-        style={{
-          backgroundColor: TASK_COLOR_HEX[color as keyof typeof TASK_COLOR_HEX],
-        }}
-      />
+    handleOpenChange(false);
+    navigate(
+      `${location.pathname === '/tasks' ? '/tasks' : '/'}?task=${task.id}`,
     );
   };
 
   return (
     <>
       <Button
+        aria-label="Search tasks"
         variant="outline"
         size="sm"
         className="hidden md:flex lg:w-48 h-9 w-9 rounded-full justify-center lg:justify-start text-muted-foreground"
-        onClick={() => setOpen(true)}
+        onClick={() => handleOpenChange(true)}
       >
         <Search className="lg:mr-2 h-4 w-4" />
         <span className="hidden lg:inline-flex">Search tasks...</span>
         <span className="lg:ml-auto hidden lg:inline-flex text-xs">⌘K</span>
       </Button>
-
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-md p-0">
-          <DialogTitle className="sr-only">Search tasks modal</DialogTitle>
-
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent
+          className="bg-white dark:bg-gray-900 top-16 sm:top-[15dvh] translate-y-0 sm:max-w-md p-0 gap-0 overflow-hidden data-[state=open]:animate-none data-[state=closed]:animate-none"
+          overlayClassName="data-[state=open]:animate-none data-[state=closed]:animate-none"
+        >
+          <DialogTitle className="sr-only">Search tasks</DialogTitle>
           <DialogDescription className="sr-only">
-            Search tasks
+            Find a task by its title or description.
           </DialogDescription>
-
-          <div className="flex flex-col">
-            <div className="flex items-center border-b px-3 py-2">
-              <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-              <input
-                className="flex h-10 w-full rounded-md bg-transparent py-2 text-sm outline-hidden placeholder:text-gray-500 disabled:cursor-not-allowed disabled:opacity-50"
-                placeholder="Search tasks..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
+          <div className="flex items-center gap-2 border-b px-3 py-2">
+            <Search
+              aria-hidden="true"
+              className="h-4 w-4 shrink-0 text-muted-foreground"
+            />
+            <label className="sr-only" htmlFor="task-search">
+              Search tasks
+            </label>
+            <input
+              id="task-search"
+              className="h-10 min-w-0 flex-1 bg-transparent text-sm outline-hidden placeholder:text-muted-foreground"
+              placeholder="Search tasks..."
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+            <Button
+              size="icon"
+              variant="ghost"
+              aria-label="Close search"
+              onClick={() => handleOpenChange(false)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="max-h-[min(20rem,calc(100dvh-10rem))] overflow-y-auto overflow-x-hidden p-2">
+            <div
+              role="status"
+              aria-live="polite"
+              className="px-2 py-2 text-sm text-muted-foreground"
+            >
+              {!term ? (
+                'Type to search your tasks.'
+              ) : searching ? (
+                <span className="flex items-center gap-2">
+                  <Loader2
+                    aria-hidden="true"
+                    className="h-4 w-4 animate-spin motion-reduce:animate-none"
+                  />
+                  Searching...
+                </span>
+              ) : search.isError ? (
+                'Search failed. Please try again.'
+              ) : results.length === 0 ? (
+                'No tasks found.'
+              ) : (
+                `${results.length} ${results.length === 1 ? 'task' : 'tasks'} found`
+              )}
             </div>
-
-            {loading && (
-              <div className="py-6 text-center">
-                <Loader2 className="h-6 w-6 animate-spin mx-auto text-gray-400" />
+            {term && settled && !searching && search.isError && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="m-2"
+                onClick={() => void search.refetch()}
+              >
+                Retry
+              </Button>
+            )}
+            {term && !searching && !search.isError && results.length > 0 && (
+              <div className="space-y-1">
+                {results.map((task) => (
+                  <button
+                    key={task.id}
+                    type="button"
+                    onClick={() => handleSelectTask(task)}
+                    className="flex w-full items-center gap-2 rounded-sm p-2 text-left hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    {task.color && (
+                      <span
+                        aria-hidden="true"
+                        className="h-2 w-2 shrink-0 rounded-full"
+                        style={{
+                          backgroundColor:
+                            TASK_COLOR_HEX[
+                              task.color as keyof typeof TASK_COLOR_HEX
+                            ],
+                        }}
+                      />
+                    )}
+                    <span
+                      className={cn('min-w-0 flex-1 truncate', {
+                        'line-through opacity-60': task.completed,
+                      })}
+                    >
+                      {task.title}
+                    </span>
+                    {task.dueDate && (
+                      <span className="shrink-0 text-xs text-muted-foreground">
+                        {format(new Date(task.dueDate), 'dd.MM.yyyy')}
+                      </span>
+                    )}
+                  </button>
+                ))}
               </div>
             )}
-
-            <div className="max-h-80 overflow-y-auto overflow-x-hidden p-2">
-              {!loading && results.length === 0 && query && (
-                <div className="py-6 text-center text-sm">Tasks not found</div>
-              )}
-
-              {!loading && results.length > 0 && (
-                <div>
-                  <div className="text-xs font-medium text-gray-500 px-2 py-1.5">
-                    Search results
-                  </div>
-                  <div className="space-y-1">
-                    {results.map((task) => (
-                      <div
-                        key={task.id}
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => handleSelectTask(task)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            handleSelectTask(task);
-                          }
-                        }}
-                        className="flex items-center gap-2 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xs cursor-pointer"
-                      >
-                        <div className="flex items-center flex-1 truncate">
-                          {getTaskColorDot(task.color)}
-                          <span
-                            className={cn('truncate', {
-                              'line-through opacity-60': task.completed,
-                            })}
-                          >
-                            {task.title}
-                          </span>
-                        </div>
-
-                        {task.dueDate && (
-                          <span className="text-xs text-gray-500">
-                            {format(new Date(task.dueDate), 'dd.MM.yyyy')}
-                          </span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
         </DialogContent>
       </Dialog>
-
       <div className="md:hidden fixed bottom-4 right-4 z-50">
         <Button
+          aria-label="Search tasks"
           size="icon"
           className="h-10 w-10 p-0 rounded-full shadow-lg"
-          onClick={() => setOpen(true)}
+          onClick={() => handleOpenChange(true)}
         >
           <Search className="h-6 w-6" />
         </Button>

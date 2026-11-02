@@ -25,7 +25,7 @@ export const SortableTaskList: React.FC<Props> = memo(
         items={taskIds}
         strategy={verticalListSortingStrategy}
       >
-        <div className="space-y-2">
+        <div className="min-w-0">
           {tasks.map((task) => (
             <SortableTaskItem
               key={task.id}

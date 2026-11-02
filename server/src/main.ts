@@ -1,7 +1,6 @@
 import fastifyCookie from '@fastify/cookie';
 import fastifyHelmet from '@fastify/helmet';
 import fastifyMultipart from '@fastify/multipart';
-import fastifyStatic from '@fastify/static';
 import {
   HttpException,
   HttpStatus,
@@ -19,7 +18,6 @@ import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
-import { createStaticAssetOptions } from './common/http/fastify-options';
 
 const bootstrapLogger = new Logger('Bootstrap');
 
@@ -41,7 +39,6 @@ function ensureUploadDirectories(): string {
 
 async function registerFastifyPlugins(
   app: NestFastifyApplication,
-  uploadsDir: string,
 ): Promise<void> {
   await app.register(fastifyCookie);
   await app.register(fastifyHelmet, {
@@ -49,7 +46,6 @@ async function registerFastifyPlugins(
       process.env.NODE_ENV === 'production' ? undefined : false,
   });
   await app.register(fastifyMultipart);
-  await app.register(fastifyStatic, createStaticAssetOptions(uploadsDir));
 }
 
 function registerApiCacheHeaders(app: NestFastifyApplication): void {
@@ -131,17 +127,22 @@ async function bootstrap() {
     throw new Error('JWT_SECRET is not set');
   }
 
-  const uploadsDir = ensureUploadDirectories();
+  const trustedProxyCidrs = process.env.TRUSTED_PROXY_CIDRS?.trim();
+  if (process.env.NODE_ENV === 'production' && !trustedProxyCidrs) {
+    throw new Error('TRUSTED_PROXY_CIDRS is required in production');
+  }
+
+  ensureUploadDirectories();
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter({
-      trustProxy: 1,
+      trustProxy: trustedProxyCidrs || false,
     }),
   );
   const configService = app.get(ConfigService);
   const httpAdapterHost = app.get(HttpAdapterHost);
 
-  await registerFastifyPlugins(app, uploadsDir);
+  await registerFastifyPlugins(app);
   registerApiCacheHeaders(app);
   configureApplication(app, configService, httpAdapterHost);
   setupSwagger(app);

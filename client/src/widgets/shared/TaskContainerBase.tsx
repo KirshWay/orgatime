@@ -54,23 +54,23 @@ export const TaskContainerBase: React.FC<TaskContainerProps> = memo(
       <div
         ref={setNodeRef}
         className={cn(
-          'transition-all duration-200 ease-in-out',
+          'min-w-0 rounded-lg border border-gray-200 bg-white/60 dark:border-gray-700 dark:bg-gray-800/30',
           containerClassName,
           isOver
             ? highlightClassName ||
-                'bg-indigo-100 dark:bg-indigo-900/30 rounded-md shadow-md border-2 border-indigo-300 dark:border-indigo-700'
-            : 'border-2 border-transparent',
+                'ring-2 ring-inset ring-indigo-400 bg-indigo-50 dark:bg-indigo-950/40'
+            : '',
           isSomeday && 'mb-4 md:mb-0',
         )}
       >
         {headerContent ||
           (containerTitle && (
-            <p className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">
+            <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100 mb-2">
               {containerTitle}
-            </p>
+            </h2>
           ))}
 
-        <div className="flex flex-col gap-5 min-h-96">
+        <div className="flex min-h-16 flex-col gap-3 md:min-h-96">
           <SortableTaskList
             tasks={tasks}
             containerId={containerId}
@@ -84,7 +84,11 @@ export const TaskContainerBase: React.FC<TaskContainerProps> = memo(
               onCancel={onStopCreating}
             />
           ) : (
-            <Button onClick={onStartCreating} className="no-print">
+            <Button
+              variant="outline"
+              onClick={onStartCreating}
+              className="no-print w-full border-dashed bg-transparent text-gray-600 hover:border-indigo-400 hover:text-indigo-600 dark:text-gray-300 dark:hover:text-indigo-300"
+            >
               <Plus /> Add new task
             </Button>
           )}

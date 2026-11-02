@@ -1,10 +1,12 @@
-import { lazy, useEffect, useMemo, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { lazy, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 
 import { TaskFilter } from '@/features/tasks/hooks';
-import { useTasks } from '@/features/tasks/hooks';
+import { useSearchTaskNavigation, useTasks } from '@/features/tasks/hooks';
+import { TaskLoadError } from '@/features/tasks/ui/TaskLoadError';
 import { LazyWidget } from '@/shared/ui/lazy';
+import { LoadingStatus } from '@/shared/ui/loading/LoadingStatus';
 import { SEO } from '@/shared/ui/seo';
 import { AllTasksFilter, AllTasksList } from '@/widgets/all-tasks';
 import { Header } from '@/widgets/header';
@@ -16,44 +18,27 @@ const TaskModal = lazy(() =>
 );
 
 export const AllTasks = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { searchParams, selectedTaskId, closeTaskModal, navigateFromTask } =
+    useSearchTaskNavigation();
   const [filter, setFilter] = useState<TaskFilter>('all');
   const navigate = useNavigate();
 
-  const { data } = useTasks();
+  const { data, isError, isPending, isFetching, refetch } = useTasks();
   const tasks = useMemo(() => data || [], [data]);
-
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
-  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
 
   const selectedTask = selectedTaskId
     ? tasks.find((task) => task.id === selectedTaskId)
     : null;
 
-  useEffect(() => {
-    const taskId = searchParams.get('task');
-    if (taskId) {
-      setSelectedTaskId(taskId);
-      setIsTaskModalOpen(true);
-    }
-  }, [searchParams, tasks]);
-
   const handleNavigateToWeek = (date: Date) => {
-    const dateStr = format(date, 'yyyy-MM-dd');
-    navigate(`/?date=${dateStr}`);
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete('task');
+    nextParams.set('date', format(date, 'yyyy-MM-dd'));
+    navigate({ pathname: '/', search: `?${nextParams}` });
   };
 
-  const handleCloseTaskModal = () => {
-    setIsTaskModalOpen(false);
-    setSelectedTaskId(null);
-
-    if (searchParams.has('task')) {
-      setSearchParams({});
-    }
-  };
-
-  const handleUpdateTask = () => {
-    setIsTaskModalOpen(false);
+  const handleNavigateFromTask = (date: Date) => {
+    navigateFromTask(date, '/');
   };
 
   return (
@@ -68,20 +53,37 @@ export const AllTasks = () => {
       <Header />
 
       <main className="m-4">
+        {isError && (
+          <TaskLoadError
+            hasCachedTasks={data !== undefined}
+            isRetrying={isFetching}
+            onRetry={() => {
+              void refetch();
+            }}
+          />
+        )}
         <AllTasksFilter filter={filter} setFilter={setFilter} tasks={tasks} />
-        <AllTasksList
-          tasks={tasks}
-          filter={filter}
-          onNavigateToWeek={handleNavigateToWeek}
-        />
+        <div className="min-h-96">
+          {data !== undefined ? (
+            <AllTasksList
+              tasks={tasks}
+              filter={filter}
+              onNavigateToWeek={handleNavigateToWeek}
+            />
+          ) : (
+            <div className="py-8">
+              {isPending && <LoadingStatus>Loading tasks...</LoadingStatus>}
+            </div>
+          )}
+        </div>
       </main>
 
       {selectedTask && (
-        <LazyWidget>
+        <LazyWidget fallback={null}>
           <TaskModal
             key={selectedTask.id}
-            isOpen={isTaskModalOpen}
-            onClose={handleCloseTaskModal}
+            isOpen={true}
+            onClose={closeTaskModal}
             taskId={selectedTask.id}
             initialTitle={selectedTask.title}
             initialDescription={selectedTask.description || ''}
@@ -92,9 +94,7 @@ export const AllTasks = () => {
             initialImages={selectedTask.images}
             isSomeday={!selectedTask.dueDate}
             isFromSearch={true}
-            onSave={handleUpdateTask}
-            onDelete={() => setIsTaskModalOpen(false)}
-            onNavigateToWeek={handleNavigateToWeek}
+            onNavigateToWeek={handleNavigateFromTask}
           />
         </LazyWidget>
       )}

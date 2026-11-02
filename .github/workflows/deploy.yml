@@ -120,4 +120,5 @@ jobs:
           env VERSION="${{ env.DOCKER_IMAGE_VERSION }}" \
             docker stack deploy --prune --with-registry-auth -c docker-compose.yml ${{ env.DOCKER_SWARM_PROJECT }}
         env:
+          TRUSTED_PROXY_CIDRS: ${{ secrets.TRUSTED_PROXY_CIDRS }}
           DOCKER_HOST: ssh://${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}

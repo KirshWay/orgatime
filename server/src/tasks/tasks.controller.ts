@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   Param,
   Patch,
   Post,
@@ -21,13 +22,11 @@ import {
 } from '@nestjs/swagger';
 import { CurrentUserId } from 'src/common/decorators/current-user-id.decorator';
 import type { MultipartRequestLike } from 'src/common/http/http.types';
-import { ImageUploadService } from 'src/common/services/image-upload.service';
 import { join } from 'path';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreateSubtaskDto } from './dto/create-subtask.dto';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { SearchTasksDto } from './dto/search-tasks.dto';
-import { TaskImageDto } from './dto/task-image.dto';
 import { UpdateSubtaskDto } from './dto/update-subtask.dto';
 import { UpdateTaskDateDto } from './dto/update-task-date.dto';
 import { UpdateTasksOrderDto } from './dto/update-task-order.dto';
@@ -41,10 +40,7 @@ import { createExportZip } from './utils/export-zip';
 @Controller('tasks')
 @UseGuards(JwtAuthGuard)
 export class TasksController {
-  constructor(
-    private readonly tasksService: TasksService,
-    private readonly imageUploadService: ImageUploadService,
-  ) {}
+  constructor(private readonly tasksService: TasksService) {}
 
   @ApiOperation({ summary: 'Update order of tasks' })
   @Patch('order')
@@ -193,10 +189,23 @@ export class TasksController {
     @Req() request: MultipartRequestLike,
     @CurrentUserId() userId: string,
   ) {
-    const imageDto: TaskImageDto =
-      await this.imageUploadService.uploadTaskImage(request);
+    return this.tasksService.uploadTaskImage(userId, taskId, request);
+  }
 
-    return this.tasksService.addTaskImage(userId, taskId, imageDto);
+  @Get(':taskId/images/:imageId/content')
+  @Header('Cache-Control', 'private, no-store')
+  @Header('X-Content-Type-Options', 'nosniff')
+  async getTaskImageContent(
+    @Param('taskId') taskId: string,
+    @Param('imageId') imageId: string,
+    @CurrentUserId() userId: string,
+  ) {
+    const { buffer, type } = await this.tasksService.getTaskImageContent(
+      userId,
+      taskId,
+      imageId,
+    );
+    return new StreamableFile(buffer, { type, length: buffer.length });
   }
 
   @ApiOperation({ summary: 'Get all images for a task' })

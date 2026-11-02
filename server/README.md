@@ -57,12 +57,13 @@ The database schema is defined using Prisma and includes these main entities:
 - **User**: User accounts and authentication
 - **Task**: Core task entity with properties like title, description, date, color, order
 - **Subtask**: Child tasks belonging to a parent task
-- **TaskImage**: Images attached to tasks (stored as WebP)
+- **TaskImage**: Images attached to tasks (WebP or original GIF)
 
 ## 🔐 Security Features
 
-- JWT-based authentication with refresh tokens (1h access, 7d refresh)
-- Password hashing with bcrypt
+- JWT-based authentication with distinct access and refresh purposes (1h access, 7d refresh)
+- One current session per user, with atomic refresh rotation and revocation on logout or password changes
+- Password hashing with bcrypt and a 72-byte UTF-8 limit for new passwords
 - Password reset with secure one-time tokens (admin-generated)
 - Login brute-force protection (5 attempts, 15-minute lockout)
 - Password reset cooldown (3 minutes between requests)
@@ -103,8 +104,19 @@ The database schema is defined using Prisma and includes these main entities:
 ### Task Images
 
 - `POST /api/tasks/:id/images` - Upload images to task
-- `GET /api/tasks/:id/images` - Get task images
+- `GET /api/tasks/:id/images` - Get task image metadata
+- `GET /api/tasks/:id/images/:imageId/content` - Read image bytes as the authenticated task owner
 - `DELETE /api/tasks/:id/images/:imageId` - Remove image from task
+
+Task image bytes require a bearer access token and use `Cache-Control: private, no-store`.
+Stored `/uploads/tasks/...` paths are metadata, not public download URLs.
+Avatars are served only to their owner through `GET /api/users/avatar/content`
+with `Cache-Control: private, no-store`. No uploads are publicly served. Avatar replacement deletes only
+files within the authenticated owner's directory. Legacy flat avatar files remain intact.
+
+Existing sessions require a new login after the session-format upgrade. No database
+migration is required. The service worker removes legacy task images and avatars from its runtime
+caches. Copies already downloaded or retained in browser HTTP caches cannot be revoked.
 
 ### Subtasks
 

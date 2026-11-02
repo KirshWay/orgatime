@@ -1,13 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
-import { AnimatePresence } from 'motion/react';
-import * as m from 'motion/react-m';
 
+import { useAvatar } from '@/shared/hooks/useAvatar';
 import { parseApiError } from '@/shared/lib/parseApiError';
-import { UserProfile, useUserStore } from '@/shared/stores/userStore';
+import { useUserStore } from '@/shared/stores/userStore';
 import { Button } from '@/shared/ui/button';
 import {
   Dialog,
@@ -22,26 +21,32 @@ import { Separator } from '@/shared/ui/separator';
 import { updateAvatar, updatePassword, updateProfile } from './api';
 import { AvatarUploader } from './AvatarUploader';
 import { SettingsFormData } from './model/types';
-import { settingsSchema } from './model/validation';
+import { createSettingsSchema } from './model/validation';
 import { PasswordForm } from './ui/PasswordForm';
 import { ProfileForm } from './ui/ProfileForm';
 
 type Props = {
   isOpen: boolean;
   onClose: () => void;
+  onPasswordChanged: () => void;
 };
 
-export const SettingsModal: React.FC<Props> = ({ isOpen, onClose }) => {
+export const SettingsModal: React.FC<Props> = ({
+  isOpen,
+  onClose,
+  onPasswordChanged,
+}) => {
   const { user, updateUser } = useUserStore();
+  const { url: avatarUrl } = useAvatar();
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [editingFields, setEditingFields] = useState({
     username: false,
     email: false,
     password: false,
   });
-
-  const methods = useForm({
-    resolver: zodResolver(settingsSchema),
+  const submitting = useRef(false);
+  const methods = useForm<SettingsFormData>({
+    resolver: zodResolver(createSettingsSchema(user?.username)),
     defaultValues: {
       username: user?.username || '',
       email: user?.email || '',
@@ -50,37 +55,23 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose }) => {
       confirmPassword: '',
     },
   });
-
-  const { watch, reset, handleSubmit } = methods;
-
-  const oldPassword = watch('oldPassword');
-  const newPassword = watch('newPassword');
-  const confirmPassword = watch('confirmPassword');
-  const currentUsername = watch('username');
-  const currentEmail = watch('email');
-
-  const isPasswordReady =
-    !editingFields.password ||
-    (oldPassword.trim() !== '' &&
-      newPassword.trim() !== '' &&
-      confirmPassword.trim() !== '');
-
-  const isProfileValid =
-    currentUsername.trim().length >= 4 &&
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(currentEmail);
-
+  const {
+    watch,
+    reset,
+    resetField,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = methods;
+  const values = watch();
   const isProfileChanged =
-    (editingFields.username &&
-      currentUsername !== user?.username &&
-      currentUsername.trim() !== '') ||
-    (editingFields.email &&
-      currentEmail !== user?.email &&
-      currentEmail.trim() !== '');
-
-  const shouldShowUpdate =
-    (isProfileChanged && isProfileValid) ||
-    (editingFields.password && isPasswordReady) ||
-    avatarFile !== null;
+    (editingFields.username && values.username !== user?.username) ||
+    (editingFields.email && values.email !== user?.email);
+  const isPasswordReady =
+    editingFields.password &&
+    !!values.oldPassword.trim() &&
+    !!values.newPassword.trim() &&
+    !!values.confirmPassword.trim();
+  const hasChanges = isProfileChanged || isPasswordReady || avatarFile !== null;
 
   useEffect(() => {
     if (!isOpen) {
@@ -92,147 +83,178 @@ export const SettingsModal: React.FC<Props> = ({ isOpen, onClose }) => {
         confirmPassword: '',
       });
       setEditingFields({ username: false, email: false, password: false });
+      setAvatarFile(null);
     }
   }, [isOpen, reset, user]);
 
-  const profileMutation = useMutation<
-    UserProfile,
-    Error,
-    { username: string; email: string }
-  >({
-    mutationFn: updateProfile,
-    onSuccess: (data) => {
-      updateUser(data);
-    },
-    onError: (error) => {
-      toast.error(parseApiError(error));
-    },
-  });
-
-  const passwordMutation = useMutation<
-    { message: string },
-    Error,
-    { oldPassword: string; newPassword: string }
-  >({
-    mutationFn: updatePassword,
-    onError: (error) => {
-      toast.error(parseApiError(error));
-    },
-  });
-
-  const avatarMutation = useMutation<{ avatarUrl: string }, Error, File>({
-    mutationFn: updateAvatar,
-    onSuccess: (data) => {
-      updateUser({ avatar: data.avatarUrl });
-      setAvatarFile(null);
-    },
-    onError: (error) => {
-      toast.error(parseApiError(error));
-    },
-  });
-
+  const profileMutation = useMutation({ mutationFn: updateProfile });
+  const passwordMutation = useMutation({ mutationFn: updatePassword });
+  const avatarMutation = useMutation({ mutationFn: updateAvatar });
+  const clearPassword = () => {
+    resetField('oldPassword', { defaultValue: '' });
+    resetField('newPassword', { defaultValue: '' });
+    resetField('confirmPassword', { defaultValue: '' });
+    setEditingFields((current) => ({ ...current, password: false }));
+  };
   const onSubmit = async (data: SettingsFormData) => {
-    const promises: Promise<unknown>[] = [];
-
-    if (isProfileChanged) {
-      promises.push(
-        profileMutation.mutateAsync({
-          username: data.username,
-          email: data.email,
+    if (!hasChanges) return;
+    const requests: Promise<unknown>[] = [];
+    if (isProfileChanged)
+      requests.push(
+        profileMutation
+          .mutateAsync({
+            ...(editingFields.username && data.username !== user?.username
+              ? { username: data.username }
+              : {}),
+            ...(editingFields.email && data.email !== user?.email
+              ? { email: data.email }
+              : {}),
+          })
+          .then((saved) => {
+            updateUser({ username: saved.username, email: saved.email });
+            resetField('username', { defaultValue: saved.username });
+            resetField('email', { defaultValue: saved.email });
+            setEditingFields((current) => ({
+              ...current,
+              username: false,
+              email: false,
+            }));
+          }),
+      );
+    if (avatarFile)
+      requests.push(
+        avatarMutation.mutateAsync(avatarFile).then((saved) => {
+          updateUser({ avatar: saved.avatarUrl });
+          setAvatarFile(null);
         }),
       );
-    }
-
-    if (data.newPassword && data.oldPassword) {
-      promises.push(
-        passwordMutation.mutateAsync({
+    const results = await Promise.allSettled(requests);
+    const failures = results.filter((result) => result.status === 'rejected');
+    for (const failure of failures) toast.error(parseApiError(failure.reason));
+    if (failures.length) return;
+    if (editingFields.password && data.newPassword && data.oldPassword) {
+      try {
+        await passwordMutation.mutateAsync({
           oldPassword: data.oldPassword,
           newPassword: data.newPassword,
-        }),
-      );
-    }
-
-    if (avatarFile) {
-      promises.push(avatarMutation.mutateAsync(avatarFile));
-    }
-
-    try {
-      await Promise.all(promises);
-      toast.success('Settings updated');
+        });
+      } catch (error) {
+        toast.error(parseApiError(error));
+        return;
+      }
+      clearPassword();
+      toast.success('Password updated. Please sign in again.');
       onClose();
-    } catch (error) {
-      console.error('Error updating settings:', error);
+      onPasswordChanged();
+      return;
     }
+    toast.success('Settings updated');
+    onClose();
+  };
+  const submit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (submitting.current) return;
+    submitting.current = true;
+    try {
+      await handleSubmit(onSubmit)(event);
+    } finally {
+      submitting.current = false;
+    }
+  };
+  const close = () => {
+    if (!isSubmitting && !submitting.current) onClose();
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="p-4 sm:p-6">
-        <DialogHeader>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(next) => {
+        if (!next) close();
+      }}
+    >
+      <DialogContent
+        className="bg-white dark:bg-gray-900 max-h-[calc(100dvh-2rem)] grid-rows-[auto_minmax(0,1fr)_auto] gap-0 overflow-hidden p-0"
+        onEscapeKeyDown={(event) => {
+          if (isSubmitting) event.preventDefault();
+        }}
+        onInteractOutside={(event) => {
+          if (isSubmitting) event.preventDefault();
+        }}
+      >
+        <DialogHeader className="border-b px-4 py-4 sm:px-6">
           <DialogTitle>Settings</DialogTitle>
           <DialogDescription className="sr-only">
             User profile settings
           </DialogDescription>
         </DialogHeader>
-
         <FormProvider {...methods}>
-          <form id="settings-form" onSubmit={handleSubmit(onSubmit)}>
-            <div className="space-y-2 mt-4">
+          <form
+            id="settings-form"
+            onSubmit={submit}
+            className="min-h-0 overflow-y-auto px-4 py-4 sm:px-6"
+            aria-busy={isSubmitting}
+          >
+            <fieldset disabled={isSubmitting} className="min-w-0 space-y-4">
               <AvatarUploader
-                img={user?.avatar || ''}
-                onFileChange={(file) => setAvatarFile(file)}
+                img={avatarUrl || ''}
+                file={avatarFile}
+                onFileChange={setAvatarFile}
+                disabled={isSubmitting}
               />
-
-              <p className="text-xs text-center text-gray-400 dark:text-gray mt-2">
-                Click on the avatar to change it
-              </p>
-
               <ProfileForm
                 isEditingUsername={editingFields.username}
-                setIsEditingUsername={(val) =>
-                  setEditingFields((prev) => ({ ...prev, username: val }))
-                }
+                setIsEditingUsername={(editing) => {
+                  if (!editing)
+                    resetField('username', {
+                      defaultValue: user?.username || '',
+                    });
+                  setEditingFields((current) => ({
+                    ...current,
+                    username: editing,
+                  }));
+                }}
                 isEditingEmail={editingFields.email}
-                setIsEditingEmail={(val) =>
-                  setEditingFields((prev) => ({ ...prev, email: val }))
-                }
+                setIsEditingEmail={(editing) => {
+                  if (!editing)
+                    resetField('email', { defaultValue: user?.email || '' });
+                  setEditingFields((current) => ({
+                    ...current,
+                    email: editing,
+                  }));
+                }}
               />
-
-              <Separator className="h-[2px]" />
-
+              <Separator />
               <PasswordForm
                 isEditingPassword={editingFields.password}
-                setIsEditingPassword={(val) =>
-                  setEditingFields((prev) => ({ ...prev, password: val }))
-                }
+                setIsEditingPassword={(editing) => {
+                  if (!editing) clearPassword();
+                  else
+                    setEditingFields((current) => ({
+                      ...current,
+                      password: true,
+                    }));
+                }}
               />
-            </div>
+            </fieldset>
           </form>
         </FormProvider>
-
-        <DialogFooter className="flex flex-col space-y-2 sm:flex-row sm:justify-between sm:space-y-0">
-          <AnimatePresence>
-            {shouldShowUpdate && (
-              <m.div
-                key="updateButton"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Button
-                  type="submit"
-                  form="settings-form"
-                  className="w-full sm:w-auto"
-                  variant="outline"
-                >
-                  Update
-                </Button>
-              </m.div>
-            )}
-          </AnimatePresence>
-
-          <Button onClick={onClose}>Close</Button>
+        <DialogFooter className="flex-row justify-end gap-2 border-t px-4 py-4 sm:px-6 sm:space-x-0">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={close}
+            disabled={isSubmitting}
+          >
+            Close
+          </Button>
+          <Button
+            type="submit"
+            form="settings-form"
+            className="bg-indigo-600 text-white hover:bg-indigo-700"
+            disabled={!hasChanges || isSubmitting}
+          >
+            {isSubmitting ? 'Updating...' : 'Update'}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

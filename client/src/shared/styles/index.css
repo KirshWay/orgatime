@@ -203,3 +203,25 @@
     overflow: hidden;
   }
 }
+
+@media (pointer: coarse) {
+  .task-row,
+  .task-grip {
+    min-height: 44px;
+  }
+}
+
+.task-details[data-state] {
+  animation: none;
+}
+
+@media (pointer: coarse) {
+  .task-grip {
+    min-width: 44px;
+  }
+  .task-checkbox::before {
+    content: '';
+    position: absolute;
+    inset: -10px;
+  }
+}

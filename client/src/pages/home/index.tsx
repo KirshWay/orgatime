@@ -1,13 +1,22 @@
-import { lazy, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { closestCenter, DndContext, DragOverlay } from '@dnd-kit/core';
+import { lazy, useEffect, useMemo, useRef } from 'react';
+import { DndContext, type DragEndEvent, DragOverlay } from '@dnd-kit/core';
+import { startOfWeek } from 'date-fns';
 
-import { useDragAndDrop, useTasks } from '@/features/tasks/hooks';
+import {
+  useDragAndDrop,
+  useSearchTaskNavigation,
+  useTasks,
+} from '@/features/tasks/hooks';
+import { getTaskContainer } from '@/features/tasks/lib/container-utils';
+import { taskCollisionDetection } from '@/features/tasks/lib/taskCollisionDetection';
 import { TaskItem } from '@/features/tasks/ui/TaskItem';
+import { TaskLoadError } from '@/features/tasks/ui/TaskLoadError';
 import { useWeekNavigation } from '@/shared/hooks';
 import { LazyWidget } from '@/shared/ui/lazy';
 import { SEO } from '@/shared/ui/seo';
 import { Header } from '@/widgets/header';
+import { SomedayPlaceholder } from '@/widgets/someday/SomedayPlaceholder';
+import { WeekPlaceholder } from '@/widgets/week/WeekPlaceholder';
 
 const TaskModal = lazy(() =>
   import('@/features/tasks/ui/TaskModal').then((module) => ({
@@ -24,44 +33,89 @@ const Week = lazy(() =>
 );
 
 export const Home = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { selectedTaskId, closeTaskModal, navigateFromTask } =
+    useSearchTaskNavigation();
   const { weekStart, handleNavigateToWeek } = useWeekNavigation();
 
-  const { data } = useTasks();
+  const { data, isError, isFetching, refetch } = useTasks();
   const tasks = useMemo(() => data || [], [data]);
-
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
-  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
 
   const selectedTask = selectedTaskId
     ? tasks.find((task) => task.id === selectedTaskId)
     : null;
 
-  const { sensors, activeTask, handleDragStart, handleDragEnd } =
-    useDragAndDrop({
-      tasks,
-      weekStart,
-    });
+  const {
+    sensors,
+    activeTask,
+    handleDragStart,
+    handleDragEnd,
+    handleDragCancel,
+  } = useDragAndDrop({
+    tasks,
+    weekStart,
+  });
+
+  const pendingDragFocus = useRef<{
+    taskId: string;
+    sourceDueDate: string | null;
+  } | null>(null);
 
   useEffect(() => {
-    const taskId = searchParams.get('task');
-    if (taskId) {
-      setSelectedTaskId(taskId);
-      setIsTaskModalOpen(true);
+    const clearOnFocusChange = (event: FocusEvent) => {
+      const pending = pendingDragFocus.current;
+      if (
+        pending &&
+        event.target instanceof HTMLElement &&
+        event.target !== document.body &&
+        event.target.dataset.taskDragHandle !== pending.taskId
+      ) {
+        pendingDragFocus.current = null;
+      }
+    };
+    document.addEventListener('focusin', clearOnFocusChange);
+    return () => document.removeEventListener('focusin', clearOnFocusChange);
+  }, []);
+
+  useEffect(() => {
+    const pending = pendingDragFocus.current;
+    if (!pending) return;
+    const movedTask = tasks.find((task) => task.id === pending.taskId);
+    if (!movedTask || movedTask.dueDate === pending.sourceDueDate) return;
+    const grip = Array.from(
+      document.querySelectorAll<HTMLElement>('[data-task-drag-handle]'),
+    ).find((element) => element.dataset.taskDragHandle === pending.taskId);
+    if (grip) {
+      pendingDragFocus.current = null;
+      grip.focus({ preventScroll: true });
     }
-  }, [searchParams, tasks]);
+  }, [tasks]);
 
-  const handleCloseTaskModal = () => {
-    setIsTaskModalOpen(false);
-    setSelectedTaskId(null);
-
-    if (searchParams.has('task') || searchParams.has('date')) {
-      setSearchParams({});
+  const handleDrop = async (event: DragEndEvent) => {
+    pendingDragFocus.current = null;
+    const task = tasks.find((item) => item.id === event.active.id);
+    const source = task && getTaskContainer(task.id, tasks, weekStart);
+    const overId = event.over?.id.toString();
+    const targetId =
+      overId === 'someday' || overId?.startsWith('day-')
+        ? overId
+        : overId && getTaskContainer(overId, tasks, weekStart)?.id;
+    const pending =
+      event.activatorEvent instanceof KeyboardEvent &&
+      task &&
+      source &&
+      targetId &&
+      source.id !== targetId
+        ? { taskId: task.id, sourceDueDate: task.dueDate }
+        : null;
+    pendingDragFocus.current = pending;
+    const didMove = await handleDragEnd(event);
+    if (!didMove && pendingDragFocus.current === pending) {
+      pendingDragFocus.current = null;
     }
   };
 
-  const handleUpdateTask = () => {
-    setIsTaskModalOpen(false);
+  const handleNavigateFromTask = (date: Date) => {
+    navigateFromTask(startOfWeek(date, { weekStartsOn: 1 }));
   };
 
   return (
@@ -76,20 +130,36 @@ export const Home = () => {
       <Header />
 
       <main className="m-4">
+        {isError && (
+          <TaskLoadError
+            hasCachedTasks={data !== undefined}
+            isRetrying={isFetching}
+            onRetry={() => {
+              void refetch();
+            }}
+          />
+        )}
         <DndContext
           sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
+          collisionDetection={taskCollisionDetection}
+          onDragStart={(event) => {
+            pendingDragFocus.current = null;
+            handleDragStart(event);
+          }}
+          onDragEnd={handleDrop}
+          onDragCancel={() => {
+            pendingDragFocus.current = null;
+            handleDragCancel();
+          }}
         >
           <div className="grid gap-2 text-sm grid-cols-1 lg:grid-cols-6 items-start overflow-hidden">
-            <LazyWidget>
+            <LazyWidget fallback={<WeekPlaceholder weekStart={weekStart} />}>
               <Week
                 weekStart={weekStart}
                 onNavigateToWeek={handleNavigateToWeek}
               />
             </LazyWidget>
-            <LazyWidget>
+            <LazyWidget fallback={<SomedayPlaceholder />}>
               <Someday onNavigateToWeek={handleNavigateToWeek} />
             </LazyWidget>
           </div>
@@ -101,7 +171,10 @@ export const Home = () => {
             zIndex={1000}
           >
             {activeTask ? (
-              <div className="w-full max-w-[300px] opacity-90 pointer-events-none shadow-xl rounded-md rotate-1 bg-white dark:bg-gray-800 border-2 border-indigo-300 dark:border-indigo-700">
+              <div
+                aria-hidden="true"
+                className="w-full pointer-events-none shadow-lg rounded-md bg-white dark:bg-gray-800 ring-2 ring-indigo-400 px-2"
+              >
                 <TaskItem
                   id={activeTask.id}
                   title={activeTask.title}
@@ -120,11 +193,11 @@ export const Home = () => {
       </main>
 
       {selectedTask && (
-        <LazyWidget>
+        <LazyWidget fallback={null}>
           <TaskModal
             key={selectedTask.id}
-            isOpen={isTaskModalOpen}
-            onClose={handleCloseTaskModal}
+            isOpen={true}
+            onClose={closeTaskModal}
             taskId={selectedTask.id}
             initialTitle={selectedTask.title}
             initialDescription={selectedTask.description || ''}
@@ -136,9 +209,7 @@ export const Home = () => {
             isSomeday={!selectedTask.dueDate}
             isFromSearch={true}
             currentWeekStart={weekStart}
-            onSave={handleUpdateTask}
-            onDelete={() => setIsTaskModalOpen(false)}
-            onNavigateToWeek={handleNavigateToWeek}
+            onNavigateToWeek={handleNavigateFromTask}
           />
         </LazyWidget>
       )}

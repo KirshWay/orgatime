@@ -1,9 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  ArrayMaxSize,
+  ArrayUnique,
   IsArray,
   IsDateString,
   IsInt,
   IsNotEmpty,
+  IsObject,
   IsOptional,
   IsString,
   ValidateIf,
@@ -36,6 +39,11 @@ export class UpdateTaskOrderItemDto {
 export class UpdateTasksOrderDto {
   @ApiProperty({ type: [UpdateTaskOrderItemDto] })
   @IsArray()
+  @ArrayMaxSize(1000)
+  @ArrayUnique((item: unknown) =>
+    typeof item === 'object' && item !== null && 'id' in item ? item.id : item,
+  )
+  @IsObject({ each: true })
   @ValidateNested({ each: true })
   @Type(() => UpdateTaskOrderItemDto)
   tasks: UpdateTaskOrderItemDto[];

@@ -2,9 +2,12 @@ import {
   Body,
   Controller,
   Get,
+  Header,
+  StreamableFile,
   Patch,
   Post,
   Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -15,8 +18,12 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { CurrentUserId } from 'src/common/decorators/current-user-id.decorator';
-import type { MultipartRequestLike } from 'src/common/http/http.types';
-import { ImageUploadService } from 'src/common/services/image-upload.service';
+import type {
+  CookieReplyLike,
+  MultipartRequestLike,
+} from 'src/common/http/http.types';
+import { RefreshTokenCookieService } from 'src/common/services/refresh-token-cookie.service';
+import { AvatarService } from './avatar.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -29,7 +36,8 @@ import { UsersService } from './users.service';
 export class UsersController {
   constructor(
     private readonly usersService: UsersService,
-    private readonly imageUploadService: ImageUploadService,
+    private readonly avatarService: AvatarService,
+    private readonly refreshTokenCookieService: RefreshTokenCookieService,
   ) {}
 
   @ApiOperation({ summary: 'Get user profile' })
@@ -51,10 +59,20 @@ export class UsersController {
   @Post('change-password')
   async changePassword(
     @Body() dto: ChangePasswordDto,
+    @Res({ passthrough: true }) reply: CookieReplyLike,
     @CurrentUserId() userId: string,
   ) {
     await this.usersService.changePassword(userId, dto);
+    this.refreshTokenCookieService.clear(reply);
     return { message: 'Password updated successfully' };
+  }
+
+  @Get('avatar/content')
+  @Header('Cache-Control', 'private, no-store')
+  @Header('X-Content-Type-Options', 'nosniff')
+  async getAvatarContent(@CurrentUserId() userId: string) {
+    const { buffer, type } = await this.avatarService.getContent(userId);
+    return new StreamableFile(buffer, { type, length: buffer.length });
   }
 
   @ApiOperation({ summary: 'Upload or update user avatar' })
@@ -75,13 +93,6 @@ export class UsersController {
     @Req() request: MultipartRequestLike,
     @CurrentUserId() userId: string,
   ) {
-    const existingUser = await this.usersService.findById(userId);
-    const { avatarUrl } = await this.imageUploadService.uploadAvatar(
-      request,
-      existingUser?.avatar ?? undefined,
-    );
-
-    await this.usersService.updateAvatar(userId, avatarUrl);
-    return { avatarUrl };
+    return this.avatarService.upload(userId, request);
   }
 }

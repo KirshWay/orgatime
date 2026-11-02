@@ -1,4 +1,4 @@
-# Orgatime - Task and Time Management System
+# Orgatime - Task Management and Weekly Planning
 
 <p align="center">
   <img src="./client/public/icon.png" alt="Orgatime Logo" width="150" height="150" />
@@ -12,20 +12,22 @@
   <img src="https://img.shields.io/badge/NestJS-11-e0234e" alt="NestJS" />
 </p>
 
-Orgatime is a modern, full-featured task and time management application built with React and NestJS. It provides an intuitive interface for managing tasks, tracking time, and enhancing productivity through visual organization.
+Orgatime is a task-management application built with React and NestJS. Plan your week, organize undated tasks, and track task completion.
 
 ## ✨ Features
 
-- **Visual Weekly Planner**: Drag-and-drop interface for planning your week with @dnd-kit
+- **Visual Weekly Planner**: Schedule tasks with drag and drop or choose a date in the task editor
 - **All Tasks View**: Browse all tasks grouped by date with status filtering
 - **Someday Tasks**: Separate section for tasks without specific dates
 - **Global Search**: Find any task instantly with `⌘K` / `Ctrl+K`
 - **Subtasks Support**: Break down complex tasks into smaller, manageable pieces
-- **Image Attachments**: Add images to tasks for better context and reference
+- **Image Attachments**: Add images to tasks. Attachments and profile avatars are accessible only to their owner after sign-in
+- **Task Export**: Download tasks as Markdown or a ZIP archive with image attachments
 - **Task Coloring**: Color-code tasks for visual categorization
-- **User Authentication**: Secure login, registration, and profile management
+- **User Authentication**: Login, registration, and profile management with session rotation and revocation on logout or password changes
+- **Task Editing**: Save task details with Update, confirm deletion, and receive a warning before discarding unsaved changes. Images and subtasks save immediately
 - **Password Reset**: Admin-managed password recovery with secure one-time links
-- **PWA**: Installable progressive web app with offline caching
+- **PWA**: Installable app with cached application assets. Tasks, attachments, and avatars require an authenticated network connection
 - **Responsive Design**: Optimized for both desktop and mobile devices
 - **Dark/Light Themes**: Choose your preferred visual theme
 
@@ -52,9 +54,9 @@ The project follows a modern architecture with clear separation of concerns:
 - NestJS 11, TypeScript 5.9
 - Prisma ORM, PostgreSQL 17
 - JWT Authentication with Passport
-- File upload handling with Multer
+- Fastify HTTP adapter with @fastify/multipart for uploads
 - Sharp for image processing
-- Swagger/OpenAPI documentation
+- Swagger/OpenAPI documentation outside production
 
 ### DevOps
 - Docker & Docker Compose
@@ -65,9 +67,9 @@ The project follows a modern architecture with clear separation of concerns:
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 22+
+- Node.js 22.22.2+ on the 22.x line, 24.15.0+ on the 24.x line, or 26+
 - Docker and Docker Compose
-- pnpm
+- pnpm 10.33.4, as pinned in both package manifests
 
 ### Development Setup
 
@@ -97,6 +99,8 @@ The project follows a modern architecture with clear separation of concerns:
    pnpm install
    pnpm dev
    ```
+
+Uploads are not publicly served. Existing avatars and task images remain available through authenticated API endpoints. The service worker clears legacy upload entries from its caches when it updates. Previously downloaded copies and browser HTTP caches cannot be revoked.
 
 ### Production Deployment
 The application is configured for deployment with Docker Swarm:

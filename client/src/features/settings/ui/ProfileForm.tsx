@@ -5,6 +5,8 @@ import { Pencil, X } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 
+import type { SettingsFormData } from '../model/types';
+
 type Props = {
   isEditingUsername: boolean;
   setIsEditingUsername: (val: boolean) => void;
@@ -22,7 +24,7 @@ export const ProfileForm: React.FC<Props> = ({
     register,
     getValues,
     formState: { errors },
-  } = useFormContext();
+  } = useFormContext<SettingsFormData>();
 
   return (
     <>
@@ -49,6 +51,11 @@ export const ProfileForm: React.FC<Props> = ({
           )}
           <Button
             type="button"
+            aria-label={
+              isEditingUsername ? 'Cancel username change' : 'Edit username'
+            }
+            variant="outline"
+            size="icon"
             onClick={() => setIsEditingUsername(!isEditingUsername)}
           >
             {isEditingUsername ? <X /> : <Pencil />}
@@ -84,6 +91,9 @@ export const ProfileForm: React.FC<Props> = ({
           )}
           <Button
             type="button"
+            aria-label={isEditingEmail ? 'Cancel email change' : 'Edit email'}
+            variant="outline"
+            size="icon"
             onClick={() => setIsEditingEmail(!isEditingEmail)}
           >
             {isEditingEmail ? <X /> : <Pencil />}

@@ -1,22 +1,16 @@
 import {
   Body,
   Controller,
+  Headers,
   HttpCode,
   HttpException,
   HttpStatus,
   Post,
   Res,
-  UseGuards,
 } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ClientIp } from 'src/common/decorators/client-ip.decorator';
 import { CookieValue } from 'src/common/decorators/cookie-value.decorator';
-import { CurrentUserId } from 'src/common/decorators/current-user-id.decorator';
 import type { CookieReplyLike } from 'src/common/http/http.types';
 import { RefreshTokenCookieService } from 'src/common/services/refresh-token-cookie.service';
 import { AuthService } from './auth.service';
@@ -24,7 +18,6 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
-import { JwtAuthGuard } from './jwt-auth.guard';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -34,7 +27,7 @@ export class AuthController {
 
   private registrationAttempts: Map<
     string,
-    { count: number; lastAttempt: Date }
+    { count: number; pending: number; lastAttempt: Date }
   > = new Map();
   private readonly MAX_REGISTER_ATTEMPTS = 3;
   private readonly REGISTER_COOLDOWN = 60 * 60 * 1000;
@@ -52,16 +45,23 @@ export class AuthController {
     @ClientIp() clientIp: string,
     @Res({ passthrough: true }) reply: CookieReplyLike,
   ) {
-    this.checkRegistrationRate(clientIp);
-    const result = await this.authService.register(registerDto);
-    this.recordRegistrationAttempt(clientIp);
+    const attempts = this.reserveRegistration(clientIp);
+    try {
+      const result = await this.authService.register(registerDto);
+      attempts.count += 1;
+      attempts.lastAttempt = new Date();
+      this.refreshTokenCookieService.set(reply, result.refreshToken);
 
-    this.refreshTokenCookieService.set(reply, result.refreshToken);
-
-    return {
-      accessToken: result.accessToken,
-      user: result.user,
-    };
+      return {
+        accessToken: result.accessToken,
+        user: result.user,
+      };
+    } finally {
+      attempts.pending -= 1;
+      if (attempts.count === 0 && attempts.pending === 0) {
+        this.registrationAttempts.delete(clientIp);
+      }
+    }
   }
 
   @ApiOperation({ summary: 'Login an existing user' })
@@ -81,16 +81,15 @@ export class AuthController {
     };
   }
 
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Logout user' })
   @Post('logout')
   async logout(
-    @CurrentUserId() userId: string,
+    @Headers('authorization') authorization: unknown,
+    @CookieValue('refreshToken') refreshToken: string | undefined,
     @Res({ passthrough: true }) reply: CookieReplyLike,
   ) {
-    await this.authService.logout(userId);
     this.refreshTokenCookieService.clear(reply);
+    await this.authService.logoutFromCredentials(authorization, refreshToken);
 
     return { message: 'Logged out successfully' };
   }
@@ -100,12 +99,11 @@ export class AuthController {
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   async refresh(
-    @Body('refreshToken') refreshTokenFromBody: string,
+    @Body('refreshToken') refreshTokenFromBody: unknown,
     @CookieValue('refreshToken') refreshTokenFromCookie: string | undefined,
     @Res({ passthrough: true }) reply: CookieReplyLike,
   ) {
-    const refreshToken = (refreshTokenFromBody ||
-      refreshTokenFromCookie) as string;
+    const refreshToken = refreshTokenFromBody ?? refreshTokenFromCookie;
     const tokens = await this.authService.refreshToken(refreshToken);
 
     this.refreshTokenCookieService.set(reply, tokens.refreshToken);
@@ -137,36 +135,27 @@ export class AuthController {
     return { message: 'The password has been successfully reset' };
   }
 
-  private checkRegistrationRate(ip: string): void {
-    const attempts = this.registrationAttempts.get(ip);
-    if (!attempts) return;
-
-    const now = Date.now();
-    if (now - attempts.lastAttempt.getTime() > this.REGISTER_COOLDOWN) {
-      this.registrationAttempts.delete(ip);
-      return;
+  private reserveRegistration(ip: string) {
+    let attempts = this.registrationAttempts.get(ip);
+    const now = new Date();
+    if (!attempts) {
+      attempts = { count: 0, pending: 0, lastAttempt: now };
+      this.registrationAttempts.set(ip, attempts);
+    } else if (
+      now.getTime() - attempts.lastAttempt.getTime() >
+      this.REGISTER_COOLDOWN
+    ) {
+      attempts.count = 0;
+      attempts.lastAttempt = now;
     }
 
-    if (attempts.count >= this.MAX_REGISTER_ATTEMPTS) {
+    if (attempts.count + attempts.pending >= this.MAX_REGISTER_ATTEMPTS) {
       throw new HttpException(
         'Too many registration attempts. Please try again later.',
         HttpStatus.TOO_MANY_REQUESTS,
       );
     }
-  }
-
-  private recordRegistrationAttempt(ip: string): void {
-    const attempts = this.registrationAttempts.get(ip);
-    const now = new Date();
-
-    if (
-      !attempts ||
-      Date.now() - attempts.lastAttempt.getTime() > this.REGISTER_COOLDOWN
-    ) {
-      this.registrationAttempts.set(ip, { count: 1, lastAttempt: now });
-    } else {
-      attempts.count += 1;
-      attempts.lastAttempt = now;
-    }
+    attempts.pending += 1;
+    return attempts;
   }
 }

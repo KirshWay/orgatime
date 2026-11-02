@@ -15,14 +15,17 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { parseTokenClaims, readSession, storeSession } from './session';
 
 @Injectable()
 export class AuthService implements OnModuleInit, OnModuleDestroy {
   private passwordResetRequests: Map<string, Date> = new Map();
   private readonly PASSWORD_RESET_COOLDOWN = 3 * 60 * 1000;
 
-  private loginAttempts: Map<string, { count: number; lastAttempt: Date }> =
-    new Map();
+  private loginAttempts = new Map<
+    string,
+    { failures: number; pending: number; lastAttempt: Date }
+  >();
   private readonly MAX_LOGIN_ATTEMPTS = 5;
   private readonly LOGIN_LOCKOUT_TIME = 15 * 60 * 1000;
 
@@ -48,7 +51,10 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
     const now = Date.now();
 
     for (const [email, attempts] of this.loginAttempts) {
-      if (now - attempts.lastAttempt.getTime() > this.LOGIN_LOCKOUT_TIME) {
+      if (
+        attempts.pending === 0 &&
+        now - attempts.lastAttempt.getTime() > this.LOGIN_LOCKOUT_TIME
+      ) {
         this.loginAttempts.delete(email);
       }
     }
@@ -72,19 +78,13 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
       password: hashedPassword,
     });
 
-    const accessToken = this.jwtService.sign(
-      { sub: user.id },
-      { expiresIn: '1h' },
+    const { accessToken, refreshToken, session } = this.issueTokens(user.id);
+    const stored = await this.usersService.startSession(
+      user.id,
+      user.password,
+      session,
     );
-
-    const refreshToken = this.jwtService.sign(
-      { sub: user.id },
-      { expiresIn: '7d' },
-    );
-
-    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
-
-    await this.usersService.updateRefreshToken(user.id, hashedRefreshToken);
+    if (!stored) throw new UnauthorizedException('Credentials have changed');
 
     return {
       accessToken,
@@ -98,67 +98,62 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
   }
 
   async login(loginDto: LoginDto) {
-    this.checkLoginAttempts(loginDto.email);
+    const attempts = this.reserveLogin(loginDto.email);
+    try {
+      const user = await this.usersService.findByEmail(loginDto.email);
+      const isValid =
+        user && (await bcrypt.compare(loginDto.password, user.password));
+      if (!user || !isValid) {
+        attempts.failures += 1;
+        attempts.lastAttempt = new Date();
+        throw new UnauthorizedException('Invalid email or password');
+      }
 
-    const user = await this.usersService.findByEmail(loginDto.email);
+      attempts.failures = 0;
+      const { accessToken, refreshToken, session } = this.issueTokens(user.id);
+      const stored = await this.usersService.startSession(
+        user.id,
+        user.password,
+        session,
+      );
+      if (!stored) throw new UnauthorizedException('Credentials have changed');
 
-    if (!user) {
-      this.recordFailedLoginAttempt(loginDto.email);
-      throw new UnauthorizedException('Invalid email or password');
+      return {
+        accessToken,
+        refreshToken,
+        user: {
+          email: user.email,
+          username: user.username,
+          avatar: user.avatar,
+        },
+      };
+    } finally {
+      attempts.pending -= 1;
+      if (attempts.failures === 0 && attempts.pending === 0) {
+        this.loginAttempts.delete(loginDto.email);
+      }
     }
-
-    const isValid = await bcrypt.compare(loginDto.password, user.password);
-
-    if (!isValid) {
-      this.recordFailedLoginAttempt(loginDto.email);
-      throw new UnauthorizedException('Invalid email or password');
-    }
-
-    this.loginAttempts.delete(loginDto.email);
-
-    const accessToken = this.jwtService.sign(
-      { sub: user.id },
-      { expiresIn: '1h' },
-    );
-
-    const refreshToken = this.jwtService.sign(
-      { sub: user.id },
-      { expiresIn: '7d' },
-    );
-
-    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
-
-    await this.usersService.updateRefreshToken(user.id, hashedRefreshToken);
-
-    return {
-      accessToken,
-      refreshToken,
-      user: {
-        email: user.email,
-        username: user.username,
-        avatar: user.avatar,
-      },
-    };
   }
 
-  private checkLoginAttempts(email: string): void {
-    const attempts = this.loginAttempts.get(email);
-
-    if (!attempts) {
-      return;
-    }
-
+  private reserveLogin(email: string) {
+    let attempts = this.loginAttempts.get(email);
     const now = new Date();
+    if (!attempts) {
+      attempts = { failures: 0, pending: 0, lastAttempt: now };
+      this.loginAttempts.set(email, attempts);
+    }
     const timeSinceLastAttempt = now.getTime() - attempts.lastAttempt.getTime();
-
     if (timeSinceLastAttempt > this.LOGIN_LOCKOUT_TIME) {
-      this.loginAttempts.delete(email);
-      return;
+      attempts.failures = 0;
+      attempts.lastAttempt = now;
     }
 
-    if (attempts.count >= this.MAX_LOGIN_ATTEMPTS) {
+    if (attempts.failures + attempts.pending >= this.MAX_LOGIN_ATTEMPTS) {
       const minutesLeft = Math.ceil(
-        (this.LOGIN_LOCKOUT_TIME - timeSinceLastAttempt) / 1000 / 60,
+        (this.LOGIN_LOCKOUT_TIME -
+          (now.getTime() - attempts.lastAttempt.getTime())) /
+          1000 /
+          60,
       );
 
       throw new HttpException(
@@ -166,90 +161,106 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
         HttpStatus.TOO_MANY_REQUESTS,
       );
     }
+    attempts.pending += 1;
+    return attempts;
   }
 
-  private recordFailedLoginAttempt(email: string): void {
-    const attempts = this.loginAttempts.get(email);
-    const now = new Date();
+  private issueTokens(userId: string, sid = crypto.randomUUID()) {
+    const accessToken = this.jwtService.sign(
+      { sub: userId, purpose: 'access', sid },
+      { expiresIn: '1h', algorithm: 'HS256' },
+    );
+    const refreshToken = this.jwtService.sign(
+      { sub: userId, purpose: 'refresh', sid, jti: crypto.randomUUID() },
+      { expiresIn: '7d', algorithm: 'HS256' },
+    );
+    return {
+      accessToken,
+      refreshToken,
+      session: storeSession(sid, refreshToken),
+    };
+  }
 
-    if (!attempts) {
-      this.loginAttempts.set(email, { count: 1, lastAttempt: now });
-      return;
+  async logout(userId: string, sid: string) {
+    await this.usersService.endSession(userId, sid);
+  }
+
+  async logoutFromCredentials(authorization: unknown, refreshToken: unknown) {
+    const accessToken =
+      typeof authorization === 'string'
+        ? /^Bearer +(\S+)$/i.exec(authorization)?.[1]
+        : undefined;
+    const claims =
+      this.verifyLogoutToken(accessToken, 'access') ??
+      this.verifyLogoutToken(refreshToken, 'refresh');
+    if (claims) await this.logout(claims.sub, claims.sid);
+  }
+
+  private verifyLogoutToken(token: unknown, purpose: 'access' | 'refresh') {
+    if (typeof token !== 'string' || !token) return null;
+    try {
+      return parseTokenClaims(
+        this.jwtService.verify<Record<string, unknown>>(token, {
+          algorithms: ['HS256'],
+        }),
+        purpose,
+      );
+    } catch {
+      return null;
     }
+  }
 
-    if (
-      now.getTime() - attempts.lastAttempt.getTime() >
-      this.LOGIN_LOCKOUT_TIME
-    ) {
-      this.loginAttempts.set(email, { count: 1, lastAttempt: now });
-      return;
+  async validateUser(userId: string, sid: string) {
+    const user = await this.usersService.findById(userId);
+    if (!user || readSession(user.refreshToken)?.sid !== sid) {
+      throw new UnauthorizedException('Invalid token');
     }
-
-    attempts.count += 1;
-    attempts.lastAttempt = now;
+    return { id: user.id, sid };
   }
 
-  async logout(userId: string) {
-    return this.usersService.updateRefreshToken(userId, null);
-  }
-
-  async validateUser(userId: string) {
-    return this.usersService.findById(userId);
-  }
-
-  async refreshToken(providedRefreshToken: string) {
-    if (!providedRefreshToken) {
+  async refreshToken(providedRefreshToken: unknown) {
+    if (typeof providedRefreshToken !== 'string' || !providedRefreshToken) {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    let payload: { sub: string };
-
+    let payload;
     try {
-      payload = this.jwtService.verify(providedRefreshToken);
+      payload = parseTokenClaims(
+        this.jwtService.verify<Record<string, unknown>>(providedRefreshToken, {
+          algorithms: ['HS256'],
+        }),
+        'refresh',
+      );
     } catch {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
     const user = await this.usersService.findById(payload.sub);
-
-    if (!user || !user.refreshToken) {
+    const session = readSession(user?.refreshToken);
+    if (
+      !user ||
+      !session ||
+      session.sid !== payload.sid ||
+      user.refreshToken !== storeSession(payload.sid, providedRefreshToken)
+    ) {
       throw new UnauthorizedException('Access Denied');
     }
 
-    const isRefreshTokenMatching = await bcrypt.compare(
-      providedRefreshToken,
+    const tokens = this.issueTokens(user.id, payload.sid);
+    const rotated = await this.usersService.rotateSession(
+      user.id,
       user.refreshToken,
+      tokens.session,
     );
-
-    if (!isRefreshTokenMatching) {
-      throw new UnauthorizedException('Access Denied');
-    }
-
-    const newAccessToken = this.jwtService.sign(
-      { sub: user.id },
-      { expiresIn: '1h' },
-    );
-
-    const newRefreshToken = this.jwtService.sign(
-      { sub: user.id },
-      { expiresIn: '7d' },
-    );
-    const newHashedRefreshToken = await bcrypt.hash(newRefreshToken, 10);
-
-    await this.usersService.updateRefreshToken(user.id, newHashedRefreshToken);
+    if (!rotated) throw new UnauthorizedException('Access Denied');
 
     return {
-      accessToken: newAccessToken,
-      refreshToken: newRefreshToken,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
     };
   }
 
   async forgotPassword(dto: ForgotPasswordDto): Promise<void> {
-    const user = await this.usersService.findByEmail(dto.email);
-    if (!user) {
-      return;
-    }
-
     const lastResetRequest = this.passwordResetRequests.get(dto.email);
     const now = new Date();
 
@@ -291,8 +302,15 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
     }
     const newHashedPassword = await bcrypt.hash(dto.newPassword, 10);
 
-    await this.usersService.updatePassword(user.id, newHashedPassword);
-    await this.usersService.clearPasswordResetToken(user.id);
-    await this.usersService.updateRefreshToken(user.id, null);
+    const consumed = await this.usersService.consumePasswordResetToken(
+      user.id,
+      hashedToken,
+      newHashedPassword,
+    );
+    if (!consumed) {
+      throw new UnauthorizedException(
+        'Password reset token is invalid or expired',
+      );
+    }
   }
 }

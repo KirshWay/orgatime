@@ -1,62 +1,86 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
 import { UserRoundX } from 'lucide-react';
 
+import { Button } from '@/shared/ui/button';
 import { OptimizedImage } from '@/shared/ui/optimized-image';
 
 type Props = {
   img: string;
+  file: File | null;
   onFileChange: (file: File | null) => void;
+  disabled?: boolean;
 };
 
-export const AvatarUploader: React.FC<Props> = ({ img, onFileChange }) => {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+export const AvatarUploader: React.FC<Props> = ({
+  img,
+  file,
+  onFileChange,
+  disabled,
+}) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-
   useEffect(() => {
-    if (!selectedFile && !img) {
+    if (!file) {
       setPreviewUrl(null);
       return;
-    } else if (!selectedFile) {
-      setPreviewUrl(img);
-      return;
     }
-    const objectUrl = URL.createObjectURL(selectedFile);
+    const objectUrl = URL.createObjectURL(file);
     setPreviewUrl(objectUrl);
-
     return () => URL.revokeObjectURL(objectUrl);
-  }, [selectedFile, img]);
-
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files && e.target.files[0];
-    setSelectedFile(file ?? null);
-    onFileChange(file ?? null);
+  }, [file]);
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const selected = event.target.files?.[0];
+    if (selected) onFileChange(selected);
+    event.target.value = '';
   };
-
   return (
-    <div className="flex flex-col items-center">
-      <label htmlFor="avatar-upload" className="relative cursor-pointer">
-        <div className="w-48 h-48 sm:w-72 sm:h-72 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
-          {previewUrl ? (
+    <div className="flex items-center gap-4">
+      <label
+        htmlFor="avatar-upload"
+        className="relative shrink-0 rounded-full focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2"
+      >
+        <span className="sr-only">Change avatar</span>
+        <div className="h-20 w-20 overflow-hidden rounded-full bg-muted flex items-center justify-center">
+          {previewUrl || img ? (
             <OptimizedImage
-              src={previewUrl}
+              src={previewUrl || img}
               alt="Preview avatar"
               className="w-full h-full"
               objectFit="cover"
               isAvatar
             />
           ) : (
-            <UserRoundX className="w-1/2 h-1/2" />
+            <UserRoundX
+              aria-hidden="true"
+              className="h-10 w-10 text-muted-foreground"
+            />
           )}
-
           <input
             id="avatar-upload"
             type="file"
             accept="image/*"
             onChange={handleFileChange}
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            disabled={disabled}
+            className="absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
           />
         </div>
       </label>
+      <div className="min-w-0 space-y-1">
+        <p className="text-sm font-medium">Profile photo</p>
+        <p className="text-xs text-muted-foreground">
+          Choose an image to update your avatar.
+        </p>
+        {file && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            disabled={disabled}
+            onClick={() => onFileChange(null)}
+          >
+            Cancel photo change
+          </Button>
+        )}
+      </div>
     </div>
   );
 };

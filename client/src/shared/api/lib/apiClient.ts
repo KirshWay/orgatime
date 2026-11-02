@@ -29,9 +29,10 @@ type RequestConfig = {
   signal?: AbortSignal;
   body?: unknown;
   _retry?: boolean;
+  _authEpoch?: number;
 };
 
-type InterceptorConfig = {
+type InterceptorConfig = RequestConfig & {
   url: string;
   method: string;
   headers: Record<string, string>;
@@ -111,6 +112,7 @@ class FetchClient {
     config: RequestConfig & { url: string; method: string },
   ): Promise<ApiResponse<T>> {
     let reqConfig: InterceptorConfig = {
+      ...config,
       url: config.url,
       method: config.method.toUpperCase(),
       headers: { ...config.headers } as Record<string, string>,
@@ -167,6 +169,7 @@ class FetchClient {
 
       const apiError = new ApiError(message, 0, null, {
         ...config,
+        ...reqConfig,
         url: reqConfig.url,
         method: reqConfig.method,
       });
@@ -194,7 +197,12 @@ class FetchClient {
         `Request failed with status ${response.status}`,
         response.status,
         errorData,
-        { ...config, url: reqConfig.url, method: reqConfig.method },
+        {
+          ...config,
+          ...reqConfig,
+          url: reqConfig.url,
+          method: reqConfig.method,
+        },
       );
 
       return this.runErrorInterceptors(apiError) as Promise<ApiResponse<T>>;
@@ -234,6 +242,7 @@ class FetchClient {
       method: string;
       headers: Record<string, string>;
       body?: unknown;
+      _authEpoch?: number;
     },
     config: RequestConfig & { url: string; method: string },
   ): Promise<ApiResponse<T>> {
@@ -298,7 +307,12 @@ class FetchClient {
             `Request failed with status ${xhr.status}`,
             xhr.status,
             errorData,
-            { ...config, url: config.url, method: reqConfig.method },
+            {
+              ...config,
+              ...reqConfig,
+              url: config.url,
+              method: reqConfig.method,
+            },
           );
 
           this.runErrorInterceptors(apiError).then(
@@ -325,7 +339,12 @@ class FetchClient {
           `timeout of ${config.timeout}ms exceeded`,
           0,
           null,
-          { ...config, url: config.url, method: reqConfig.method },
+          {
+            ...config,
+            ...reqConfig,
+            url: config.url,
+            method: reqConfig.method,
+          },
         );
         this.runErrorInterceptors(apiError).then(
           (r) => resolve(r as ApiResponse<T>),

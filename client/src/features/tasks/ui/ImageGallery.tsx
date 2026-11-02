@@ -21,7 +21,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/ui/dialog';
-import { OptimizedImage } from '@/shared/ui/optimized-image';
+
+import { TaskAttachmentImage } from './TaskAttachmentImage';
 
 type CarouselNavState = {
   canScrollPrev: boolean;
@@ -52,12 +53,14 @@ const carouselNavReducer = (
 });
 
 type Props = {
+  taskId: string;
   images: TaskImage[];
   onDelete: (imageId: string) => void;
   isDisabled?: boolean;
 };
 
 export const ImageGallery: React.FC<Props> = ({
+  taskId,
   images,
   onDelete,
   isDisabled = false,
@@ -151,8 +154,9 @@ export const ImageGallery: React.FC<Props> = ({
             transition={{ duration: 0.3, delay: index * 0.05 }}
             whileHover={{ scale: 1.03 }}
           >
-            <AspectRatio ratio={1} className="bg-gray-100">
+            <AspectRatio ratio={1} className="bg-gray-100 dark:bg-gray-800">
               <button
+                aria-label={`Delete image ${index + 1}`}
                 className="absolute top-1 right-1 z-10 rounded-full bg-black bg-opacity-50 p-1 text-white hover:bg-opacity-70 disabled:cursor-not-allowed disabled:opacity-50"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -162,18 +166,31 @@ export const ImageGallery: React.FC<Props> = ({
               >
                 <X size={14} />
               </button>
-              <button
+              <div
                 className="h-full w-full"
-                onClick={() => handleImageClick(index)}
-                disabled={isDisabled}
+                role="button"
+                tabIndex={isDisabled ? -1 : 0}
+                aria-label={`Task image ${index + 1}`}
+                aria-disabled={isDisabled}
+                onClick={() => !isDisabled && handleImageClick(index)}
+                onKeyDown={(event) => {
+                  if (
+                    event.target === event.currentTarget &&
+                    (event.key === 'Enter' || event.key === ' ')
+                  ) {
+                    event.preventDefault();
+                    if (!isDisabled) handleImageClick(index);
+                  }
+                }}
               >
-                <OptimizedImage
-                  src={image.path}
+                <TaskAttachmentImage
+                  taskId={taskId}
+                  imageId={image.id}
                   alt={`Task image ${index + 1}`}
                   className="h-full w-full cursor-pointer"
                   objectFit="cover"
                 />
-              </button>
+              </div>
             </AspectRatio>
           </m.div>
         ))}
@@ -200,6 +217,7 @@ export const ImageGallery: React.FC<Props> = ({
               variant="outline"
               size="icon"
               className="rounded-full bg-black bg-opacity-50 text-white hover:bg-opacity-70 h-7 w-7 sm:h-8 sm:w-8"
+              aria-label="Close image preview"
               onClick={handleClosePreview}
             >
               <X size={16} />
@@ -222,8 +240,9 @@ export const ImageGallery: React.FC<Props> = ({
                   >
                     <div className="flex h-full w-full items-center justify-center p-2 sm:p-4">
                       <div className="flex items-center justify-center max-h-[70vh] w-full">
-                        <OptimizedImage
-                          src={image.path}
+                        <TaskAttachmentImage
+                          taskId={taskId}
+                          imageId={image.id}
                           alt={`Task image ${index + 1}`}
                           className="max-h-[70vh] max-w-full mx-auto"
                           objectFit="contain"

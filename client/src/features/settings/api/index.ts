@@ -2,8 +2,8 @@ import { apiClient } from '@/shared/api';
 import { UserProfile } from '@/shared/stores/userStore';
 
 export const updateProfile = async (data: {
-  username: string;
-  email: string;
+  username?: string;
+  email?: string;
 }): Promise<UserProfile> => {
   const response = await apiClient.patch<UserProfile>('/users/profile', data);
   return response.data;

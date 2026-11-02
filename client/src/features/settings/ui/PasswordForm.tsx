@@ -5,6 +5,8 @@ import { Pencil, X } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 
+import type { SettingsFormData } from '../model/types';
+
 type Props = {
   isEditingPassword: boolean;
   setIsEditingPassword: (val: boolean) => void;
@@ -17,7 +19,7 @@ export const PasswordForm: React.FC<Props> = ({
   const {
     register,
     formState: { errors },
-  } = useFormContext();
+  } = useFormContext<SettingsFormData>();
 
   return (
     <>
@@ -28,6 +30,11 @@ export const PasswordForm: React.FC<Props> = ({
 
         <Button
           type="button"
+          aria-label={
+            isEditingPassword ? 'Cancel password change' : 'Change password'
+          }
+          variant="outline"
+          size="icon"
           onClick={() => setIsEditingPassword(!isEditingPassword)}
         >
           {isEditingPassword ? <X /> : <Pencil />}

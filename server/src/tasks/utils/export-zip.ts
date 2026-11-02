@@ -1,6 +1,6 @@
 import archiver from 'archiver';
 import { existsSync } from 'fs';
-import { basename, join } from 'path';
+import { resolveTaskImagePath } from 'src/utils/task-image-path';
 
 import { Task, Subtask, TaskImage } from '@prisma/client';
 
@@ -26,8 +26,13 @@ export function createExportZip(
 
   for (const task of tasks) {
     for (const image of task.images) {
-      const safeFilename = basename(image.filename);
-      const filePath = join(uploadsDir, safeFilename);
+      let filePath: string;
+      try {
+        filePath = resolveTaskImagePath(image, uploadsDir);
+      } catch {
+        continue;
+      }
+      const safeFilename = image.filename;
       if (existsSync(filePath)) {
         archive.file(filePath, { name: `images/${safeFilename}` });
       }

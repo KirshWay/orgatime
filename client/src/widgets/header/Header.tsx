@@ -24,6 +24,7 @@ import { useAuth } from '@/app/providers';
 import { SearchBar } from '@/features/search';
 import { apiClient, isApiError } from '@/shared/api/lib/apiClient';
 import { useWeekNavigation } from '@/shared/hooks';
+import { useAvatar } from '@/shared/hooks/useAvatar';
 import { useUserStore } from '@/shared/stores/userStore';
 import { Button } from '@/shared/ui/button';
 import {
@@ -49,7 +50,8 @@ export const Header: React.FC = () => {
   const { weekStart, handleNextWeek, handlePrevWeek, handleResetWeek } =
     useWeekNavigation();
   const { user } = useUserStore();
-  const { logout } = useAuth();
+  const { url: avatarUrl } = useAvatar();
+  const { logout, endSession } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const isAllTasksPage = location.pathname === '/tasks';
@@ -57,7 +59,8 @@ export const Header: React.FC = () => {
   const now = new Date();
   const currentWeekStart = startOfWeek(now, { weekStartsOn: 1 });
   const isCurrentWeek = currentWeekStart.getTime() === weekStart.getTime();
-  const monthYear = `${now.toLocaleString('default', { month: 'long' })} ${now.getFullYear()}`;
+  const displayedDate = isAllTasksPage ? now : weekStart;
+  const monthYear = `${displayedDate.toLocaleString('default', { month: 'long' })} ${displayedDate.getFullYear()}`;
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
@@ -121,7 +124,7 @@ export const Header: React.FC = () => {
   };
 
   return (
-    <header className="flex items-center justify-between px-4 py-2 h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 no-print">
+    <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 px-4 py-3 min-h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 no-print">
       <div>
         {isCurrentWeek ? (
           <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
@@ -129,20 +132,22 @@ export const Header: React.FC = () => {
           </h1>
         ) : (
           <button
+            aria-label="Return to current week"
             onClick={handleResetWeek}
-            className="text-lg font-semibold text-[#9BA7F8] hover:text-blue-800 focus:outline-hidden"
+            className="text-lg font-semibold text-[#9BA7F8] hover:text-blue-800 rounded-sm focus-visible:outline-2 focus-visible:outline-indigo-500"
           >
             {monthYear}
           </button>
         )}
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
         <SearchBar />
         <Button
           variant="outline"
           size="icon"
           className="rounded-full"
+          aria-label={isAllTasksPage ? 'Weekly planner' : 'All tasks'}
           onClick={() => navigate(isAllTasksPage ? '/' : '/tasks')}
         >
           {isAllTasksPage ? (
@@ -155,12 +160,13 @@ export const Header: React.FC = () => {
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
+              aria-label="Account menu"
               className="w-10 h-10 p-0 rounded-full overflow-hidden"
             >
-              {user?.avatar ? (
+              {avatarUrl ? (
                 <div className="relative h-8 w-8 overflow-hidden rounded-full">
                   <OptimizedImage
-                    src={user.avatar}
+                    src={avatarUrl}
                     alt="User avatar"
                     className="h-full w-full"
                     objectFit="cover"
@@ -232,6 +238,7 @@ export const Header: React.FC = () => {
         {!isAllTasksPage && (
           <div className="flex gap-2">
             <Button
+              aria-label="Previous week"
               onClick={handlePrevWeek}
               className="rounded-full"
               variant="outline"
@@ -240,6 +247,7 @@ export const Header: React.FC = () => {
               ←
             </Button>
             <Button
+              aria-label="Next week"
               onClick={handleNextWeek}
               className="rounded-full"
               variant="outline"
@@ -253,6 +261,10 @@ export const Header: React.FC = () => {
 
       <Suspense fallback={null}>
         <SettingsModal
+          onPasswordChanged={() => {
+            endSession();
+            navigate('/auth/login');
+          }}
           isOpen={isSettingsOpen}
           onClose={() => setIsSettingsOpen(false)}
         />

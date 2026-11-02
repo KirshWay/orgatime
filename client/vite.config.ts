@@ -46,10 +46,25 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,jpeg,json}'],
+        importScripts: ['/attachment-cache-cleanup.js'],
         runtimeCaching: [
           {
-            urlPattern:
-              /\.(?:png|jpg|jpeg|svg|gif|ico|woff|woff2|ttf|otf|css|js)$/,
+            urlPattern: ({ url }) => /^\/api(?:\/|$)/.test(url.pathname),
+            handler: 'NetworkOnly',
+          },
+          {
+            urlPattern: ({ url }) =>
+              /^\/uploads\/(?:tasks|avatars)(?:\/|$)/.test(url.pathname),
+            handler: 'NetworkOnly',
+          },
+          {
+            urlPattern: ({ url }) =>
+              !/^\/(?:api(?:\/|$)|uploads\/(?:tasks|avatars)(?:\/|$))/.test(
+                url.pathname,
+              ) &&
+              /\.(?:png|jpg|jpeg|svg|gif|ico|woff|woff2|ttf|otf|css|js)$/.test(
+                url.pathname,
+              ),
             handler: 'CacheFirst',
             options: {
               cacheName: 'static-assets',
@@ -60,7 +75,11 @@ export default defineConfig({
             },
           },
           {
-            urlPattern: /^https:\/\/[^/]+\/((?!api).)*$/,
+            urlPattern: ({ url }) =>
+              url.protocol === 'https:' &&
+              !/^\/(?:api(?:\/|$)|uploads\/(?:tasks|avatars)(?:\/|$))/.test(
+                url.pathname,
+              ),
             handler: 'StaleWhileRevalidate',
             options: {
               cacheName: 'html-cache',
@@ -72,7 +91,11 @@ export default defineConfig({
           },
         ],
         navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/api\//, /^\/_/],
+        navigateFallbackDenylist: [
+          /^\/api(?:\/|$)/,
+          /^\/uploads\/(?:tasks|avatars)(?:\/|$)/,
+          /^\/_/,
+        ],
       },
     }),
     sitemap({

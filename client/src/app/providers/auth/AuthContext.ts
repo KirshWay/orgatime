@@ -9,9 +9,9 @@ export type AuthContextType = {
     email: string;
     username: string;
     password: string;
-    avatar?: string;
   }) => Promise<void>;
   logout: () => Promise<void>;
+  endSession: () => void;
   refreshToken: () => Promise<void>;
 };
 

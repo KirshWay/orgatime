@@ -6,6 +6,8 @@ import * as z from 'zod';
 
 import { useAuth } from '@/app/providers';
 import { parseApiError } from '@/shared/lib/parseApiError';
+import { newPasswordSchema } from '@/shared/lib/password';
+import { usernameSchema } from '@/shared/lib/username';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { OptimizedImage } from '@/shared/ui/optimized-image';
@@ -13,24 +15,8 @@ import { SEO } from '@/shared/ui/seo';
 
 const signUpSchema = z.object({
   email: z.email('Please enter a valid email'),
-  username: z
-    .string()
-    .min(3, 'Username must be at least 3 characters')
-    .max(20, 'Username must not exceed 20 characters')
-    .regex(
-      /^[a-zA-Z0-9_]+$/,
-      'Username can only contain letters, numbers and underscores',
-    ),
-  password: z
-    .string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/(?=.*[a-z])/, 'Password must contain at least one lowercase letter')
-    .regex(/(?=.*[A-Z])/, 'Password must contain at least one uppercase letter')
-    .regex(/(?=.*\d)/, 'Password must contain at least one number')
-    .regex(
-      /(?=.*[@$!%*?&])/,
-      'Password must contain at least one special character (@$!%*?&)',
-    ),
+  username: usernameSchema,
+  password: newPasswordSchema,
 });
 
 type SignUpFormData = z.infer<typeof signUpSchema>;

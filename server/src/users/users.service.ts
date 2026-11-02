@@ -16,14 +16,34 @@ export class UsersService {
 
   async create(data: RegisterDto & { password: string }) {
     return this.prisma.user.create({
-      data,
+      data: {
+        email: data.email,
+        username: data.username,
+        password: data.password,
+      },
     });
   }
 
-  async updateRefreshToken(userId: string, refreshToken: string | null) {
-    return this.prisma.user.update({
-      where: { id: userId },
+  async startSession(userId: string, password: string, refreshToken: string) {
+    const result = await this.prisma.user.updateMany({
+      where: { id: userId, password },
       data: { refreshToken },
+    });
+    return result.count === 1;
+  }
+
+  async rotateSession(userId: string, expected: string, refreshToken: string) {
+    const result = await this.prisma.user.updateMany({
+      where: { id: userId, refreshToken: expected },
+      data: { refreshToken },
+    });
+    return result.count === 1;
+  }
+
+  async endSession(userId: string, sid: string) {
+    await this.prisma.user.updateMany({
+      where: { id: userId, refreshToken: { startsWith: `v1:${sid}:` } },
+      data: { refreshToken: null },
     });
   }
 
@@ -66,7 +86,7 @@ export class UsersService {
 
     const updated = await this.prisma.user.update({
       where: { id: userId },
-      data: { ...dto },
+      data: { email: dto.email, username: dto.username },
     });
 
     const {
@@ -80,15 +100,6 @@ export class UsersService {
     } = updated;
 
     return profile;
-  }
-
-  async updateAvatar(userId: string, avatarUrl: string) {
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { avatar: avatarUrl },
-    });
-
-    return { success: true };
   }
 
   async changePassword(userId: string, dto: ChangePasswordDto) {
@@ -106,10 +117,18 @@ export class UsersService {
 
     const hashedNewPassword = await bcrypt.hash(dto.newPassword, 10);
 
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { password: hashedNewPassword, refreshToken: null },
+    const result = await this.prisma.user.updateMany({
+      where: { id: userId, password: user.password },
+      data: {
+        password: hashedNewPassword,
+        refreshToken: null,
+        passwordResetToken: null,
+        passwordResetExpires: null,
+      },
     });
+    if (result.count !== 1) {
+      throw new UnauthorizedException('Credentials have changed');
+    }
 
     return { message: 'Password updated successfully' };
   }
@@ -132,24 +151,24 @@ export class UsersService {
     });
   }
 
-  async updatePassword(userId: string, newHashedPassword: string) {
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { password: newHashedPassword },
-    });
-
-    return { success: true };
-  }
-
-  async clearPasswordResetToken(userId: string) {
-    await this.prisma.user.update({
-      where: { id: userId },
+  async consumePasswordResetToken(
+    userId: string,
+    hashedToken: string,
+    password: string,
+  ) {
+    const result = await this.prisma.user.updateMany({
+      where: {
+        id: userId,
+        passwordResetToken: hashedToken,
+        passwordResetExpires: { gt: new Date() },
+      },
       data: {
+        password,
+        refreshToken: null,
         passwordResetToken: null,
         passwordResetExpires: null,
       },
     });
-
-    return { success: true };
+    return result.count === 1;
   }
 }

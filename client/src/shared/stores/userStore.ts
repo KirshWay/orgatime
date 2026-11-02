@@ -11,6 +11,7 @@ export type UserProfile = {
 
 type UserStore = {
   user: UserProfile | null;
+  sessionVersion: number;
   setUser: (user: UserProfile) => void;
   updateUser: (update: Partial<UserProfile>) => void;
   clearUser: () => void;
@@ -20,6 +21,7 @@ export const useUserStore = create<UserStore>()(
   devtools(
     (set) => ({
       user: null,
+      sessionVersion: 0,
       setUser: (user) => set({ user }, false, 'user/setUser'),
       updateUser: (update) =>
         set(
@@ -29,7 +31,12 @@ export const useUserStore = create<UserStore>()(
           false,
           'user/updateUser',
         ),
-      clearUser: () => set({ user: null }, false, 'user/clearUser'),
+      clearUser: () =>
+        set(
+          (state) => ({ user: null, sessionVersion: state.sessionVersion + 1 }),
+          false,
+          'user/clearUser',
+        ),
     }),
     { name: STORE_NAMES.USER_STORE },
   ),

@@ -33,13 +33,13 @@ export const DateGroup: React.FC<Props> = ({
             'border-gray-400 dark:border-gray-600 text-gray-900 dark:text-gray-400',
         )}
       >
-        <p className="text-sm font-medium">{label}</p>
+        <h3 className="text-sm font-semibold">{label}</h3>
         <span className="text-xs opacity-60">
           {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}
         </span>
       </div>
 
-      <div className="space-y-1 px-1">
+      <div className="px-1">
         {tasks.map((task) => (
           <TaskItem
             key={task.id}

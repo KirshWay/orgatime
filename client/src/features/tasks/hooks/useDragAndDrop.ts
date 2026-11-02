@@ -2,6 +2,7 @@ import { useState } from 'react';
 import {
   DragEndEvent,
   DragStartEvent,
+  KeyboardSensor,
   Over,
   PointerSensor,
   useSensor,
@@ -12,6 +13,7 @@ import { addDays } from 'date-fns';
 import { Task } from '@/entities/task';
 
 import { getContainerInfo, getTaskContainer } from '../lib/container-utils';
+import { taskKeyboardCoordinates } from '../lib/taskKeyboardCoordinates';
 import { ContainerDragData, ContainerInfo, TaskDragData } from '../model';
 import { useDragAndDropActions } from './useDragAndDropActions';
 
@@ -38,6 +40,9 @@ export const useDragAndDrop = ({ tasks, weekStart }: Props) => {
       activationConstraint: {
         distance: 8,
       },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: taskKeyboardCoordinates,
     }),
   );
 
@@ -103,7 +108,7 @@ export const useDragAndDrop = ({ tasks, weekStart }: Props) => {
       return;
     }
 
-    await handleDropAction(
+    return await handleDropAction(
       activeId.toString(),
       activeContainerInfo,
       overContainerInfo,
@@ -198,5 +203,6 @@ export const useDragAndDrop = ({ tasks, weekStart }: Props) => {
     activeTask,
     handleDragStart,
     handleDragEnd,
+    handleDragCancel: () => setActiveTask(null),
   };
 };

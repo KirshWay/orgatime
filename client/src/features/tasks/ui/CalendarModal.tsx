@@ -20,7 +20,6 @@ type Props = {
   onClose: () => void;
   onSelectDate: (date: Date) => void;
   currentTaskDate?: Date | null;
-  onNavigateToWeek?: (date: Date) => void;
 };
 
 export const CalendarModal: React.FC<Props> = ({
@@ -28,9 +27,10 @@ export const CalendarModal: React.FC<Props> = ({
   onClose,
   onSelectDate,
   currentTaskDate,
-  onNavigateToWeek,
 }) => {
-  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [date, setDate] = useState<Date | undefined>(
+    currentTaskDate ?? new Date(),
+  );
 
   const isSameAsCurrentDate =
     currentTaskDate && date ? isSameDay(date, currentTaskDate) : false;
@@ -38,10 +38,6 @@ export const CalendarModal: React.FC<Props> = ({
   const handleSelectDate = () => {
     if (date && !isSameAsCurrentDate) {
       onSelectDate(date);
-
-      if (onNavigateToWeek && date) {
-        onNavigateToWeek(date);
-      }
 
       onClose();
     }
@@ -56,7 +52,7 @@ export const CalendarModal: React.FC<Props> = ({
             <span>Choose date</span>
           </DialogTitle>
           <DialogDescription className="sr-only">
-            Choose a date to move the task
+            Choose a date, then save your task with Update.
           </DialogDescription>
         </DialogHeader>
 
@@ -64,6 +60,7 @@ export const CalendarModal: React.FC<Props> = ({
           <Calendar
             mode="single"
             selected={date}
+            defaultMonth={currentTaskDate ?? new Date()}
             onSelect={setDate}
             className="mx-auto"
             modifiers={{
@@ -94,7 +91,7 @@ export const CalendarModal: React.FC<Props> = ({
                 transition={{ duration: 0.3 }}
               >
                 <Button onClick={handleSelectDate} className="w-full">
-                  {`Move to ${format(date, 'dd.MM.yyyy')}`}
+                  {`Use ${format(date, 'dd.MM.yyyy')}`}
                 </Button>
               </m.div>
             )}

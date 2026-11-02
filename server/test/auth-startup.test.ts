@@ -16,7 +16,12 @@ vi.mock('src/prisma/prisma.service', () => ({
   PrismaService: class {
     user = {
       findUnique: async ({ where }: { where: { id: string } }) =>
-        where.id === 'test-user' ? { id: 'test-user' } : null,
+        where.id === 'test-user'
+          ? {
+              id: 'test-user',
+              refreshToken: `v1:aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa:${'a'.repeat(64)}`,
+            }
+          : null,
     };
   },
 }));
@@ -71,14 +76,15 @@ test('auth imports before configuration is loaded, then verifies tokens using th
   );
   await app.init();
   const jwt = app.get(JwtService);
-  const valid = jwt.sign({ sub: 'test-user' });
+  const sid = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  const valid = jwt.sign({ sub: 'test-user', purpose: 'access', sid });
   const response = await app.inject({
     method: 'GET',
     url: '/protected',
     headers: { authorization: `Bearer ${valid}` },
   });
   expect(response.statusCode).toBe(200);
-  expect(response.json()).toEqual({ id: 'test-user' });
+  expect(response.json()).toEqual({ id: 'test-user', sid });
 
   for (const token of [
     undefined,

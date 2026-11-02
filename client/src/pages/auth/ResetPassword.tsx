@@ -6,12 +6,13 @@ import * as z from 'zod';
 
 import { useResetPassword } from '@/features/auth/hooks/useResetPassword';
 import { parseApiError } from '@/shared/lib/parseApiError';
+import { newPasswordSchema } from '@/shared/lib/password';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { SEO } from '@/shared/ui/seo';
 
 const resetPasswordSchema = z.object({
-  newPassword: z.string().min(8, 'Password must be at least 8 characters long'),
+  newPassword: newPasswordSchema,
 });
 
 type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;

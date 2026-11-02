@@ -1,10 +1,9 @@
 import { Link } from 'react-router-dom';
 import { User } from 'lucide-react';
-import * as m from 'motion/react-m';
 
 import { useAuth } from '@/app/providers';
+import { useAvatar } from '@/shared/hooks/useAvatar';
 import { useUserStore } from '@/shared/stores/userStore';
-import { BackgroundPaths } from '@/shared/ui/background-paths';
 import { Button } from '@/shared/ui/button';
 import {
   DropdownMenu,
@@ -22,12 +21,13 @@ import { FeatureCards, TiltCard } from './components';
 export const Landing = () => {
   const { isAuthenticated, logout } = useAuth();
   const { user } = useUserStore();
+  const { url: avatarUrl } = useAvatar();
 
   const features = [
     {
       title: 'Weekly planning',
       description:
-        'Clear view of the whole week with the ability to drag tasks between days.',
+        'See your week at a glance and drag tasks between days as plans change.',
       icon: (
         <path
           strokeLinecap="round"
@@ -35,12 +35,11 @@ export const Landing = () => {
           d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
         />
       ),
-      delay: 0,
     },
     {
       title: 'Task management',
       description:
-        'Break down complex tasks into subtasks for easier project management.',
+        'Break tasks into subtasks and check them off as you make progress.',
       icon: (
         <path
           strokeLinecap="round"
@@ -48,12 +47,11 @@ export const Landing = () => {
           d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
         />
       ),
-      delay: 0.1,
     },
     {
       title: 'Color marking',
       description:
-        'Use colors to categorize and prioritize tasks by importance and type.',
+        'Give tasks a color to make related work easier to spot in your planner.',
       icon: (
         <path
           strokeLinecap="round"
@@ -61,7 +59,6 @@ export const Landing = () => {
           d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
         />
       ),
-      delay: 0.2,
     },
   ];
 
@@ -75,8 +72,6 @@ export const Landing = () => {
 
   return (
     <div className="min-h-screen bg-linear-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 overflow-x-hidden">
-      <BackgroundPaths opacity={0.4} zIndex={1} />
-
       <SEO
         title="OrgaTime - Manager of your time"
         description="OrgaTime helps you effectively organize your week using an intuitive task management system."
@@ -92,9 +87,9 @@ export const Landing = () => {
             className="h-12 w-12 mr-3"
           />
 
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             OrgaTime
-          </h1>
+          </p>
         </div>
         <nav>
           {isAuthenticated ? (
@@ -102,12 +97,13 @@ export const Landing = () => {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
+                  aria-label="Account menu"
                   className="w-10 h-10 p-0 rounded-full overflow-hidden"
                 >
-                  {user?.avatar ? (
+                  {avatarUrl ? (
                     <div className="relative h-8 w-8 overflow-hidden rounded-full">
                       <OptimizedImage
-                        src={user.avatar}
+                        src={avatarUrl}
                         alt="User avatar"
                         className="h-full w-full"
                         objectFit="cover"
@@ -154,28 +150,23 @@ export const Landing = () => {
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-16 relative z-10">
         <section className="flex flex-col-reverse md:flex-row items-center mb-12 sm:mb-20">
-          <m.div
-            className="flex-1 mt-12 md:mt-0 md:pr-8"
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 text-gray-900 dark:text-gray-100">
+          <div className="flex-1 min-w-0 mt-12 md:mt-0 md:pr-8">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 text-gray-900 dark:text-gray-100">
               Manage your time <br className="hidden sm:block" />
               <span className="text-indigo-600 dark:text-indigo-400">
                 organize your week
               </span>
-            </h2>
+            </h1>
             <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300 mb-6 sm:mb-8">
-              OrgaTime - simple and effective way to plan tasks, track progress
-              and increase productivity.
+              Plan your days, break tasks into smaller steps, and keep undated
+              ideas in Someday. A clear place for what you want to do next.
             </p>
             <div className="flex flex-wrap gap-4">
               {isAuthenticated ? (
                 <Link to="/">
                   <Button
                     size="lg"
-                    className="px-6 sm:px-8 shadow-lg bg-linear-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 transition-all duration-300"
+                    className="px-6 sm:px-8 shadow-lg bg-linear-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 transition-colors duration-150 text-white"
                   >
                     Go to Dashboard
                   </Button>
@@ -184,20 +175,15 @@ export const Landing = () => {
                 <Link to="/auth/signup">
                   <Button
                     size="lg"
-                    className="px-6 sm:px-8 shadow-lg bg-linear-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 transition-all duration-300"
+                    className="px-6 sm:px-8 shadow-lg bg-linear-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 transition-colors duration-150 text-white"
                   >
-                    Start using
+                    Create your account
                   </Button>
                 </Link>
               )}
             </div>
-          </m.div>
-          <m.div
-            className="w-full md:w-1/2 lg:w-5/12"
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
+          </div>
+          <div className="w-full md:w-1/2 lg:w-5/12 shrink-0">
             <TiltCard maxWidth="800px" aspectRatio="4/3">
               <div className="w-full h-full bg-gray-200 dark:bg-gray-700 rounded-xl shadow-xl flex items-center justify-center overflow-hidden">
                 <OptimizedImage
@@ -208,13 +194,13 @@ export const Landing = () => {
                 />
               </div>
             </TiltCard>
-          </m.div>
+          </div>
         </section>
 
         <section id="features" className="py-12 sm:py-16">
-          <h3 className="text-2xl sm:text-3xl font-bold text-center mb-10 sm:mb-16 text-gray-900 dark:text-gray-100">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-10 sm:mb-16 text-gray-900 dark:text-gray-100">
             Key features
-          </h3>
+          </h2>
 
           <FeatureCards features={features} />
         </section>

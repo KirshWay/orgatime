@@ -75,3 +75,72 @@ test('invalid image data is rejected without leaving an output file', async (t) 
   ).rejects.toThrow();
   expect(await readdir(outputDirectory)).toEqual([]);
 });
+
+test('a forged GIF MIME label cannot make arbitrary data a stored public image', async (t) => {
+  const outputDirectory = await destination(t);
+  const buffer = Buffer.from('not a GIF');
+  await expect(
+    convertToWebp(
+      {
+        buffer,
+        mimetype: 'image/gif',
+        originalname: 'forged.gif',
+        size: buffer.length,
+      },
+      outputDirectory,
+    ),
+  ).rejects.toThrow('File is not a valid image');
+  expect(await readdir(outputDirectory)).toEqual([]);
+});
+
+test('actual image metadata decides output format instead of the MIME label', async (t) => {
+  const outputDirectory = await destination(t);
+  const buffer = await sharp({
+    create: { width: 2, height: 2, channels: 3, background: '#fff' },
+  })
+    .webp()
+    .toBuffer();
+  const output = await convertToWebp(
+    {
+      buffer,
+      mimetype: 'image/gif',
+      originalname: 'forged.gif',
+      size: buffer.length,
+    },
+    outputDirectory,
+  );
+  expect(output.filename).toMatch(/\.webp$/);
+  expect(
+    (
+      await sharp(
+        await readFile(join(outputDirectory, output.filename)),
+      ).metadata()
+    ).format,
+  ).toBe('webp');
+});
+
+test('animated GIF uploads retain every frame and original bytes', async (t) => {
+  const frame = Buffer.from(
+    'R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
+    'base64',
+  );
+  const buffer = Buffer.concat([
+    frame.subarray(0, -1),
+    frame.subarray(19, -1),
+    Buffer.from([0x3b]),
+  ]);
+  expect((await sharp(buffer, { animated: true }).metadata()).pages).toBe(2);
+  const outputDirectory = await destination(t);
+  const output = await convertToWebp(
+    {
+      buffer,
+      mimetype: 'image/gif',
+      originalname: 'animated.gif',
+      size: buffer.length,
+    },
+    outputDirectory,
+  );
+  const stored = await readFile(join(outputDirectory, output.filename));
+  expect(stored).toEqual(buffer);
+  expect((await sharp(stored, { animated: true }).metadata()).pages).toBe(2);
+});

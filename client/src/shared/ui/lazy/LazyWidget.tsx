@@ -1,11 +1,15 @@
 import { Suspense } from 'react';
 
-import { LoadingFallback } from '@/shared/ui/loading';
+import { LoadingStatus } from '@/shared/ui/loading/LoadingStatus';
 
 type Props = {
   children: React.ReactNode;
+  fallback?: React.ReactNode;
 };
 
-export const LazyWidget = ({ children }: Props) => {
-  return <Suspense fallback={<LoadingFallback />}>{children}</Suspense>;
+export const LazyWidget = ({
+  children,
+  fallback = <LoadingStatus />,
+}: Props) => {
+  return <Suspense fallback={fallback}>{children}</Suspense>;
 };

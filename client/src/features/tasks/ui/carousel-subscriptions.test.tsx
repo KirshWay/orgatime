@@ -12,6 +12,10 @@ import { Carousel, CarouselNext } from '@/shared/ui/carousel';
 
 import { ImageGallery } from './ImageGallery';
 
+vi.mock('./TaskAttachmentImage', () => ({
+  TaskAttachmentImage: ({ alt }: { alt: string }) => <img alt={alt} />,
+}));
+
 vi.mock('embla-carousel-react', async (importOriginal) => {
   const original =
     await importOriginal<typeof import('embla-carousel-react')>();
@@ -89,13 +93,15 @@ test('image preview ignores reInit from a replaced carousel', () => {
   ];
   const onDelete = vi.fn();
   const { rerender } = render(
-    <ImageGallery images={images} onDelete={onDelete} />,
+    <ImageGallery taskId="task" images={images} onDelete={onDelete} />,
   );
   fireEvent.click(screen.getByRole('button', { name: 'Task image 1' }));
   expect(screen.getByText('2 / 2')).toBeInTheDocument();
 
   vi.mocked(useEmblaCarousel).mockReturnValue([() => {}, currentApi]);
-  rerender(<ImageGallery images={[...images]} onDelete={onDelete} />);
+  rerender(
+    <ImageGallery taskId="task" images={[...images]} onDelete={onDelete} />,
+  );
   expect(screen.getByText('1 / 2')).toBeInTheDocument();
 
   act(() => previousApi.emit('reInit'));

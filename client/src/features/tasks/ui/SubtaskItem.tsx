@@ -46,20 +46,24 @@ export const SubtaskItem: React.FC<Props> = ({
       {isEditing ? (
         <>
           <Input
+            aria-label="Subtask title"
+            className="min-w-0"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Task text"
           />
           <div className="flex gap-2">
             <Button
-              className="bg-green-600 dark:text-white"
+              aria-label="Save subtask"
+              variant="outline"
               onClick={handleUpdateConfirm}
               disabled={isUpdateDisabled}
             >
               <Check />
             </Button>
             <Button
-              className="bg-red-300 dark:text-white"
+              aria-label="Cancel subtask edit"
+              variant="ghost"
               onClick={handleCancelEdit}
             >
               <X />
@@ -68,12 +72,13 @@ export const SubtaskItem: React.FC<Props> = ({
         </>
       ) : (
         <>
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <p className="min-w-0 flex-1 break-words text-sm font-medium text-gray-700 dark:text-gray-300">
             {subtask.title}
           </p>
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1">
             <Checkbox
-              className="w-8 h-8"
+              aria-label={`Mark ${subtask.title} as ${subtask.completed ? 'incomplete' : 'complete'}`}
+              className="size-5"
               checked={subtask.completed}
               onCheckedChange={(checked) => {
                 if (typeof checked === 'boolean') {
@@ -82,13 +87,18 @@ export const SubtaskItem: React.FC<Props> = ({
               }}
             />
             <Button
-              className="bg-gray-600 dark:text-white"
+              aria-label={`Edit ${subtask.title}`}
+              variant="ghost"
+              size="icon"
               onClick={() => setIsEditing(true)}
             >
               <Pencil />
             </Button>
             <Button
-              className="bg-red-700 dark:text-white"
+              aria-label={`Delete ${subtask.title}`}
+              variant="ghost"
+              size="icon"
+              className="text-red-600 dark:text-red-400"
               onClick={() => onDelete(subtask.id)}
             >
               <Trash />

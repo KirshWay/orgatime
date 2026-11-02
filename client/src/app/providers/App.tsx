@@ -1,12 +1,6 @@
-import React, { lazy } from 'react';
-import { Route, Routes, useLocation } from 'react-router-dom';
-import {
-  AnimatePresence,
-  domAnimation,
-  LazyMotion,
-  MotionConfig,
-} from 'motion/react';
-import * as m from 'motion/react-m';
+import { lazy } from 'react';
+import { Route, Routes } from 'react-router-dom';
+import { domAnimation, LazyMotion, MotionConfig } from 'motion/react';
 
 import { ThemeProvider } from '@/shared/theme/theme-provider';
 import { LazyPage } from '@/shared/ui/lazy';
@@ -52,103 +46,82 @@ const Landing = lazy(() =>
   import('@/pages/landing').then((module) => ({ default: module.Landing })),
 );
 
-const PageTransition = ({ children }: { children: React.ReactNode }) => (
-  <m.div
-    initial={{ opacity: 0, x: -50 }}
-    animate={{ opacity: 1, x: 0 }}
-    exit={{ opacity: 0, x: 50 }}
-    transition={{ duration: 0.4 }}
-  >
-    {children}
-  </m.div>
-);
-
 export const App = () => {
-  const location = useLocation();
-
   return (
     <LazyMotion features={domAnimation} strict>
       <MotionConfig reducedMotion="user">
         <ThemeProvider defaultTheme="system">
           <TooltipProvider>
-            <AnimatePresence mode="sync">
-              <Routes location={location} key={location.pathname}>
-                <Route
-                  path="/about"
-                  element={
-                    <LazyPage>
-                      <PageTransition>
-                        <Landing />
-                      </PageTransition>
-                    </LazyPage>
-                  }
-                />
-                <Route
-                  path="auth/login"
-                  element={
-                    <LazyPage>
-                      <Login />
-                    </LazyPage>
-                  }
-                />
-                <Route
-                  path="auth/signup"
-                  element={
-                    <LazyPage>
-                      <SignUp />
-                    </LazyPage>
-                  }
-                />
-                <Route
-                  path="auth/forgot-password"
-                  element={
-                    <LazyPage>
-                      <ForgotPassword />
-                    </LazyPage>
-                  }
-                />
-                <Route
-                  path="auth/reset-password"
-                  element={
-                    <LazyPage>
-                      <ResetPassword />
-                    </LazyPage>
-                  }
-                />
+            <Routes>
+              <Route
+                path="/about"
+                element={
+                  <LazyPage>
+                    <Landing />
+                  </LazyPage>
+                }
+              />
+              <Route
+                path="auth/login"
+                element={
+                  <LazyPage>
+                    <Login />
+                  </LazyPage>
+                }
+              />
+              <Route
+                path="auth/signup"
+                element={
+                  <LazyPage>
+                    <SignUp />
+                  </LazyPage>
+                }
+              />
+              <Route
+                path="auth/forgot-password"
+                element={
+                  <LazyPage>
+                    <ForgotPassword />
+                  </LazyPage>
+                }
+              />
+              <Route
+                path="auth/reset-password"
+                element={
+                  <LazyPage>
+                    <ResetPassword />
+                  </LazyPage>
+                }
+              />
 
-                <Route element={<PrivateRoute />}>
-                  <Route
-                    path="/"
-                    element={
-                      <LazyPage>
-                        <PageTransition>
-                          <Home />
-                        </PageTransition>
-                      </LazyPage>
-                    }
-                  />
-                  <Route
-                    path="/tasks"
-                    element={
-                      <LazyPage>
-                        <PageTransition>
-                          <AllTasks />
-                        </PageTransition>
-                      </LazyPage>
-                    }
-                  />
-                </Route>
-
+              <Route element={<PrivateRoute />}>
                 <Route
-                  path="*"
+                  path="/"
                   element={
                     <LazyPage>
-                      <NotFound />
+                      <Home />
                     </LazyPage>
                   }
                 />
-              </Routes>
-            </AnimatePresence>
+                <Route
+                  path="/tasks"
+                  element={
+                    <LazyPage>
+                      <AllTasks />
+                    </LazyPage>
+                  }
+                />
+              </Route>
+
+              <Route
+                path="*"
+                element={
+                  <LazyPage>
+                    <NotFound />
+                  </LazyPage>
+                }
+              />
+            </Routes>
           </TooltipProvider>
         </ThemeProvider>
       </MotionConfig>

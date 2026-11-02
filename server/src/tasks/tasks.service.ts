@@ -2,6 +2,7 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  Logger,
   NotFoundException,
   OnModuleDestroy,
   OnModuleInit,
@@ -13,19 +14,31 @@ import { UpdateSubtaskDto } from './dto/update-subtask.dto';
 import { UpdateTaskDateDto } from './dto/update-task-date.dto';
 import { UpdateTaskOrderItemDto } from './dto/update-task-order.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { TaskImageDto } from './dto/task-image.dto';
-import { unlink, copyFile, mkdir } from 'fs/promises';
+import { unlink, copyFile, mkdir, readFile } from 'fs/promises';
 import { join } from 'path';
-import * as path from 'path';
-import { existsSync } from 'fs';
+import { randomUUID } from 'crypto';
+import { extname } from 'path';
+import { resolveTaskImagePath } from 'src/utils/task-image-path';
+import { ImageUploadService } from 'src/common/services/image-upload.service';
+import type { MultipartRequestLike } from 'src/common/http/http.types';
+import sharp from 'sharp';
+import type { Prisma, Task } from '@prisma/client';
+
+type ExportState =
+  | { status: 'pending' }
+  | { status: 'completed'; timestamp: number };
 
 @Injectable()
 export class TasksService implements OnModuleInit, OnModuleDestroy {
-  private exportCooldowns = new Map<string, number>();
+  private readonly logger = new Logger(TasksService.name);
+  private exportCooldowns = new Map<string, ExportState>();
   private readonly EXPORT_COOLDOWN_MS = 5 * 60 * 1000;
   private cleanupInterval: ReturnType<typeof setInterval>;
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly imageUploadService: ImageUploadService,
+  ) {}
 
   onModuleInit() {
     this.cleanupInterval = setInterval(
@@ -40,18 +53,27 @@ export class TasksService implements OnModuleInit, OnModuleDestroy {
 
   private cleanupStaleCooldowns() {
     const now = Date.now();
-    for (const [userId, timestamp] of this.exportCooldowns) {
-      if (now - timestamp > this.EXPORT_COOLDOWN_MS) {
+    for (const [userId, state] of this.exportCooldowns) {
+      if (
+        state.status === 'completed' &&
+        now - state.timestamp > this.EXPORT_COOLDOWN_MS
+      ) {
         this.exportCooldowns.delete(userId);
       }
     }
   }
 
   async getTasksForExport(userId: string) {
-    const lastExport = this.exportCooldowns.get(userId);
-    if (lastExport && Date.now() - lastExport < this.EXPORT_COOLDOWN_MS) {
+    const state = this.exportCooldowns.get(userId);
+    if (state?.status === 'pending') {
+      throw new HttpException(
+        'An export is already in progress. Please try again later.',
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+    if (state && Date.now() - state.timestamp < this.EXPORT_COOLDOWN_MS) {
       const remainingSec = Math.ceil(
-        (this.EXPORT_COOLDOWN_MS - (Date.now() - lastExport)) / 1000,
+        (this.EXPORT_COOLDOWN_MS - (Date.now() - state.timestamp)) / 1000,
       );
       throw new HttpException(
         `Export is available once every 5 minutes. Try again in ${remainingSec}s.`,
@@ -59,15 +81,25 @@ export class TasksService implements OnModuleInit, OnModuleDestroy {
       );
     }
 
-    const tasks = await this.prisma.task.findMany({
-      where: { userId },
-      orderBy: { order: 'asc' },
-      include: { subtasks: true, images: true },
-    });
-
-    this.exportCooldowns.set(userId, Date.now());
-
-    return tasks;
+    const reservation: ExportState = { status: 'pending' };
+    this.exportCooldowns.set(userId, reservation);
+    try {
+      const tasks = await this.prisma.task.findMany({
+        where: { userId },
+        orderBy: { order: 'asc' },
+        include: { subtasks: true, images: true },
+      });
+      this.exportCooldowns.set(userId, {
+        status: 'completed',
+        timestamp: Date.now(),
+      });
+      return tasks;
+    } catch (error) {
+      if (this.exportCooldowns.get(userId) === reservation) {
+        this.exportCooldowns.delete(userId);
+      }
+      throw error;
+    }
   }
 
   async createTask(userId: string, dto: CreateTaskDto) {
@@ -131,33 +163,40 @@ export class TasksService implements OnModuleInit, OnModuleDestroy {
       where: { id: taskId },
       data: {
         ...rest,
-        dueDate: dueDate || undefined,
+        dueDate,
       },
       include: { subtasks: true },
     });
   }
 
   async removeTask(userId: string, taskId: string) {
-    await this.validateTaskOwnership(userId, taskId);
-
-    const taskImages = await this.prisma.taskImage.findMany({
-      where: {
-        taskId,
-      },
+    const result = await this.prisma.$transaction(async (transaction) => {
+      await this.lockOwnedTask(transaction, userId, taskId);
+      const taskImages = await transaction.taskImage.findMany({
+        where: { taskId },
+      });
+      const deleted = await transaction.task.delete({
+        where: { id: taskId, userId },
+      });
+      return { deleted, taskImages };
     });
+    for (const image of result.taskImages) {
+      await this.removeImageFile(image);
+    }
+    return result.deleted;
+  }
 
-    for (const image of taskImages) {
-      try {
-        const filePath = join(process.cwd(), image.path);
-        await unlink(filePath);
-      } catch (error) {
-        console.error(`Error deleting image file: ${error}`);
+  private async removeImageFile(image: { filename: string; path: string }) {
+    try {
+      await unlink(resolveTaskImagePath(image));
+    } catch (error) {
+      if (
+        !(error instanceof NotFoundException) &&
+        (error as NodeJS.ErrnoException).code !== 'ENOENT'
+      ) {
+        this.logger.warn('Unable to remove task image file');
       }
     }
-
-    return this.prisma.task.delete({
-      where: { id: taskId },
-    });
   }
 
   async updateTaskDate(userId: string, taskId: string, dto: UpdateTaskDateDto) {
@@ -236,69 +275,37 @@ export class TasksService implements OnModuleInit, OnModuleDestroy {
     const highestOrder =
       tasksWithSameDate.length > 0 ? tasksWithSameDate[0].order : 0;
 
-    const newTask = await this.prisma.task.create({
-      data: {
-        ...taskData,
-        title: `${taskData.title} (copy)`,
-        order: highestOrder + 1,
-      },
-      include: {
-        subtasks: true,
-        images: true,
-      },
-    });
-
-    if (subtasks && subtasks.length > 0) {
-      const subtaskPromises = subtasks.map((subtask) => {
-        return this.prisma.subtask.create({
-          data: {
-            title: subtask.title,
-            completed: subtask.completed,
-            taskId: newTask.id,
-          },
-        });
-      });
-
-      await Promise.all(subtaskPromises);
-    }
-
-    if (images && images.length > 0) {
-      const uploadsDir = join(process.cwd(), 'uploads', 'tasks');
-
-      if (!existsSync(uploadsDir)) {
-        await mkdir(uploadsDir, { recursive: true });
+    const copiedImages: { filename: string; path: string }[] = [];
+    try {
+      await mkdir(join(process.cwd(), 'uploads', 'tasks'), { recursive: true });
+      for (const image of images) {
+        const source = resolveTaskImagePath(image);
+        const filename = `${randomUUID()}${extname(image.filename)}`;
+        const copy = { filename, path: `/uploads/tasks/${filename}` };
+        copiedImages.push(copy);
+        await copyFile(source, resolveTaskImagePath(copy));
       }
-
-      const imagePromises = images.map(async (image) => {
-        try {
-          const originalFilePath = join(process.cwd(), image.path);
-          const fileName = path.basename(image.path);
-
-          const fileExt = path.extname(fileName);
-          const fileNameWithoutExt = path.basename(fileName, fileExt);
-          const newFileName = `${fileNameWithoutExt}_copy_${Date.now()}${Math.floor(Math.random() * 1000)}${fileExt}`;
-          const newFilePath = join('uploads', 'tasks', newFileName);
-          const newFullFilePath = join(process.cwd(), newFilePath);
-
-          await copyFile(originalFilePath, newFullFilePath);
-
-          return this.prisma.taskImage.create({
-            data: {
-              filename: newFileName,
-              path: `/${newFilePath}`,
-              taskId: newTask.id,
-            },
-          });
-        } catch (error) {
-          console.error('Error duplicating image:', error);
-          return null;
-        }
+      return await this.prisma.task.create({
+        data: {
+          ...taskData,
+          title: `${taskData.title} (copy)`,
+          order: highestOrder + 1,
+          subtasks: {
+            create: subtasks.map((subtask) => ({
+              title: subtask.title,
+              completed: subtask.completed,
+            })),
+          },
+          images: { create: copiedImages },
+        },
+        include: { subtasks: true, images: true },
       });
-
-      await Promise.all(imagePromises);
+    } catch (error) {
+      await Promise.all(
+        copiedImages.map((image) => this.removeImageFile(image)),
+      );
+      throw error;
     }
-
-    return this.findOneTask(userId, newTask.id);
   }
 
   async createSubtask(userId: string, taskId: string, dto: CreateSubtaskDto) {
@@ -346,46 +353,81 @@ export class TasksService implements OnModuleInit, OnModuleDestroy {
   }
 
   async updateTasksOrder(userId: string, tasksOrder: UpdateTaskOrderItemDto[]) {
-    const updatedTasks = await Promise.all(
-      tasksOrder.map(async (item) => {
-        const task = await this.prisma.task.findFirst({
-          where: { id: item.id, userId },
-        });
-
-        if (!task) {
+    if (tasksOrder.length === 0) return [];
+    return this.prisma.$transaction(async (transaction) => {
+      const tasks = await transaction.task.findMany({
+        where: { userId, id: { in: tasksOrder.map((item) => item.id) } },
+        select: { id: true },
+      });
+      const ownedIds = new Set(tasks.map((task) => task.id));
+      for (const item of tasksOrder) {
+        if (!ownedIds.has(item.id)) {
           throw new NotFoundException(`Task with id ${item.id} not found`);
         }
-
-        const newDueDate =
-          item.dueDate === null
-            ? null
-            : item.dueDate !== undefined
-              ? item.dueDate
-              : task.dueDate;
-
-        return this.prisma.task.update({
-          where: { id: item.id },
-          data: {
-            order: item.order,
-            dueDate: newDueDate,
-          },
-        });
-      }),
-    );
-
-    return updatedTasks;
+      }
+      const updatedTasks: Task[] = [];
+      for (const item of tasksOrder) {
+        updatedTasks.push(
+          await transaction.task.update({
+            where: { id: item.id, userId },
+            data: {
+              order: item.order,
+              ...(item.dueDate !== undefined ? { dueDate: item.dueDate } : {}),
+            },
+          }),
+        );
+      }
+      return updatedTasks;
+    });
   }
 
-  async addTaskImage(userId: string, taskId: string, imageDto: TaskImageDto) {
-    const task = await this.validateTaskOwnership(userId, taskId);
+  async uploadTaskImage(
+    userId: string,
+    taskId: string,
+    request: MultipartRequestLike,
+  ) {
+    await this.validateTaskOwnership(userId, taskId);
+    const image = await this.imageUploadService.uploadTaskImage(request);
+    try {
+      return await this.prisma.$transaction(async (transaction) => {
+        await this.lockOwnedTask(transaction, userId, taskId);
+        return transaction.taskImage.create({
+          data: { ...image, task: { connect: { id: taskId, userId } } },
+        });
+      });
+    } catch (error) {
+      await this.removeImageFile(image);
+      throw error;
+    }
+  }
 
-    return this.prisma.taskImage.create({
-      data: {
-        filename: imageDto.filename,
-        path: imageDto.path,
-        taskId: task.id,
-      },
+  async getTaskImageContent(userId: string, taskId: string, imageId: string) {
+    const image = await this.prisma.taskImage.findFirst({
+      where: { id: imageId, taskId, task: { userId } },
     });
+    if (!image) throw new NotFoundException('Image not found');
+    const filePath = resolveTaskImagePath(image);
+    let buffer: Buffer;
+    try {
+      buffer = await readFile(filePath);
+    } catch {
+      throw new NotFoundException('Image not found');
+    }
+    let metadata;
+    try {
+      metadata = await sharp(buffer).metadata();
+    } catch {
+      throw new NotFoundException('Image not found');
+    }
+    const contentTypes: Record<string, string> = {
+      webp: 'image/webp',
+      gif: 'image/gif',
+      png: 'image/png',
+      jpeg: 'image/jpeg',
+    };
+    const type = contentTypes[metadata.format ?? ''];
+    if (!type) throw new NotFoundException('Image not found');
+    return { buffer, type };
   }
 
   async getTaskImages(userId: string, taskId: string) {
@@ -412,19 +454,11 @@ export class TasksService implements OnModuleInit, OnModuleDestroy {
       throw new NotFoundException('Image not found');
     }
 
-    try {
-      const relativePath = image.path.replace(/^\/uploads/, '');
-      const filePath = join(process.cwd(), 'uploads', relativePath);
-      await unlink(filePath);
-    } catch (error) {
-      console.error('Error deleting file:', error);
-    }
-
-    return this.prisma.taskImage.delete({
-      where: {
-        id: imageId,
-      },
+    const deleted = await this.prisma.taskImage.delete({
+      where: { id: imageId },
     });
+    await this.removeImageFile(image);
+    return deleted;
   }
 
   async searchTasks(userId: string, query: string) {
@@ -491,5 +525,18 @@ export class TasksService implements OnModuleInit, OnModuleDestroy {
     }
 
     return task;
+  }
+
+  private async lockOwnedTask(
+    transaction: Prisma.TransactionClient,
+    userId: string,
+    taskId: string,
+  ) {
+    const tasks = await transaction.$queryRaw<{ id: string }[]>`
+      SELECT "id" FROM "Task"
+      WHERE "id" = ${taskId} AND "userId" = ${userId}
+      FOR UPDATE
+    `;
+    if (tasks.length === 0) throw new NotFoundException('Task not found');
   }
 }

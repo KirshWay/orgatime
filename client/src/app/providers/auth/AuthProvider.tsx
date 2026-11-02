@@ -7,177 +7,158 @@ import { UserProfile, useUserStore } from '@/shared/stores/userStore';
 
 import { AuthContext, AuthContextType } from './AuthContext';
 
-type Props = {
-  children: React.ReactNode;
-};
+type Props = { children: React.ReactNode };
+type AuthResponse = { accessToken: string; user: UserProfile };
+type RefreshRequest = { epoch: number; promise: Promise<string> };
 
-type FailedRequest = {
-  resolve: (token: string) => void;
-  reject: (error: unknown) => void;
-};
-
-type AuthResponse = {
-  accessToken: string;
-  user: UserProfile;
-};
+const sessionChanged = () =>
+  new Error('Session changed. Please sign in again.');
+const currentEpoch = () => useUserStore.getState().sessionVersion;
 
 export const AuthProvider: React.FC<Props> = ({ children }) => {
   const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [isInitialized, setIsInitialized] = useState<boolean>(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const tokenRef = useRef<string | null>(null);
   const initialRefreshAttempted = useRef(false);
-  const isRefreshing = useRef(false);
-  const failedQueue = useRef<FailedRequest[]>([]);
+  const refreshing = useRef<RefreshRequest | null>(null);
   const queryClient = useQueryClient();
   const { pathname } = useLocation();
   const { setUser, clearUser } = useUserStore();
 
-  const processQueue = (error: unknown, token: string | null) => {
-    for (const request of failedQueue.current) {
-      if (token) {
-        request.resolve(token);
-      } else {
-        request.reject(error);
-      }
-    }
-    failedQueue.current = [];
-  };
-
-  useEffect(() => {
-    const requestInterceptor = apiClient.interceptors.request.use((config) => {
-      if (accessToken) {
-        config.headers.Authorization = `Bearer ${accessToken}`;
-      }
-      return config;
-    });
-
-    const responseInterceptor = apiClient.interceptors.response.use(
-      (response) => response,
-      async (error: ApiError) => {
-        const originalConfig = error.config;
-
-        if (
-          error.status !== 401 ||
-          originalConfig._retry ||
-          originalConfig.url === '/auth/refresh' ||
-          originalConfig.url === '/auth/login' ||
-          originalConfig.url === '/auth/register'
-        ) {
-          return Promise.reject(error);
-        }
-
-        if (isRefreshing.current) {
-          return new Promise<string>((resolve, reject) => {
-            failedQueue.current.push({ resolve, reject });
-          }).then((token) => {
-            originalConfig.headers = originalConfig.headers ?? {};
-            originalConfig.headers.Authorization = `Bearer ${token}`;
-            return apiClient.request(originalConfig);
-          });
-        }
-
-        originalConfig._retry = true;
-        isRefreshing.current = true;
-
-        return apiClient
-          .post('/auth/refresh')
-          .then((res) => {
-            const newToken = (res.data as { accessToken: string }).accessToken;
-            setAccessToken(newToken);
-            processQueue(null, newToken);
-            originalConfig.headers = originalConfig.headers ?? {};
-            originalConfig.headers.Authorization = `Bearer ${newToken}`;
-            return apiClient.request(originalConfig);
-          })
-          .catch((refreshError) => {
-            processQueue(refreshError, null);
-            setAccessToken(null);
-            clearUser();
-            queryClient.clear();
-            return Promise.reject(refreshError);
-          })
-          .finally(() => {
-            isRefreshing.current = false;
-          });
-      },
-    );
-
-    return () => {
-      apiClient.interceptors.request.eject(requestInterceptor);
-      apiClient.interceptors.response.eject(responseInterceptor);
-    };
-  }, [accessToken, clearUser, queryClient]);
-
-  const login = async (email: string, password: string) => {
-    const response = await apiClient.post('/auth/login', { email, password });
-    const data = response.data as AuthResponse;
-    setAccessToken(data.accessToken);
-    setUser(data.user);
-  };
-
-  const register = async (data: {
-    email: string;
-    username: string;
-    password: string;
-    avatar?: string;
-  }) => {
-    const response = await apiClient.post('/auth/register', data);
-    const resData = response.data as AuthResponse;
-    setAccessToken(resData.accessToken);
-    setUser(resData.user);
-  };
-
-  const logout = useCallback(async () => {
-    await apiClient.post('/auth/logout');
+  const endSession = useCallback(() => {
+    tokenRef.current = null;
     setAccessToken(null);
     clearUser();
     queryClient.clear();
   }, [clearUser, queryClient]);
 
-  const refreshToken = async () => {
-    const refreshResponse = await apiClient.post('/auth/refresh');
-    const data = refreshResponse.data as { accessToken: string };
+  const refreshAccess = useCallback((): Promise<string> => {
+    const epoch = currentEpoch();
+    if (refreshing.current?.epoch === epoch) return refreshing.current.promise;
+    const promise = apiClient
+      .post<{ accessToken: string }>('/auth/refresh')
+      .then(({ data }) => {
+        if (currentEpoch() !== epoch) throw sessionChanged();
+        tokenRef.current = data.accessToken;
+        setAccessToken(data.accessToken);
+        return data.accessToken;
+      })
+      .catch((error: unknown) => {
+        if (currentEpoch() === epoch) endSession();
+        throw error;
+      })
+      .finally(() => {
+        if (refreshing.current?.promise === promise) refreshing.current = null;
+      });
+    refreshing.current = { epoch, promise };
+    return promise;
+  }, [endSession]);
+
+  useEffect(() => {
+    const requestInterceptor = apiClient.interceptors.request.use((config) => {
+      config._authEpoch ??= currentEpoch();
+      if (config._authEpoch !== currentEpoch()) throw sessionChanged();
+      if (tokenRef.current && !config.headers.Authorization) {
+        config.headers.Authorization = `Bearer ${tokenRef.current}`;
+      }
+      return config;
+    });
+    const responseInterceptor = apiClient.interceptors.response.use(
+      (response) => response,
+      async (error: ApiError) => {
+        const config = error.config;
+        if (
+          !config ||
+          error.status !== 401 ||
+          config._retry ||
+          config.url.startsWith('/auth/') ||
+          config.signal?.aborted ||
+          config._authEpoch !== currentEpoch()
+        )
+          throw error;
+        config._retry = true;
+        const token = await refreshAccess();
+        if (config._authEpoch !== currentEpoch() || config.signal?.aborted)
+          throw sessionChanged();
+        config.headers = {
+          ...config.headers,
+          Authorization: `Bearer ${token}`,
+        };
+        return apiClient.request(config);
+      },
+    );
+    return () => {
+      apiClient.interceptors.request.eject(requestInterceptor);
+      apiClient.interceptors.response.eject(responseInterceptor);
+    };
+  }, [refreshAccess]);
+
+  const authenticate = async (url: string, body: unknown) => {
+    endSession();
+    const epoch = currentEpoch();
+    const { data } = await apiClient.post<AuthResponse>(url, body);
+    if (currentEpoch() !== epoch) throw sessionChanged();
+    tokenRef.current = data.accessToken;
     setAccessToken(data.accessToken);
+    setUser(data.user);
+  };
+  const login = (email: string, password: string) =>
+    authenticate('/auth/login', { email, password });
+  const register: AuthContextType['register'] = (data) =>
+    authenticate('/auth/register', data);
+  const logout = async () => {
+    const token = tokenRef.current;
+    endSession();
+    await apiClient.post('/auth/logout', undefined, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+  };
+  const refreshToken = async () => {
+    await refreshAccess();
   };
 
   useEffect(() => {
-    if (!pathname.startsWith('/auth')) {
-      if (initialRefreshAttempted.current) {
-        return;
-      }
-
-      initialRefreshAttempted.current = true;
-
-      apiClient
-        .post('/auth/refresh')
-        .then((res) => {
-          const newToken = (res.data as { accessToken: string }).accessToken;
-          setAccessToken(newToken);
-          return apiClient.get<UserProfile>('/users/profile', {
-            headers: { Authorization: `Bearer ${newToken}` },
-          });
-        })
-        .then((profileRes) => {
-          setUser(profileRes.data);
-        })
-        .catch(() => {
-          setAccessToken(null);
-          clearUser();
-        })
-        .finally(() => setIsInitialized(true));
-    } else {
+    if (pathname.startsWith('/auth')) {
       setIsInitialized(true);
+      return;
     }
-  }, [pathname, setUser, clearUser]);
+    if (initialRefreshAttempted.current) return;
+    initialRefreshAttempted.current = true;
+    if (tokenRef.current) {
+      setIsInitialized(true);
+      return;
+    }
+    const epoch = currentEpoch();
+    refreshAccess()
+      .then((token) =>
+        apiClient.get<UserProfile>('/users/profile', {
+          headers: { Authorization: `Bearer ${token}` },
+          _authEpoch: epoch,
+        }),
+      )
+      .then(({ data }) => {
+        if (currentEpoch() === epoch) setUser(data);
+      })
+      .catch(() => {
+        if (currentEpoch() === epoch) endSession();
+      })
+      .finally(() => setIsInitialized(true));
+  }, [pathname, setUser, endSession, refreshAccess]);
 
-  const value: AuthContextType = {
-    accessToken,
-    isAuthLoading: !isInitialized,
-    isAuthenticated: !!accessToken,
-    login,
-    register,
-    logout,
-    refreshToken,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider
+      value={{
+        accessToken,
+        isAuthLoading: !isInitialized,
+        isAuthenticated: !!accessToken,
+        login,
+        register,
+        logout,
+        endSession,
+        refreshToken,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };

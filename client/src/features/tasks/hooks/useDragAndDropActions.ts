@@ -107,7 +107,11 @@ export const useDragAndDropActions = () => {
     taskId: string,
     overItemId?: string,
   ) => {
-    const containerTasks = getContainerTasks(activeContainer, tasks, weekStart);
+    const containerTasks = getContainerTasks(
+      activeContainer,
+      tasks,
+      weekStart,
+    ).sort((a, b) => a.order - b.order);
 
     const activeTaskIndex = containerTasks.findIndex(
       (task) => task.id === taskId,
@@ -127,12 +131,18 @@ export const useDragAndDropActions = () => {
 
     try {
       const payload: UpdateTasksOrderDto = {
-        tasks: newOrder.map((task, index) => ({
-          id: task.id,
-          order: index,
-        })),
+        tasks: newOrder.flatMap((task, index) =>
+          task.order === index ? [] : [{ id: task.id, order: index }],
+        ),
       };
 
+      if (payload.tasks.length === 0) return true;
+      if (payload.tasks.length > 1000) {
+        toast.error(
+          'This move changes more than 1,000 tasks. Move the task a shorter distance and try again.',
+        );
+        return false;
+      }
       await updateTasksOrderMutation.mutateAsync(payload);
       return true;
     } catch (error) {
